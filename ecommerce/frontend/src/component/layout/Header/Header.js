@@ -10,12 +10,12 @@ const Header = () => {
   const [isActive, setIsActive] = useState(false);
   const [listaFocused, setListaFocused] = useState(false);
 
-  const onButtonClick = () => { 
+  const onButtonClick = () => {
     toggleDropMenu();
   }
 
   const onButtonBlur = () => {
-    if(isActive && !listaFocused){
+    if (isActive && !listaFocused) {
       toggleDropMenu()
     }
   }
@@ -25,16 +25,20 @@ const Header = () => {
   const toggleDropMenu = () => {
     setIsActive(prev => !prev)
   }
-  
+
   const navFocus = (focus) => {
     setListaFocused(focus);
-  } 
+  }
 
   return (
     <header>
       <div className="nav-area">
         <img src={LogoFetech} width={180} className="Header-Logo" alt="logo" title="Logo Fetech Informática" />
-        <button onClick={onButtonClick} onBlur={onButtonBlur} className="menu-buttom" title="Compre por Departamento">
+        <button
+          onClick={onButtonClick}
+          onBlur={onButtonBlur}
+          className="menu-buttom"
+          title="Compre por Departamento">
           <span>Compre por departamento</span>
         </button>
         <nav ref={dropDownRef} className={`menu ${isActive ? "active" : "inactive"}`}>

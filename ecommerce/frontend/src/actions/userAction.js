@@ -1,6 +1,7 @@
 import { LOGIN_REQUEST, LOGIN_FAIL, LOGIN_SUCCESS, CLEAR_ERRORS,
 REGISTER_USER_REQUEST, REGISTER_USER_FAIL, REGISTER_USER_SUCCESS,
-LOAD_USER_REQUEST, LOAD_USER_FAIL, LOAD_USER_SUCCESS } from "../constants/userConstants";
+LOAD_USER_REQUEST, LOAD_USER_FAIL, LOAD_USER_SUCCESS,
+LOGOUT_SUCCESS, LOGOUT_FAIL } from "../constants/userConstants";
 import axios from "axios";
 
 //Login
@@ -46,6 +47,17 @@ export const loadUser = () => async (dispatch) => {
         dispatch({ type: LOAD_USER_SUCCESS, payload: data.user });
     } catch (error) {
         dispatch({ type: LOAD_USER_FAIL, payload: error.response.data.message });
+    }
+}
+
+//Logout usuario
+export const logout = () => async (dispatch) => {
+    try {
+        await axios.get(`/ap1/v1/logout`);
+
+        dispatch({ type: LOGOUT_SUCCESS });
+    } catch (error) {
+        dispatch({ type: LOGOUT_FAIL, payload: error.response.data.message });
     }
 }
 
