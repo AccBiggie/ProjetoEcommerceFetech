@@ -8,6 +8,7 @@ import  Search  from "./component/Product/Search.js";
 import { LoginSignUp } from "./component/User/LoginSignUp.js";
 
 export default function MainRoutes() {
+
     return (
         <Routes>
             <Route path="/" element={<Home/>} />
