@@ -6,7 +6,7 @@ const Buttom = () => {
 
     return (
             <div className="buttonLogin">
-                <Link to="/login" className="ButtonLogin" type="text">
+                <Link to="/login" className="ButtonLogin" type="text">Login
                 </Link>
             </div >
     )
