@@ -147,7 +147,7 @@ export const LoginSignUp = () => {
                     <img src={avatarPreview} alt="Icone Avatar" />
                     <input type="file" name="avatar" accept="image/*" onChange={registerDataChange} />
                   </div>
-                  <input type="submit" value="Register" className="signUpBtn" />
+                  <input type="submit" value="Cadastrar" className="signUpBtn" />
                 </div>
               </form>
             </div>

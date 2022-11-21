@@ -61,30 +61,62 @@
   
   .loginForm > div,
   .signUpForm > div {
-    display: flex;
     width: 100%;
     align-items: center;
   }
   .loginForm > div > input,
   .signUpForm > div > input {
     padding: 1vmax 4vmax;
-    padding-right: 1vmax;
+    padding-right: 4vmax;
     width: 100%;
     box-sizing: border-box;
     border: 1px solid rgba(0, 0, 0, 0.267);
     border-radius: 4px;
-    font: 300 0.9vmax cursive;
+    font: 300 1vmax "Arial";
     outline: none;
   }
   
   .loginForm > div > svg,
   .signUpForm > div > svg {
     position: absolute;
-    transform: translateX(1vmax);
+    transform: translate(10px, 10px);
     font-size: 1.6vmax;
     color: rgba(0, 0, 0, 0.623);
   }
-  
+
+  .signUpEmail {
+    width: auto;
+  }
+
+  .signUpEmail > input {
+    width: 100%;
+    height: 6vh;
+    padding-left: 53px;
+    font: 300 1vmax "Arial";
+  }
+
+  input[type="password"] {
+    width: 100%;
+    height: 6vh;
+    padding-left: 53px;
+    font: 300 1vmax "Arial";
+}
+
+.MuiSvgIcon-root {
+  fill: grey;
+  width: 1em;
+  height: 1em;
+  font-size: 1.5rem;
+  transition: fill 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  flex-shrink: 0;
+  user-select: none;
+  position: absolute;
+  transform: translate(10px, 10px);
+}
+  .signUpPassword {
+    width: auto;
+  }
+
   .loginForm > a {
     color: rgba(0, 0, 0, 0.651);
     text-decoration: none;
@@ -100,10 +132,15 @@
   #registerImage > img {
     width: 3vmax;
     border-radius: 100%;
+    position: absolute;
+    transform: translateY(1px);
+    margin-inline: 3%;
   }
   #registerImage > input {
-    display: flex;
-    padding: 0%;
+    width: 21vw;
+    height: 7.2vh;
+    border: 1px solid grey;
+    border-radius: 5px;
   }
   
   #registerImage > input::file-selector-button {
@@ -197,6 +234,7 @@
     #registerImage > img {
       width: 8vmax;
       border-radius: 100%;
+      position: absolute;
     }
   
     #registerImage > input::file-selector-button {
