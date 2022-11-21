@@ -20,6 +20,12 @@
     margin: 1vmax;
 }
 
+.ButtomLogin > .LoginImage {
+    position: absolute;
+    margin-inline: -1.4%;
+    font-size: 1vmax;
+}
+
 .buttonLogin > .ButtonLogin:hover {
     background-color: rgb(39, 37, 37);
     transition: all 0.7s;

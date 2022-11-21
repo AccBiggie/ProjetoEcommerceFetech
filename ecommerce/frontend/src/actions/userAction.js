@@ -51,9 +51,9 @@ export const loadUser = () => async (dispatch) => {
 }
 
 //Logout usuario
-export const logout = () => async (dispatch) => {
+export const logout = (userData) => async (dispatch) => {
     try {
-        await axios.get(`/ap1/v1/logout`);
+        await axios.get(`/api/v1/logout`, userData);
 
         dispatch({ type: LOGOUT_SUCCESS });
     } catch (error) {

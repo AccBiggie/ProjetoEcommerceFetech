@@ -1,6 +1,7 @@
 import React, { useState, Fragment } from 'react';
 import { useNavigate } from "react-router-dom";
 import "./Search.css";
+import SearchIcon from '@mui/icons-material/Search';
 
 const Search = () => {
     const [keyword, setKeyword] = useState("");
@@ -23,7 +24,7 @@ const Search = () => {
                 alt="Search OR Pesquisar Produtos"
                 onChange={(e) => setKeyword(e.target.value)} 
             />
-            <input type="submit" value="Search" />
+            <input type="submit" value="Pesquisar" />
         </form>
     </Fragment>
   )

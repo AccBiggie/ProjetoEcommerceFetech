@@ -8,7 +8,8 @@ import ListAltIcon from "@material-ui/icons/ListAlt";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useAlert } from 'react-alert';
-import { logout } from "../../../actions/userAction"
+import { logout } from "../../../actions/userAction.js";
+
 const UserOptions = ({ user }) => {
     const [open, setOpen] = useState(false)
     const navigate = useNavigate();
