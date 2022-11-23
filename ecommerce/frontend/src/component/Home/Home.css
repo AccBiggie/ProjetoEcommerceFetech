@@ -113,11 +113,40 @@
 
 .contadorPromocao > .OFF {
     font: 300 1vmax Sans Serif cursive;
-    width: 2vmax;
-    height: 2vmax;
-    background: orange;
+    width: 2.5vmax;
+    height: 2px,1vmax;
+    background: rgb(203 203 203);
     display: flex;
-    margin: 0 auto;
+    margin: 0px auto;
+    margin-inline: -0.69%;
+    border-radius: 11%;
+    text-align: center;
+    border-right: 3px solid rgb(207 24 24);
+}
+
+.contadorPromocao .countOff .countOffProduct{
+    align-self: center;
+    margin-inline: 4%;
+    display: flex;
+}
+
+.countOffProduct{
+    display: flex;
+    font: 300 1vmax "Arial";
+    color: gray;
+}
+
+.countOffProduct > div {
+    margin-inline: 0.7vmax;
+    width: 100%;
+}
+
+.testeHover {
+    display: none;
+}
+
+.productCard:hover > .countOffProduct:hover {
+    align-items: end;
 }
 
 .OFF {
@@ -132,6 +161,7 @@
 }
 
 .productCard > div {
+    width: 100%;
     margin: 0.3vmax;
     display: flex;
     justify-content: flex-start;

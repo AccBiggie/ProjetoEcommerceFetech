@@ -1,9 +1,19 @@
 //Product Model
 const mongoose = require('mongoose');
 const productSchema = mongoose.Schema( {
+    off: {
+        type: Number,
+        required: [true, "Por favor, insira uma promoção válida."],
+        maxLength: [15, "A promoção não pode exceder mais que 15 caracteres."],
+    },
+    countDown: {
+        type: String,
+        required: [true, "Por favor, insira uma data para o contador."],
+        maxLength: [50, "A data não pode exceder mais que 40 caracteres."],
+    },
     name: {
         type: String,
-        required: [true, "Pleaser enter product name"],
+        required: [true, "Please enter product name"],
         trim: true
     },
     description: {
