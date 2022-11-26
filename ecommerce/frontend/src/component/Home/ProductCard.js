@@ -67,7 +67,6 @@ const ProductCard = ({ product }) => {
               timerSeconds={timerSeconds}
             >
               </span>
-              <div className="testeHover">testeHover</div>
               <div className="countOffProduct">
                 <div>
                     <p>{timerDays}</p>

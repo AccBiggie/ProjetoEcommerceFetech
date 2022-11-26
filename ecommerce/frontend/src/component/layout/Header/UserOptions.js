@@ -1,6 +1,7 @@
 import React, { Fragment, useState } from 'react'
 import "./Header.css";
 import { SpeedDial, SpeedDialAction } from "@material-ui/lab";
+import BackDrop from "@material-ui/core/Backdrop";
 import DashboardIcon from "@material-ui/icons/Dashboard";
 import PersonIcon from "@material-ui/icons/Person";
 import ExitToAppIcon from "@material-ui/icons/ExitToApp";
@@ -43,16 +44,18 @@ const UserOptions = ({ user }) => {
 
     function logoutUser() {
         dispatch(logout());
-        alert.success("Logout Successfully");
+        alert.success("Você saiu da conta.");
     }
 
     return (
         <Fragment>
+            <BackDrop open={open} style={{ zIndex: "10" }} />
             <SpeedDial ariaLabel="SpeedDial tooltip example"
                 onClose={() => setOpen(false)}
                 onOpen={() => setOpen(true)}
                 open={open}
                 direction="down"
+                className="speedDial"
                 icon={<img
                     className="speedDialIcon"
                     src={user.avatar.url ? user.avatar.url : "/Profile.png"}
@@ -62,6 +65,7 @@ const UserOptions = ({ user }) => {
             >
                 {options.map((item) => (
                     <SpeedDialAction 
+                    key={item.name}
                     icon={item.icon}
                     tooltipTitle={item.name}
                     onClick={item.func}

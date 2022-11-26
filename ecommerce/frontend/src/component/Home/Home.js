@@ -14,7 +14,6 @@ const Home = () => {
   const alert = useAlert()
   const dispatch = useDispatch();
   const { loading, error, products } = useSelector((state) => state.products);
-
   useEffect(() => {
 
     if (error) {
@@ -30,19 +29,11 @@ const Home = () => {
       ) : (
         <React.Fragment>
           <MetaData title="Loja Fetech | Entre já para o mundo gamer" />
-          {/*<div className="banner">
-            <p> Seja Bem Vindo | Ecommerce Fetech</p>
-              <a href="#navBar">
-                  <button >
-                  Scroll
-                  </button>
-              </a>
-        </div>
 
         <nav className="navBar" alt="NavBar">
           <Navbar>
           </Navbar>
-        </nav> */}
+        </nav>
 
           <nav id="navBar">
             <Header></Header>

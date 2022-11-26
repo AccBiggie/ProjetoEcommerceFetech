@@ -9,7 +9,6 @@ import Buttom from '../Navbar/Buttom';
 const Header = () => {
   const [isActive, setIsActive] = useState(false);
   const [listaFocused, setListaFocused] = useState(false);
-
   const onButtonClick = () => {
     toggleDropMenu();
   }
