@@ -30,11 +30,11 @@ const Home = () => {
         <React.Fragment>
           <MetaData title="Loja Fetech | Entre já para o mundo gamer" />
 
-        <nav className="navBar" alt="NavBar">
-          <Navbar>
+      {/*<nav className="navBar" alt="NavBar">
+          //<Navbar>
           </Navbar>
         </nav>
-
+      */}
           <nav id="navBar">
             <Header></Header>
           </nav>

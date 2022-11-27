@@ -5,19 +5,19 @@ import { ReactComponent as LogoFetech } from "../../../images/ProjetoLogoFetech2
 import "./Navbar.css";
 //import Search from '../../Product/Search.js';
 
-const Navbar = () => {
+//const Navbar = () => {
   //const dropDownRef = useRef(null);
   //const [isActive, setIsActive] = useState(false);
   //const onClick = () => setIsActive(!isActive);
 
-  return (
+  //return (
     //NavBar for Project Apresentation
-    <nav id="navbar" alt="NavBar">
-      <div className="navbar">
-        <div className="LogoFetech" alt="LogoFetech" title="Logo Fetech Informática"><LogoFetech width={150} /></div>
-      </div>
-    </nav>
-  )
-}
+    //<nav id="navbar" alt="NavBar">
+      //<div className="navbar">
+        //<div className="LogoFetech" alt="LogoFetech" title="Logo Fetech Informática"><LogoFetech width={150} /></div>
+      //</div>
+    //</nav>
+ // )
+//}
 
-export default Navbar;
+//export default Navbar;

@@ -63,12 +63,18 @@ const UserOptions = ({ user }) => {
                 />
                 }
             >
+                <div>
+                    <p className="helloUser">
+                        Olá, {user.name}
+                    </p>
+                </div>
                 {options.map((item) => (
-                    <SpeedDialAction 
-                    key={item.name}
-                    icon={item.icon}
-                    tooltipTitle={item.name}
-                    onClick={item.func}
+                    <SpeedDialAction
+                        className="iconProfile"
+                        key={item.name}
+                        icon={item.icon}
+                        tooltipTitle={item.name}
+                        onClick={item.func}
                     />
                 ))}
             </SpeedDial>

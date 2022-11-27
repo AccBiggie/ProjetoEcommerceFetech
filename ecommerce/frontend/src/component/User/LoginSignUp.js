@@ -77,7 +77,7 @@ export const LoginSignUp = () => {
     }
 
     if(isAuthenticated) {
-      navigate("/account");
+      navigate("/");
     }
   }, [dispatch, error, alert, navigate, isAuthenticated]);
 
