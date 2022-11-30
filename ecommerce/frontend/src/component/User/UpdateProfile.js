@@ -1,6 +1,5 @@
 import React, { Fragment, useState, useEffect } from "react"
 import "./UpdateProfile.css";
-import { Link } from "react-router-dom";
 import MetaData from "../layout/MetaData";
 import MailOutlineIcon from "@material-ui/icons/MailOutline";
 import FaceIcon from "@material-ui/icons/Face"
@@ -9,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearErrors, loadUser, updateProfile } from "../../actions/userAction";
 import { useAlert } from "react-alert";
 import { useNavigate } from "react-router-dom"
-import { UPDATE_PROFILE_REQUEST, UPDATE_PROFILE_RESET } from "../../constants/userConstants";
+import { UPDATE_PROFILE_RESET } from "../../constants/userConstants";
 
 const UpdateProfile = () => {
     const dispatch = useDispatch();

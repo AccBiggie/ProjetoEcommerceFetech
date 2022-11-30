@@ -63,8 +63,8 @@ const UserOptions = ({ user }) => {
                 />
                 }
             >
-                <div>
-                    <p className="helloUser">
+                <div className="helloUser">
+                    <p className="helloUser2">
                         Olá, {user.name}
                     </p>
                 </div>
