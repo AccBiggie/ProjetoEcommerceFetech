@@ -6,6 +6,9 @@ import Loader from "./component/layout/Loader/Loader.js";
 import Products from "./component/Product/Products.js";
 import  Search  from "./component/Product/Search.js";
 import { LoginSignUp } from "./component/User/LoginSignUp.js";
+import Profile from "./component/User/Profile.js";
+import ProtectedRoute from "./component/Route/ProtectedRoute.js";
+import UpdateProfile from "./component/User/UpdateProfile.js";
 
 export default function MainRoutes() {
 
@@ -17,6 +20,8 @@ export default function MainRoutes() {
             <Route path="/products" element={<Products />} />
             <Route path="/products/:keyword" element={<Products />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/account" element={<Profile />} />
+            <Route path="/me/update" element={<UpdateProfile />} />
             <Route path="/login" element={<LoginSignUp />} />
         </Routes>
     );
