@@ -56,7 +56,7 @@ const UpdateProfile = () => {
         }
 
         if (isUpdated) {
-            alert.success("Profile Updated Successfully !");
+            alert.success("Perfil alterado com sucesso!");
             dispatch(loadUser());
 
             navigate("/account");
@@ -72,10 +72,10 @@ const UpdateProfile = () => {
                 <Loader />
             ) : (
                 <Fragment>
-                    <MetaData title="Update Profile" />
+                    <MetaData title="Configurações do perfil." />
                     <div className="updateProfileContainer">
                         <div className="updateProfileBox">
-                            <h2 className="updateProfileHeading">Update Profile</h2>
+                            <h2 className="updateProfileHeading">Configurações do perfil.</h2>
 
                             <form
                                 className="updateProfileForm"
@@ -116,7 +116,7 @@ const UpdateProfile = () => {
                                 </div>
                                 <input
                                     type="submit"
-                                    value="Update"
+                                    value="Confirmar"
                                     className="updateProfileBtn"
                                 />
                             </form>

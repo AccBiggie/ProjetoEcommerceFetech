@@ -98,6 +98,7 @@
     padding: 0.5vmax;
     cursor: pointer;
     color: white;
+    border-bottom: 2px solid red;
 }
 
 .detailsBlock-3-1-1 > button:hover {
@@ -105,9 +106,9 @@
 }
 
 .detailsBlock-3-1-1 > input {
-    border: none;
+    order: none;
     padding: 0.7vmax;
-    width: 1vmax;
+    width: 4vmax;
     text-align: center;
     outline: none;
     font: 400 0.8vmax "Roboto";

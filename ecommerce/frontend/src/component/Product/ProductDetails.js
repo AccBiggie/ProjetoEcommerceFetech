@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect } from 'react'
+import React, { Fragment, useEffect, useState } from 'react'
 import Carousel from "react-material-ui-carousel";
 import "./ProductDetails.css";
 import { useSelector, useDispatch } from "react-redux";
@@ -10,6 +10,7 @@ import Loader from '../layout/Loader/Loader.js';
 import { useAlert } from "react-alert"
 import Header from '../layout/Header/Header.js';
 import MetaData from '../layout/MetaData';
+import { addItemsToCart } from '../../actions/cartAction';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -17,13 +18,35 @@ const ProductDetails = () => {
   const alert = useAlert();
 
   const { product, loading, error } = useSelector((state) => state.productDetails);
-  useEffect(() => {
-    if (error) {
-      alert.error(error);
-      dispatch(clearErrors());
+
+  const [quantity, setQuantity] = useState(1);
+  const increaseQuantity = () => {
+    if (product.Stock <= quantity) {
+      return;
     }
-    dispatch(getProductDetails(id));
-  }, [dispatch, id, error, alert]);
+    const qty = quantity + 1;
+    setQuantity(qty);
+  };
+
+  const decreaseQuantity = () => {
+    if (quantity <= 1)
+      return;
+    const qty = quantity - 1;
+    setQuantity(qty);
+  }
+
+  const addToCartHandler = () => {
+    dispatch(addItemsToCart(product._id, quantity));
+    alert.success("Item adcionado ao carrinho.");
+  }
+
+    useEffect(() => {
+      if (error) {
+        alert.error(error);
+        dispatch(clearErrors());
+      }
+      dispatch(getProductDetails(id));
+    }, [dispatch, id, error, alert]);
 
   const options = {
     edit: false,
@@ -40,10 +63,10 @@ const ProductDetails = () => {
         <Loader />
       ) : (
         <Fragment>
-          <MetaData title={`${product.name} --Ecommerce`}/>
-            <nav id="navBar">
-              <Header></Header>
-            </nav>
+          <MetaData title={`${product.name} --Ecommerce`} />
+          <nav id="navBar">
+            <Header></Header>
+          </nav>
           <div className="ProductDetails">
             <div className="ProductDetailsImage">
               <Carousel>
@@ -72,14 +95,14 @@ const ProductDetails = () => {
                 <h1>{`R$ ${product.price}`}</h1>
                 <div className="detailsBlock-3-1">
                   <div className="detailsBlock-3-1-1">
-                    <button>-</button>
-                    <input value="1" type="number" />
-                    <button>+</button>
-                  </div>{" "}
-                  <button>Adcionar ao Carrinho</button>
+                    <button onClick={decreaseQuantity}>-</button>
+                    <input  readOnly value={quantity} type="number" />
+                    <button onClick={increaseQuantity}>+</button>
+                  </div>
+                  <button onClick={addToCartHandler}>Adcionar ao Carrinho</button>
                 </div>
                 <p>
-                  Status:{" "}
+                  Status:
                   <b className={product.Stock < 1 ? "redColor" : "greenColor"}>
                     {product.Stock < 1 ? "Sem Estoque" : "Em Estoque"}
                   </b>

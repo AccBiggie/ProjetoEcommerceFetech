@@ -17,6 +17,8 @@
   height: 70vh;
   box-sizing: border-box;
   overflow: hidden;
+  border-radius: 0.5vmax;
+  border-bottom: 2px solid red;
 }
 .login_signUp_toggle {
   display: flex;
