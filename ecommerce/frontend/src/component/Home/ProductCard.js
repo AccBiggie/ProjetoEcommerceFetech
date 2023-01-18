@@ -26,7 +26,7 @@ const ProductCard = ({ product }) => {
   const [timerHours, setTimerHours] = useState();
   const [timerMinutes, setTimerMinute] = useState();
   const [timerSeconds, setTimerSeconds] = useState();
-
+  
   let interval;
 
   const startTimer = () => {
@@ -39,9 +39,12 @@ const ProductCard = ({ product }) => {
       const minutes = Math.floor((distance % (60 * 60 * 1000)) / (1000 * 60));
       const seconds = Math.floor((distance % (60 * 1000)) / 1000);
 
-      if (distance < 0 || distance.Date < 0 ) {
-        clearInterval(interval.Date());
-      } else {
+      if (distance < 0 || distance.Date < 0) 
+      {
+        clearInterval(interval);
+      } 
+      else 
+      {
         setTimerDays(days);
         setTimerHours(hours);
         setTimerMinute(minutes);
@@ -85,6 +88,7 @@ const ProductCard = ({ product }) => {
                     <small>Seg.</small>
                 </div>
             </div>
+            <div className="countExpire">Teste</div>
           </div>
           <img src={product.images[0].url} alt={product.name} />
           <p className="productName">{product.name}</p>
