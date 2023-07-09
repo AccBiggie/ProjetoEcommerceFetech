@@ -43,7 +43,8 @@ const UserOptions = ({ user }) => {
     }
 
     function logoutUser() {
-        dispatch(logout());
+        dispatch(logout())
+        navigate("/");
         alert.success("Você saiu da conta.");
     }
 

@@ -32,7 +32,9 @@ const Header = () => {
   return (
     <header>
       <div className="nav-area">
-        <img src={LogoFetech} width={180} className="Header-Logo" alt="logo" title="Logo Fetech Informática" />
+        <a href='/'>
+          <img src={LogoFetech} width={180} className="Header-Logo" alt="logo" title="Logo Fetech Informática" />
+        </a>
         <button
           onClick={onButtonClick}
           onBlur={onButtonBlur}
