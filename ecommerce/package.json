@@ -23,5 +23,8 @@
     "nodemailer": "^6.7.8",
     "react-social-icons": "^5.14.0",
     "validator": "^13.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }
