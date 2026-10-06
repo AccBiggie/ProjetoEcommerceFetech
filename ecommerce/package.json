@@ -7,27 +7,28 @@
     "test": "node --test tests/api.test.js",
     "test:e2e": "playwright test",
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js",
+    "dev": "node --watch backend/server.js",
     "seed:products": "node backend/scripts/seedProducts.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.0",
-    "cloudinary": "^1.32.0",
-    "cookie-parser": "^1.4.6",
-    "dotenv": "^16.0.2",
-    "express": "^4.18.1",
-    "express-fileupload": "^1.4.0",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^6.5.5",
-    "nodemailer": "^6.7.8",
-    "react-social-icons": "^5.14.0",
-    "validator": "^13.7.0"
+    "bcryptjs": "^3.0.3",
+    "cloudinary": "^2.11.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.5",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.11.0",
+    "nodemailer": "^10.0.15",
+    "validator": "^13.15.35",
+    "express-fileupload": "^1.5.2"
   },
   "devDependencies": {
-    "@playwright/test": "^1.63.0",
-    "nodemon": "^3.0.1"
+    "@playwright/test": "^1.63.0"
+  },
+  "engines": {
+    "node": ">=24.19.0 <25",
+    "npm": ">=11"
   }
 }

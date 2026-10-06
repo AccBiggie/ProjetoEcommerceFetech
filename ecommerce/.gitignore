@@ -5,3 +5,5 @@ frontend/build/
 test-results/
 playwright-report/
 .test-state.json
+frontend/.env.local
+frontend/.env.*.local

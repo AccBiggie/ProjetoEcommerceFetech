@@ -27,8 +27,11 @@ logo da loja como ilustracao. Precos e descricoes sao ficticios.
 
 Cadastro sem foto funciona com o avatar padrao. Cadastro com avatar requer credenciais Cloudinary; recuperacao
 de senha requer SMTP no `config.env`. Essas integracoes nao foram
-validadas sem as credenciais. O projeto possui dependencias antigas e a
-compilacao pode apresentar avisos de descontinuacao e lint.
+validadas sem as credenciais. As dependencias foram atualizadas para as
+versoes estaveis do npm em 06/10/2026. O frontend usa Vite, React 19 e
+Material UI 9; a API usa Express 5 e Mongoose 9. Use Node 24.19 ou superior
+na linha 24 LTS e npm 11. A instalacao nao requer `legacy-peer-deps`.
+Veja [DEPENDENCIAS.md](DEPENDENCIAS.md) para as migracoes e verificacoes.
 
 O MongoDB baixado e seus dados ficam em `.local/`, fora do Git. Ele usa
 apenas a interface local. Os comandos abaixo sao para desenvolvimento local.

@@ -1,5 +1,5 @@
 const { test, expect } = require('@playwright/test');
-const { password, categories } = require('../fixtures');
+const { password, categories, productData } = require('../fixtures');
 
 async function login(page, email = 'user@routes.example.com', secret = password) {
     await page.goto('/login');
@@ -172,4 +172,27 @@ test('dashboard: criar, editar e excluir produto; usuários e transições de pe
     await expect(orderRow).toContainText('Entregue');
     await orderRow.getByRole('button', { name: 'Excluir', exact: true }).click();
     await expect(orderRow).toHaveCount(0);
+});
+
+test('carrossel atualizado: imagens, controles e título do produto', async ({ page }) => {
+    await login(page, 'admin@routes.example.com');
+    const response = await page.request.post('/api/v1/product/new', { data: productData({
+        name: 'Produto com duas imagens',
+        images: [{ public_id: 'first', url: '/Profile.png', banner: '/Profile.png' }, { public_id: 'second', url: '/logo192.png', banner: '/logo192.png' }],
+    }) });
+    expect(response.status()).toBe(201);
+    const { product } = await response.json();
+    try {
+        await page.goto('/product/' + product._id);
+        await expect(page).toHaveTitle(product.name + ' --Ecommerce');
+        const gallery = page.getByRole('region', { name: 'Imagens do produto' });
+        await expect(gallery.getByRole('img')).toHaveCount(2);
+        await expect(gallery.getByRole('button', { name: 'Imagem anterior' })).toBeDisabled();
+        await gallery.getByRole('button', { name: 'Próxima imagem' }).click();
+        await expect(gallery.getByRole('button', { name: 'Próxima imagem' })).toBeDisabled();
+        await gallery.getByRole('button', { name: 'Imagem anterior' }).click();
+        await expect(gallery.getByRole('button', { name: 'Imagem anterior' })).toBeDisabled();
+    } finally {
+        expect((await page.request.delete('/api/v1/product/' + product._id)).status()).toBe(200);
+    }
 });

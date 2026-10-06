@@ -1,0 +1,5 @@
+.productCarousel { width: 100%; }
+.productCarouselViewport { overflow: hidden; }
+.productCarouselSlides { display: flex; touch-action: pan-y pinch-zoom; }
+.productCarouselSlide { flex: 0 0 100%; min-width: 0; }
+.productCarouselControls { display: flex; justify-content: space-between; gap: 1rem; }

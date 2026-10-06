@@ -134,9 +134,8 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
     const avatar = await uploadAvatar(req.body.avatar);
     if (avatar) newUserData.avatar = avatar;
     const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
-        useFindAndModify: false,
     });
     res.status(200).json({
         success: true,
@@ -176,9 +175,8 @@ exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
         role: req.body.role,
     }
     const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
-        useFindAndModify: false,
     });
     if (!user) return next(new ErrorHander("Usuário não encontrado.", 404));
     res.status(200).json({
@@ -194,7 +192,7 @@ exports.deleteUser = catchAsyncErrors(async(req, res, next) => {
         return next(new ErrorHander("Usuário não encontrado.", 404));
     }
 
-    await user.remove();
+    await user.deleteOne();
 
     res.status(200).json({
         success: true,

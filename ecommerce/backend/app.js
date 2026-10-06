@@ -1,14 +1,15 @@
 const express = require("express");
 const app = express();
+app.set("query parser", "extended");
+const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const errorMiddleware = require("./middleware/erros");
-const bodyParser = require("body-parser");
-const fileUpload = require("express-fileupload");
 
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true, limit: "5mb"}));
-app.use(fileUpload());
+app.use(express.urlencoded({extended: true, limit: "5mb"}));
+
+app.use(fileUpload({ limits: { fileSize: 5 * 1024 * 1024 }, abortOnLimit: true }));
 //Route  Imports
 const product = require("./routes/productRoute");
 const user = require("./routes/userRoutes");

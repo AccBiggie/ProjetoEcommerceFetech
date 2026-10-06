@@ -102,8 +102,9 @@ compilado. Nenhum teste modifica o banco `fetech` ou depende da senha do
 administrador real. Capturas e traces de falhas ficam em
 `ecommerce/test-results`, fora do Git.
 
-Resultado da revisao: 8 grupos de testes da API e 7 fluxos de navegador
-passaram; build de producao concluido sem avisos de lint. A loja ativa
+Resultado apos atualizar as dependencias: 8 grupos de testes da API e
+8 fluxos de navegador passaram, incluindo o carrossel com duas imagens.
+O build com Vite foi concluido. A loja ativa
 em `http://localhost:3000` tambem foi conferida no navegador, com filtro
 e menu funcionando, API respondendo 200, rota administrativa exigindo
 autenticacao e nenhum erro JavaScript nessa verificacao.

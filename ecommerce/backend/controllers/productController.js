@@ -25,7 +25,7 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, product });
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByIdAndUpdate(req.params.id, productInput(req.body), { new: true, runValidators: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, productInput(req.body), { returnDocument: "after", runValidators: true });
     if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
     res.json({ success: true, product });
 });

@@ -25,31 +25,21 @@ So permite o banco local `fetech` na porta 27017. Nesta sessao, os 11
 produtos, seus detalhes, imagens e filtros de categoria da API foram
 verificados pelo proxy do frontend.
 
-## Dependencias (executados)
+## Dependencias atualizadas
+
+Use Node 24.19 ou superior na linha 24 LTS e npm 11. Instalacao com os
+lockfiles atualizados, sem ignorar conflitos de dependencias:
 
 ```powershell
 cd ecommerce
-npm.cmd ci --no-audit --no-fund --cache .npm-cache
+npm.cmd ci --no-fund --cache .npm-cache
 cd frontend
-npm.cmd ci --legacy-peer-deps --no-audit --no-fund --cache ../.npm-cache
+npm.cmd ci --no-fund --cache ../.npm-cache
 cd ../..
 ```
 
-O frontend mistura React 18 e bibliotecas antigas com requisitos de React
-anteriores. `.npmrc` conserva `legacy-peer-deps=true` para permitir a
-instalacao desse conjunto existente sem migrar a aplicacao.
-
-Na primeira compilacao faltava `@material-ui/core`. Para declarar as
-bibliotecas de interface usadas pela aplicacao, tambem foi executado:
-
-```powershell
-cd ecommerce/frontend
-npm.cmd install @material-ui/core@4.12.4 @mui/material@5.18.0 @mui/icons-material@5.18.0 @emotion/react@11 @emotion/styled@11 --no-audit --no-fund --cache ../.npm-cache
-cd ../..
-```
-
-Essa correcao fica registrada em `package.json` e `package-lock.json`;
-em novas instalacoes, `npm.cmd ci` ja instala essas dependencias.
+A migracao para Vite, React 19, Material UI 9, Express 5 e Mongoose 9
+esta documentada em [DEPENDENCIAS.md](DEPENDENCIAS.md).
 
 ## Configuracao (executado)
 
@@ -105,8 +95,6 @@ Terminal 3: React (comando usado na sessao).
 
 ```powershell
 cd ecommerce/frontend
-$env:BROWSER='none'
-$env:HOST='127.0.0.1'
 npm.cmd start
 ```
 
@@ -155,8 +143,8 @@ expiracao, consulta autenticada do perfil (200), token de reset invalido
 (400), confirmacao de senha diferente (400) e reset valido (200). Os
 usuarios temporarios foram excluidos ao final de cada verificacao.
 
-Resultado final: build de producao concluido com codigo de saida 0 e
-avisos de lint; frontend e proxy `/api/v1/products` responderam HTTP 200.
+Na configuracao inicial, build e proxy `/api/v1/products` foram validados.
+A validacao das dependencias atualizadas esta em DEPENDENCIAS.md.
 
 Na revisao posterior das rotas, a compilacao passou sem avisos de lint.
 Foram executados `npm.cmd test` (API) e `npm.cmd run test:e2e`
