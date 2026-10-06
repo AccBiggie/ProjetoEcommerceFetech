@@ -5,6 +5,9 @@
 O mapa das rotas, permissoes, integracoes e testes de ponta a ponta esta
 em [ROTAS.md](ROTAS.md).
 
+O layout responsivo e os componentes Material UI estao documentados em
+[FRONTEND.md](FRONTEND.md).
+
 O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
 (porta 27017). WSL e Docker nao sao obrigatorios. Foi validado com Node
 24.19.0, npm 11.17.0 e MongoDB Community 8.0.26 nativo no Windows.

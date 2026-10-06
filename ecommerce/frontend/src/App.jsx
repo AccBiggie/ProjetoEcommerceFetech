@@ -1,33 +1,37 @@
 import "./App.css";
-import { BrowserRouter as Router} from "react-router";
-import WebFont from "webfontloader";
+import { BrowserRouter as Router } from "react-router";
 import React from "react";
 import Footer from "./component/layout/Footer/Footer.jsx";
 import Routes from "./routes.jsx";
 import store from "./store";
-import { loadUser } from "./actions/userAction"
-import UserOptions from "./component/layout/Header/UserOptions.jsx"
-import { useSelector } from "react-redux";
+import { loadUser } from "./actions/userAction";
+import Header from "./component/layout/Header/Header";
+import ScrollToTop from "./component/layout/ScrollToTop";
+import { Box, CssBaseline, ThemeProvider } from "@mui/material";
+import theme from "./theme";
 
 function App() {
-    const { isAuthenticated, user } = useSelector((state) => state.user);
-    React.useEffect(() => {
-        WebFont.load({
-            google: {
-                families:["Roboto", "Droid Sans", "Chilanka"],
-            },
-        });
+  React.useEffect(() => {
+    store.dispatch(loadUser());
+  }, []);
 
-        store.dispatch(loadUser());
-    },[]);
-    
-    return (
-        <Router>
-            {isAuthenticated && <UserOptions user={user} />}
+  return (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <ScrollToTop />
+        <Box
+          sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
+        >
+          <Header />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Routes />
-            <Footer/>
-        </Router>
-    );
+          </Box>
+          <Footer />
+        </Box>
+      </Router>
+    </ThemeProvider>
+  );
 }
 
 export default App;

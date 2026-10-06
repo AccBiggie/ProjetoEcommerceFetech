@@ -1,12 +1,18 @@
-import React from 'react';
-import "./Loader.css";
-
-const Loader = () => {
+import { Box, CircularProgress, Typography } from "@mui/material";
+export default function Loader() {
   return (
-    <div className="loading">
-        <div></div>
-    </div>
-  )
+    <Box
+      role="status"
+      sx={{
+        minHeight: 260,
+        display: "grid",
+        placeContent: "center",
+        justifyItems: "center",
+        gap: 2,
+      }}
+    >
+      <CircularProgress size={32} />
+      <Typography color="textSecondary">Carregando...</Typography>
+    </Box>
+  );
 }
-
-export default Loader;

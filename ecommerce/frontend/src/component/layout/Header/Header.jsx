@@ -1,63 +1,169 @@
-import { Link } from "react-router";
+import { useState } from "react";
+import { Link, useLocation } from "react-router";
+import { useSelector } from "react-redux";
+import {
+  AppBar,
+  Badge,
+  Box,
+  Button,
+  Container,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import ShoppingBagOutlined from "@mui/icons-material/ShoppingBagOutlined";
+import Logo from "../../../images/ProjetoLogoFetech2.svg";
 import categories from "../../../data/categories.json";
-import React from 'react';
-import LogoFetech from "../../../images/ProjetoLogoFetech2.svg";
-import "../Header/Header.css"
-import { useState, useRef, useEffect } from "react";
-import Search from '../../Product/Search';
-import Buttom from '../Navbar/Buttom';
-//import CheckOutsideClick from './CheckOutsideClick';
+import Search from "../../Product/Search";
+import UserOptions from "./UserOptions";
 
-const Header = () => {
-  const [isActive, setIsActive] = useState(false);
-  const onButtonClick = () => {
-    toggleDropMenu();
-  }
-
-  const dropDownRef = useRef(null);
-  const menuButtonRef = useRef(null);
-  useEffect(() => {
-    const closeOutside = event => {
-      if (!dropDownRef.current?.contains(event.target) && !menuButtonRef.current?.contains(event.target)) setIsActive(false);
-    };
-    const closeOnEscape = event => { if (event.key === 'Escape') setIsActive(false); };
-    document.addEventListener('pointerdown', closeOutside);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => { document.removeEventListener('pointerdown', closeOutside); document.removeEventListener('keydown', closeOnEscape); };
-  }, []);
-
-  const toggleDropMenu = () => {
-    setIsActive(prev => !prev)
-  }
-
-  return (
-    <header>
-      <div className="nav-area">
-        <a href='/'>
-          <img src={LogoFetech} width={180} className="Header-Logo" alt="logo" title="Logo Fetech Informática" />
-        </a>
-        <button
-          ref={menuButtonRef}
-          aria-expanded={isActive}
-          aria-controls="department-menu"
-          onClick={onButtonClick}
-          className="menu-buttom"
-          title="Compre por Departamento">
-          <span>Compre por departamento</span>
-        </button>
-        <nav id="department-menu" aria-label="Departamentos" ref={dropDownRef} className={`menu ${isActive ? "active" : "inactive"}`}>
-          <div id="ulDropDown" alt="UL DropDown" title="Lista">
-            <ul>
-              {categories.map(category => <li key={category}><Link className="list" to={'/products?category=' + encodeURIComponent(category)} onClick={() => setIsActive(false)}>{category}</Link></li>)}
-              <li><Link className="list" to="/products" onClick={() => setIsActive(false)}>Listar Todos Os Produtos</Link></li>
-            </ul>
-          </div>
-        </nav>
-        <Search />
-        <Buttom />
-        <Link to="/cart" aria-label="Carrinho">Carrinho</Link>
-      </div>
-    </header>
+export default function Header() {
+  const [anchor, setAnchor] = useState(null);
+  const { isAuthenticated, user } = useSelector((state) => state.user);
+  const count = useSelector((state) =>
+    state.cart.cartItems.reduce((sum, item) => sum + item.quantity, 0),
   );
-};
-export default Header;
+  const location = useLocation();
+  return (
+    <AppBar
+      position="sticky"
+      color="inherit"
+      elevation={0}
+      sx={{ borderBottom: 1, borderColor: "divider" }}
+    >
+      <Container maxWidth="lg">
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr auto", md: "180px 1fr auto" },
+            gap: 2,
+            alignItems: "center",
+            py: 2,
+          }}
+        >
+          <Box
+            component={Link}
+            to="/"
+            aria-label="Fetech, página inicial"
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gridColumn: 1,
+              gridRow: 1,
+            }}
+          >
+            <Box component="img" src={Logo} alt="Fetech" sx={{ width: 150 }} />
+          </Box>
+          <Box
+            sx={{
+              gridColumn: { xs: "1 / -1", md: 2 },
+              gridRow: { xs: 2, md: 1 },
+            }}
+          >
+            <Search />
+          </Box>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              gridColumn: { xs: 2, md: 3 },
+              gridRow: 1,
+              alignItems: "center",
+            }}
+          >
+            <IconButton
+              component={Link}
+              to="/cart"
+              aria-label="Carrinho"
+              color="inherit"
+            >
+              <Badge badgeContent={count} color="primary">
+                <ShoppingBagOutlined />
+              </Badge>
+            </IconButton>
+            {isAuthenticated && user ? (
+              <UserOptions user={user} />
+            ) : (
+              <Button
+                component={Link}
+                to="/login"
+                variant="outlined"
+                size="small"
+              >
+                Entrar
+              </Button>
+            )}
+          </Stack>
+        </Box>
+        <Stack
+          direction="row"
+          spacing={{ xs: 1, sm: 3 }}
+          sx={{ pb: 1, alignItems: "center" }}
+        >
+          <Button
+            startIcon={<MenuIcon />}
+            onClick={(event) => setAnchor(event.currentTarget)}
+            aria-label="Compre por departamento"
+            aria-expanded={Boolean(anchor)}
+            aria-controls={anchor ? "department-menu" : undefined}
+            aria-haspopup="true"
+          >
+            Compre por departamento
+          </Button>
+          <Button
+            component={Link}
+            to="/products"
+            color="inherit"
+            aria-current={
+              location.pathname === "/products" ? "page" : undefined
+            }
+          >
+            Produtos
+          </Button>
+          <Typography
+            variant="caption"
+            color="textSecondary"
+            sx={{ ml: "auto !important", display: { xs: "none", md: "block" } }}
+          >
+            Hardware & tecnologia para o seu próximo nível
+          </Typography>
+        </Stack>
+        <Menu
+          id="department-menu"
+          anchorEl={anchor}
+          open={Boolean(anchor)}
+          onClose={() => setAnchor(null)}
+          slotProps={{
+            paper: { sx: { minWidth: 260, maxHeight: "70vh" } },
+            list: { "aria-label": "Departamentos" },
+          }}
+        >
+          {categories.map((category) => (
+            <MenuItem
+              component={Link}
+              role="link"
+              key={category}
+              to={"/products?category=" + encodeURIComponent(category)}
+              onClick={() => setAnchor(null)}
+            >
+              {category}
+            </MenuItem>
+          ))}
+          <Divider />
+          <MenuItem
+            component={Link}
+            role="link"
+            to="/products"
+            onClick={() => setAnchor(null)}
+          >
+            Todos os produtos
+          </MenuItem>
+        </Menu>
+      </Container>
+    </AppBar>
+  );
+}

@@ -1,35 +1,44 @@
-import React, { useState, Fragment } from 'react';
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import { RiSearch2Fill } from "react-icons/ri"
-import "./Search.css";
+import { Box, IconButton, InputAdornment, TextField } from "@mui/material";
+import SearchOutlined from "@mui/icons-material/SearchOutlined";
 
-const Search = () => {
-    const [keyword, setKeyword] = useState("");
-    const navigate = useNavigate();
-    const searchSubmitHandler = (e) => {
-        e.preventDefault();
-        if (keyword.trim()) {
-            navigate(`/products?keyword=${encodeURIComponent(keyword.trim())}`);
-        } else {
-            navigate("/products");
-        }
-    };
-    return (
-        <Fragment>
-            <form className="searchBox" onSubmit={searchSubmitHandler}>
-                <input
-                    type="text"
-                    placeholder="Pesquisar Produtos..."
-                    title="Pesquisar Produtos"
-                    alt="Search OR Pesquisar Produtos"
-                    onChange={(e) => setKeyword(e.target.value)}
-                />
-                    <button className="searchProducts" title="search">
-                        <RiSearch2Fill className="searchProduct" type="submit" />
-                    </button>
-            </form>
-        </Fragment>
-    )
+export default function Search() {
+  const [keyword, setKeyword] = useState("");
+  const navigate = useNavigate();
+  return (
+    <Box
+      component="form"
+      className="searchBox"
+      role="search"
+      onSubmit={(event) => {
+        event.preventDefault();
+        navigate(
+          keyword.trim()
+            ? "/products?keyword=" + encodeURIComponent(keyword.trim())
+            : "/products",
+        );
+      }}
+    >
+      <TextField
+        size="small"
+        placeholder="Pesquisar Produtos..."
+        value={keyword}
+        onChange={(event) => setKeyword(event.target.value)}
+        slotProps={{
+          htmlInput: { "aria-label": "Pesquisar produtos" },
+          input: {
+            sx: { bgcolor: "background.default" },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton type="submit" aria-label="Pesquisar">
+                  <SearchOutlined />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
+    </Box>
+  );
 }
-
-export default Search;

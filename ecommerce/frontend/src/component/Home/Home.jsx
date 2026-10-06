@@ -1,55 +1,162 @@
-import React, { Fragment, useEffect } from 'react';
-import "./Home.css";
-import Product from "./ProductCard.jsx";
-import MetaData from '../layout/MetaData';
-import { getProduct } from '../../actions/productAction';
-import { useSelector, useDispatch } from "react-redux";
-import Loader from '../layout/Loader/Loader';
-import Header from '../layout/Header/Header.jsx';
-import ImgSection from "../../images/wallpaperLoja2.png"
+import { useEffect } from "react";
+import { Link } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Container,
+  Skeleton,
+  Stack,
+  Typography,
+} from "@mui/material";
+import ArrowForward from "@mui/icons-material/ArrowForward";
+import { getProduct } from "../../actions/productAction";
+import ProductCard from "./ProductCard";
+import MetaData from "../layout/MetaData";
+import hero from "../../images/wallpaperLoja2.png";
+import categories from "../../data/categories.json";
 
-const Home = () => {
+export const productGrid = {
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "1fr",
+    sm: "repeat(2, 1fr)",
+    md: "repeat(3, 1fr)",
+    lg: "repeat(4, 1fr)",
+  },
+  gap: 3,
+};
+export function ProductSkeletons() {
+  return (
+    <Box sx={productGrid}>
+      {Array.from({ length: 8 }, (_, i) => (
+        <Skeleton key={i} variant="rounded" height={390} />
+      ))}
+    </Box>
+  );
+}
+
+export default function Home() {
   const dispatch = useDispatch();
   const { loading, error, products } = useSelector((state) => state.products);
   useEffect(() => {
-
     dispatch(getProduct());
   }, [dispatch]);
-
   return (
-    <Fragment>
+    <Container component="main" maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+      <MetaData title="Loja Fetech | Entre já para o mundo gamer" />
+      <Box
+        sx={{
+          bgcolor: "#182230",
+          color: "white",
+          borderRadius: 4,
+          overflow: "hidden",
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", md: "1.1fr 1fr" },
+          mb: 4,
+        }}
+      >
+        <Box sx={{ p: { xs: 3, md: 5 }, alignSelf: "center" }}>
+          <Chip
+            label="HARDWARE & TECNOLOGIA"
+            size="small"
+            sx={{
+              mb: 2,
+              color: "#f9bacb",
+              bgcolor: "#ffffff12",
+              fontWeight: 700,
+            }}
+          />
+          <Typography
+            component="h1"
+            sx={{
+              fontSize: { xs: 34, md: 46 },
+              lineHeight: 1.12,
+              fontWeight: 750,
+              letterSpacing: "-.04em",
+              maxWidth: 480,
+            }}
+          >
+            Seu próximo setup começa aqui.
+          </Typography>
+          <Typography sx={{ mt: 2, mb: 3, color: "#ccd4df", maxWidth: 420 }}>
+            Do primeiro upgrade à sua próxima conquista. Explore hardware,
+            periféricos e muito mais.
+          </Typography>
+          <Button
+            component={Link}
+            to="/products"
+            variant="contained"
+            size="large"
+            endIcon={<ArrowForward />}
+          >
+            Explorar produtos
+          </Button>
+        </Box>
+        <Box
+          component="img"
+          src={hero}
+          alt="Hardware e equipamentos Fetech"
+          sx={{
+            width: "100%",
+            height: { xs: 200, md: "100%" },
+            maxHeight: 380,
+            objectFit: "cover",
+          }}
+        />
+      </Box>
+      <Stack
+        direction="row"
+        spacing={1}
+        useFlexGap
+        sx={{ flexWrap: "wrap", mb: 5 }}
+      >
+        {categories.slice(2, 8).map((category) => (
+          <Chip
+            key={category}
+            label={category}
+            component={Link}
+            clickable
+            to={"/products?category=" + encodeURIComponent(category)}
+            variant="outlined"
+          />
+        ))}
+      </Stack>
+      <Stack
+        direction="row"
+        sx={{ mb: 3, justifyContent: "space-between", alignItems: "center" }}
+      >
+        <Box>
+          <Typography variant="h2">Destaques para o seu setup</Typography>
+          <Typography color="textSecondary" sx={{ mt: 0.5 }}>
+            Encontre seu próximo upgrade.
+          </Typography>
+        </Box>
+        <Button
+          component={Link}
+          to="/products"
+          endIcon={<ArrowForward />}
+          sx={{ display: { xs: "none", sm: "flex" } }}
+        >
+          Ver todos
+        </Button>
+      </Stack>
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
       {loading ? (
-        <Loader />
+        <ProductSkeletons />
       ) : (
-        <React.Fragment>
-          <MetaData title="Loja Fetech | Entre já para o mundo gamer" />
-
-      {/*<nav className="navBar" alt="NavBar">
-          //<Navbar>
-          </Navbar>
-        </nav>
-      */}
-          <nav id="navBar">
-            <Header></Header>
-          </nav>
-
-          <section className="sliderPrincipal">
-            <div id="container">
-              <div className="imagemWall">
-                <img src={ImgSection} className="imagemPapel" alt="Imagem Slider"/>
-              </div>
-            </div>
-          </section>
-
-          <h2 className="homeHeading" alt="Product Most Wanted" title="Produtos Mais Procurados">Produtos Mais Procurados</h2>
-
-          <div className="container" id="container" alt="Container de Produtos" title="Card de Produtos">
-            {error && <p role="alert">{error}</p>}
-            {products && products.map((product) => <Product key={product._id} product={product} />)}
-          </div>
-        </React.Fragment>
-      )};
-    </Fragment>
+        <Box sx={productGrid}>
+          {products?.map((product) => (
+            <ProductCard key={product._id} product={product} />
+          ))}
+        </Box>
+      )}
+    </Container>
   );
-};
-export default Home;
+}

@@ -1,201 +1,160 @@
-import React, { Fragment, useRef, useState, useEffect } from "react"
-import "./LoginSignUp.css";
-import LogoFetech from "../../images/ProjetoLogoFetech2.svg"
-import { Link } from "react-router";
-import MailOutlineIcon from "@mui/icons-material/MailOutlined";
-import LockOpenIcon from "@mui/icons-material/LockOpen";
-import FaceIcon from "@mui/icons-material/Face"
-import Loader from "../layout/Loader/Loader.jsx";
+import { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
+import { Button, Link as MuiLink, Stack, Tab, Tabs } from "@mui/material";
+import { TextField } from "@mui/material";
 import { clearErrors, login, register } from "../../actions/userAction";
-import { useAlert } from "../../utils/alerts.js";
-import { useNavigate, useLocation } from "react-router"
+import { useAlert } from "../../utils/alerts";
+import FormLayout, { AvatarUpload, PasswordField } from "./FormLayout";
 
-export const LoginSignUp = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const requested = location.state?.returnTo || new URLSearchParams(location.search).get("redirect") || "/";
-  const redirect = requested === "shipping" ? "/shipping" : requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/login") ? requested : "/";
-  const alert = useAlert();
-  const { error, loading, isAuthenticated } = useSelector((state) => state.user);
-
-  const loginTab = useRef(false);
-  const registerTab = useRef(false);
-  const switcherTab = useRef(false);
-
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-
-  const [user, setUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-  });
-
-  const { name, email, password } = user;
-
-  const [avatar, setAvatar] = useState();
-  const [avatarPreview, setAvatarPreview] = useState("/Profile.png")
-
-  const loginSubmit = (e) => {
-    e.preventDefault();
-    dispatch(login(loginEmail, loginPassword));
-  }
-
-  const registerSubmit = (e) => {
-    e.preventDefault();
-
-    const myForm = new FormData();
-
-    myForm.set("name", name);
-    myForm.set("email", email);
-    myForm.set("password", password);
-    if (avatar) myForm.set("avatar", avatar);
-    dispatch(register(myForm));
-  };
-
-  const registerDataChange = (e) => {
-    if (e.target.name === "avatar") {
-      if (!e.target.files[0]) return;
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        if (reader.readyState === 2) {
-          setAvatarPreview(reader.result);
-          setAvatar(reader.result);
-        }
-      };
-
-      reader.readAsDataURL(e.target.files[0]);
-
-    } else {
-      setUser({ ...user, [e.target.name]: e.target.value });
-    }
-  }
-
+export function LoginSignUp() {
+  const dispatch = useDispatch(),
+    navigate = useNavigate(),
+    location = useLocation(),
+    alert = useAlert();
+  const { error, loading, isAuthenticated } = useSelector(
+    (state) => state.user,
+  );
+  const [tab, setTab] = useState(0);
+  const [loginEmail, setLoginEmail] = useState(""),
+    [loginPassword, setLoginPassword] = useState("");
+  const [user, setUser] = useState({ name: "", email: "", password: "" });
+  const [avatar, setAvatar] = useState(),
+    [preview, setPreview] = useState("/Profile.png");
+  const requested =
+    location.state?.returnTo ||
+    new URLSearchParams(location.search).get("redirect") ||
+    "/";
+  const redirect =
+    requested === "shipping"
+      ? "/shipping"
+      : requested.startsWith("/") &&
+          !requested.startsWith("//") &&
+          !requested.startsWith("/login")
+        ? requested
+        : "/";
   useEffect(() => {
     if (error) {
       alert.error(error);
       dispatch(clearErrors());
     }
-
-    if (isAuthenticated) {
-      navigate(redirect, { replace: true });
-    }
-  }, [dispatch, error, alert, navigate, isAuthenticated, redirect]);
-
-  const switchTabs = (e, tab) => {
-    if (tab === "login") {
-      switcherTab.current.classList.add("shiftToNeutral");
-      switcherTab.current.classList.remove("shiftToRight");
-      registerTab.current.classList.remove("shiftToNeutralForm");
-      loginTab.current.classList.remove("shiftToLeft");
-    }
-    if (tab === "register") {
-      switcherTab.current.classList.add("shiftToRight");
-      switcherTab.current.classList.remove("shiftToNeutral");
-      registerTab.current.classList.add("shiftToNeutralForm");
-      loginTab.current.classList.add("shiftToLeft");
-    }
-  }
-
+    if (isAuthenticated) navigate(redirect, { replace: true });
+  }, [error, alert, dispatch, isAuthenticated, navigate, redirect]);
+  const upload = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setAvatar(reader.result);
+      setPreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+  const submitRegister = (event) => {
+    event.preventDefault();
+    const form = new FormData();
+    Object.entries(user).forEach(([key, value]) => form.set(key, value));
+    if (avatar) form.set("avatar", avatar);
+    dispatch(register(form));
+  };
   return (
-    <Fragment>
-      {loading ? (
-        <Loader />
+    <FormLayout
+      title={tab === 0 ? "Bem-vindo de volta" : "Crie sua conta"}
+      subtitle="Seu setup e seus pedidos em um só lugar."
+    >
+      <Tabs
+        value={tab}
+        onChange={(_, value) => setTab(value)}
+        variant="fullWidth"
+        aria-label="Acesso à conta"
+        sx={{ mb: 3 }}
+      >
+        <Tab label="Entrar" />
+        <Tab label="Criar conta" />
+      </Tabs>
+      {tab === 0 ? (
+        <Stack
+          component="form"
+          className="loginForm"
+          spacing={2.5}
+          onSubmit={(event) => {
+            event.preventDefault();
+            dispatch(login(loginEmail, loginPassword));
+          }}
+        >
+          <TextField
+            label="E-mail"
+            type="email"
+            required
+            autoComplete="email"
+            value={loginEmail}
+            onChange={(event) => setLoginEmail(event.target.value)}
+          />
+          <PasswordField
+            label="Senha"
+            value={loginPassword}
+            onChange={(event) => setLoginPassword(event.target.value)}
+            autoComplete="current-password"
+          />
+          <MuiLink
+            component={Link}
+            to="/password/forgot"
+            variant="body2"
+            underline="hover"
+          >
+            Esqueci minha senha
+          </MuiLink>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? "Entrando..." : "Entrar"}
+          </Button>
+        </Stack>
       ) : (
-        <Fragment>
-          <div className="LoginSignUpContainer">
-            <div className="LoginSignUpBox">
-              <div>
-                <div className="login_signUp_toggle">
-                  <p onClick={(e) => switchTabs(e, "login")}>LOGIN</p>
-                  <p onClick={(e) => switchTabs(e, "register")}>REGISTER</p>
-                </div>
-                <button ref={switcherTab}></button>
-              </div>
-              <form className="loginForm" ref={loginTab} onSubmit={loginSubmit}>
-                <img src={LogoFetech} width={200} alt="Imagem Fetech" />
-                <div className="loginEmail">
-                  <MailOutlineIcon />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    required
-                    value={loginEmail}
-                    onChange={(e) => setLoginEmail(e.target.value)}
-                  />
-                </div>
-                <div className="loginPassword">
-                  <LockOpenIcon />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                  />
-                </div>
-                <Link to="/password/forgot">Forget Password ?</Link>
-                <input type="submit" value="Login" className="loginBtn" />
-              </form>
-              <form
-                className="signUpForm"
-                ref={registerTab}
-                encType="multipart/form-data"
-                onSubmit={registerSubmit}
-              >
-                <div className="signUpName">
-                  <FaceIcon />
-                  <input
-                    type="text"
-                    placeholder="Name"
-                    required
-                    name="name"
-                    value={name}
-                    onChange={registerDataChange}
-                  />
-                </div>
-                <div className="signUpEmail">
-                  <MailOutlineIcon />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    required
-                    name="email"
-                    value={email}
-                    onChange={registerDataChange}
-                  />
-                </div>
-                <div className="signUpPassword">
-                  <LockOpenIcon />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    name="password"
-                    value={password}
-                    onChange={registerDataChange}
-                  />
-                </div>
-
-                <div id="registerImage">
-                  <img src={avatarPreview} alt="Avatar Preview" />
-                  <input
-                    type="file"
-                    name="avatar"
-                    accept="image/*"
-                    onChange={registerDataChange}
-                  />
-                </div>
-                <input type="submit" value="Register" className="signUpBtn" />
-              </form>
-            </div>
-          </div>
-        </Fragment>
+        <Stack
+          component="form"
+          className="signUpForm"
+          spacing={2.5}
+          onSubmit={submitRegister}
+        >
+          <TextField
+            label="Nome"
+            name="name"
+            required
+            autoComplete="name"
+            value={user.name}
+            onChange={(event) => setUser({ ...user, name: event.target.value })}
+            slotProps={{ htmlInput: { minLength: 4, maxLength: 30 } }}
+          />
+          <TextField
+            label="E-mail"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={user.email}
+            onChange={(event) =>
+              setUser({ ...user, email: event.target.value })
+            }
+          />
+          <PasswordField
+            label="Senha"
+            name="password"
+            minLength={8}
+            value={user.password}
+            onChange={(event) =>
+              setUser({ ...user, password: event.target.value })
+            }
+          />
+          <AvatarUpload preview={preview} onChange={upload} />
+          <Button
+            type="submit"
+            className="signUpBtn"
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? "Criando conta..." : "Criar conta"}
+          </Button>
+        </Stack>
       )}
-    </Fragment>
+    </FormLayout>
   );
-};
-
+}

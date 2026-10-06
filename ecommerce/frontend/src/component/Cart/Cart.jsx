@@ -1,113 +1,128 @@
-import React, { Fragment } from "react";
-import "./Cart.css";
-import CartItemCard from "./CartItemCard";
+import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { addItemsToCart, removeItemsFromCart } from "../../actions/cartAction";
-import { Typography } from "@mui/material";
-import RemoveShoppingCartIcon from "@mui/icons-material/RemoveShoppingCart";
 import { Link, useNavigate } from "react-router";
-import { useAlert } from "../../utils/alerts.js";
-import { getErrorMessage } from '../../utils/api';
-import Page from '../layout/Page';
+import { Box, Button, Card, Divider, Stack, Typography } from "@mui/material";
+import ShoppingBagOutlined from "@mui/icons-material/ShoppingBagOutlined";
+import { addItemsToCart, removeItemsFromCart } from "../../actions/cartAction";
+import { useAlert } from "../../utils/alerts";
+import { getErrorMessage } from "../../utils/api";
+import { money } from "../../utils/format";
+import Page from "../layout/Page";
+import CartItemCard from "./CartItemCard";
+import QuantityControl from "../layout/QuantityControl";
 
-const Cart = () => {
-  const navigate = useNavigate();
-  const alert = useAlert();
-  const dispatch = useDispatch();
+export default function Cart() {
+  const navigate = useNavigate(),
+    alert = useAlert(),
+    dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.cart);
-
-  const increaseQuantity = (id, quantity, stock) => {
-    const newQty = quantity + 1;
-    if (stock <= quantity) {
-      return;
+  const [pending, setPending] = useState("");
+  const change = async (item, quantity) => {
+    if (pending || quantity < 1 || quantity > item.stock) return;
+    setPending(item.product);
+    try {
+      await dispatch(addItemsToCart(item.product, quantity));
+    } catch (error) {
+      alert.error(getErrorMessage(error));
+    } finally {
+      setPending("");
     }
-    dispatch(addItemsToCart(id, newQty)).catch(error => alert.error(getErrorMessage(error)));
   };
-
-  const decreaseQuantity = (id, quantity) => {
-    const newQty = quantity - 1;
-    if (1 >= quantity) {
-      return;
-    }
-    dispatch(addItemsToCart(id, newQty)).catch(error => alert.error(getErrorMessage(error)));
-  };
-
-  const deleteCartItems = (id) => {
-    dispatch(removeItemsFromCart(id));
-  };
-
-  const checkoutHandler = () => {
-    navigate("/shipping");
-  };
-
+  const total = cartItems.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0,
+  );
   return (
-    <Page title="Carrinho">
-      {cartItems.length === 0 ? (
-        <div className="emptyCart">
-          <RemoveShoppingCartIcon />
-
-          <Typography>Sem produtos no carrinho.</Typography>
-          <Link to="/products">Produtos</Link>
-        </div>
+    <Page
+      title="Carrinho"
+      subtitle="Revise seus produtos antes de finalizar o pedido."
+    >
+      {!cartItems.length ? (
+        <Card sx={{ py: 7, textAlign: "center" }}>
+          <ShoppingBagOutlined sx={{ fontSize: 56, color: "text.disabled" }} />
+          <Typography variant="h2" sx={{ mt: 2, mb: 3 }}>
+            Sem produtos no carrinho.
+          </Typography>
+          <Button component={Link} to="/products" variant="contained">
+            Explorar produtos
+          </Button>
+        </Card>
       ) : (
-        <Fragment>
-          <div className="cartPage">
-            <div className="cartHeader">
-              <p>Product</p>
-              <p>Quantity</p>
-              <p>Subtotal</p>
-            </div>
-
-            {cartItems &&
-              cartItems.map((item) => (
-                <div className="cartContainer" key={item.product}>
-                  <CartItemCard item={item} deleteCartItems={deleteCartItems} />
-                  <div className="cartInput">
-                    <button
-                      onClick={() =>
-                        decreaseQuantity(item.product, item.quantity)
-                      }
-                    >
-                      -
-                    </button>
-                    <input type="number" value={item.quantity} readOnly />
-                    <button
-                      onClick={() =>
-                        increaseQuantity(
-                          item.product,
-                          item.quantity,
-                          item.stock
-                        )
-                      }
-                    >
-                      +
-                    </button>
-                  </div>
-                  <p className="cartSubtotal">{`R$${
-                    item.price * item.quantity
-                  }`}</p>
-                </div>
-              ))}
-
-            <div className="cartGrossProfit">
-              <div></div>
-              <div className="cartGrossProfitBox">
-                <p>Valor Total</p>
-                <p>{`R$${cartItems.reduce(
-                  (acc, item) => acc + item.quantity * item.price,
-                  0
-                )}`}</p>
-              </div>
-              <div></div>
-              <div className="checkOutBtn">
-                <button onClick={checkoutHandler}>Finalizar pedido</button>
-              </div>
-            </div>
-          </div>
-        </Fragment>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", md: "minmax(0, 1fr) 320px" },
+            gap: 3,
+            alignItems: "start",
+          }}
+        >
+          <Stack spacing={2}>
+            {cartItems.map((item) => (
+              <Card
+                className="cartContainer"
+                key={item.product}
+                sx={{ p: 2.5 }}
+              >
+                <CartItemCard
+                  item={item}
+                  disabled={Boolean(pending)}
+                  deleteCartItems={(id) => dispatch(removeItemsFromCart(id))}
+                />
+                <Stack
+                  direction="row"
+                  sx={{
+                    mt: 2,
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <QuantityControl
+                    value={item.quantity}
+                    stock={item.stock}
+                    disabled={Boolean(pending)}
+                    onDecrease={() => change(item, item.quantity - 1)}
+                    onIncrease={() => change(item, item.quantity + 1)}
+                  />
+                  <Typography sx={{ fontWeight: 700 }}>
+                    {money(Number(item.price) * item.quantity)}
+                  </Typography>
+                </Stack>
+              </Card>
+            ))}
+          </Stack>
+          <Card sx={{ p: 3, position: { md: "sticky" }, top: 160 }}>
+            <Typography variant="h2">Resumo do pedido</Typography>
+            <Stack
+              direction="row"
+              sx={{ my: 3, justifyContent: "space-between" }}
+            >
+              <Typography color="textSecondary">Produtos</Typography>
+              <Typography>
+                {cartItems.reduce((sum, item) => sum + item.quantity, 0)} itens
+              </Typography>
+            </Stack>
+            <Divider />
+            <Stack
+              direction="row"
+              sx={{ my: 3, justifyContent: "space-between" }}
+            >
+              <Typography sx={{ fontWeight: 700 }}>Total</Typography>
+              <Typography variant="h2">{money(total)}</Typography>
+            </Stack>
+            <Button
+              fullWidth
+              variant="contained"
+              disabled={Boolean(pending)}
+              onClick={() => navigate("/shipping")}
+            >
+              Finalizar pedido
+            </Button>
+            <Button fullWidth component={Link} to="/products" sx={{ mt: 1 }}>
+              Continuar comprando
+            </Button>
+          </Card>
+        </Box>
       )}
     </Page>
   );
-};
-
-export default Cart;
+}

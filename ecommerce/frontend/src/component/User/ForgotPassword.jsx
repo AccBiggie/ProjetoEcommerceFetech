@@ -1,19 +1,18 @@
-import React, { Fragment, useState, useEffect } from "react";
-import "./ForgotPassword.css";
-import Loader from "../layout/Loader/Loader";
-import MailOutlineIcon from "@mui/icons-material/MailOutlined";
+import { Alert, Button, Stack, TextField } from "@mui/material";
+import { Link } from "react-router";
+import FormLayout from "./FormLayout";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { clearErrors, forgotPassword } from "../../actions/userAction";
 import { useAlert } from "../../utils/alerts.js";
-import MetaData from "../layout/MetaData";
-import { FORGOT_PASSWORD_RESET } from '../../constants/userConstants';
+import { FORGOT_PASSWORD_RESET } from "../../constants/userConstants";
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
   const alert = useAlert();
 
   const { error, message, loading } = useSelector(
-    (state) => state.forgotPassword
+    (state) => state.forgotPassword,
   );
 
   const [email, setEmail] = useState("");
@@ -23,7 +22,9 @@ const ForgotPassword = () => {
 
     dispatch(forgotPassword({ email }));
   };
-  useEffect(() => { dispatch({ type: FORGOT_PASSWORD_RESET }); }, [dispatch]);
+  useEffect(() => {
+    dispatch({ type: FORGOT_PASSWORD_RESET });
+  }, [dispatch]);
 
   useEffect(() => {
     if (error) {
@@ -37,44 +38,38 @@ const ForgotPassword = () => {
   }, [dispatch, error, alert, message]);
 
   return (
-    <Fragment>
-      {loading ? (
-        <Loader />
-      ) : (
-        <Fragment>
-          <MetaData title="Forgot Password" />
-          <div className="forgotPasswordContainer">
-            <div className="forgotPasswordBox">
-              <h2 className="forgotPasswordHeading">Recuperar senha</h2>
-
-              <form
-                className="forgotPasswordForm"
-                onSubmit={forgotPasswordSubmit}
-              >
-                <div className="forgotPasswordEmail">
-                  <MailOutlineIcon />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    required
-                    name="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <input
-                  type="submit"
-                  value="Enviar e-mail."
-                  className="forgotPasswordBtn"
-                />
-              </form>
-            </div>
-          </div>
-        </Fragment>
+    <FormLayout
+      title="Recuperar senha"
+      subtitle="Informe seu e-mail para receber o link de recuperação."
+    >
+      {message && (
+        <Alert severity="success" sx={{ mb: 3 }}>
+          {message}
+        </Alert>
       )}
-    </Fragment>
+      <Stack component="form" spacing={2.5} onSubmit={forgotPasswordSubmit}>
+        <TextField
+          label="E-mail"
+          type="email"
+          name="email"
+          required
+          autoComplete="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button
+          type="submit"
+          className="forgotPasswordBtn"
+          variant="contained"
+          disabled={loading}
+        >
+          Enviar link de recuperação
+        </Button>
+        <Button component={Link} to="/login">
+          Voltar para entrar
+        </Button>
+      </Stack>
+    </FormLayout>
   );
 };
-
 export default ForgotPassword;

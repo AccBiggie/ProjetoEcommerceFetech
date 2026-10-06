@@ -103,7 +103,8 @@ administrador real. Capturas e traces de falhas ficam em
 `ecommerce/test-results`, fora do Git.
 
 Resultado apos atualizar as dependencias: 8 grupos de testes da API e
-8 fluxos de navegador passaram, incluindo o carrossel com duas imagens.
+9 fluxos de navegador passaram, incluindo o carrossel com duas imagens
+e o layout responsivo com Material UI.
 O build com Vite foi concluido. A loja ativa
 em `http://localhost:3000` tambem foi conferida no navegador, com filtro
 e menu funcionando, API respondendo 200, rota administrativa exigindo

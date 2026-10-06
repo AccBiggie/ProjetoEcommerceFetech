@@ -1,83 +1,93 @@
-import React, { Fragment, useState } from 'react'
-import "./Header.css";
-import { SpeedDial, SpeedDialAction } from "@mui/material";
-import BackDrop from "@mui/material/Backdrop";
-import DashboardIcon from "@mui/icons-material/Dashboard";
-import PersonIcon from "@mui/icons-material/Person";
-import ExitToAppIcon from "@mui/icons-material/ExitToApp";
-import ListAltIcon from "@mui/icons-material/ListAlt";
-import { useNavigate } from 'react-router';
-import { useDispatch } from 'react-redux';
-import { useAlert } from "../../../utils/alerts.js";
-import { logout } from "../../../actions/userAction.js";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import {
+  Avatar,
+  Box,
+  Divider,
+  IconButton,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Typography,
+} from "@mui/material";
+import PersonOutline from "@mui/icons-material/PersonOutlined";
+import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
+import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
+import Logout from "@mui/icons-material/Logout";
+import { logout } from "../../../actions/userAction";
+import { useAlert } from "../../../utils/alerts";
 
-const UserOptions = ({ user }) => {
-    const [open, setOpen] = useState(false)
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const alert = useAlert();
-    const options = [
-        { icon: <ListAltIcon />, name: "Orders", func: orders },
-        { icon: <PersonIcon />, name: "Profile", func: account },
-        { icon: <ExitToAppIcon />, name: "Logout", func: logoutUser },
-    ];
-
-    if (user.role === "admin") {
-        options.unshift({
-            icon: <DashboardIcon />,
-            name: "Dashboard",
-            func: dashboard,
-        });
-    };
-
-    function dashboard() {
-        navigate("/dashboard");
-    }
-
-    function orders() {
-        navigate("/orders");
-    }
-
-    function account() {
-        navigate("/account");
-    }
-
-    async function logoutUser() {
-        if (await dispatch(logout())) {
-            navigate("/");
-            alert.success("Você saiu da conta.");
-        } else alert.error("Não foi possível sair. Tente novamente.");
-    }
-
-    return (
-        <Fragment>
-            <BackDrop open={open} style={{ zIndex: "10" }} />
-            {open && <p className="helloUser" style={{ position: 'fixed', top: 70, right: '3vmax', zIndex: 11, background: 'white', padding: 8 }}>Olá, {user.name}</p>}
-            <SpeedDial ariaLabel="SpeedDial tooltip example"
-                onClose={() => setOpen(false)}
-                onOpen={() => setOpen(true)}
-                open={open}
-                direction="down"
-                className="speedDial"
-                icon={<img
-                    className="speedDialIcon"
-                    src={user.avatar?.url || "/Profile.png"}
-                    alt={"Profile"}
-                />
-                }
-            >
-                {options.map((item) => (
-                    <SpeedDialAction
-                        className="iconProfile"
-                        key={item.name}
-                        icon={item.icon}
-                        slotProps={{ tooltip: { title: item.name }, fab: { 'aria-label': item.name } }}
-                        onClick={item.func}
-                    />
-                ))}
-            </SpeedDial>
-        </Fragment>
-    )
+export default function UserOptions({ user }) {
+  const [anchor, setAnchor] = useState(null);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const alert = useAlert();
+  const close = () => setAnchor(null);
+  const signOut = async () => {
+    close();
+    if (await dispatch(logout())) {
+      navigate("/");
+      alert.success("Você saiu da conta.");
+    } else alert.error("Não foi possível sair. Tente novamente.");
+  };
+  return (
+    <>
+      <IconButton
+        aria-label="Minha conta"
+        aria-haspopup="true"
+        aria-expanded={Boolean(anchor)}
+        onClick={(event) => setAnchor(event.currentTarget)}
+      >
+        <Avatar
+          src={user.avatar?.url}
+          alt={user.name}
+          sx={{ width: 36, height: 36 }}
+        >
+          {user.name?.[0]}
+        </Avatar>
+      </IconButton>
+      <Menu
+        anchorEl={anchor}
+        open={Boolean(anchor)}
+        onClose={close}
+        slotProps={{ paper: { sx: { minWidth: 240 } } }}
+      >
+        <Box sx={{ px: 2, py: 1 }}>
+          <Typography sx={{ fontWeight: 700 }}>{user.name}</Typography>
+          <Typography variant="caption" color="textSecondary">
+            {user.email}
+          </Typography>
+        </Box>
+        <Divider />
+        {user.role === "admin" && (
+          <MenuItem component={Link} to="/dashboard" onClick={close}>
+            <ListItemIcon>
+              <DashboardOutlined sx={{ fontSize: "small" }} />
+            </ListItemIcon>
+            Painel administrativo
+          </MenuItem>
+        )}
+        <MenuItem component={Link} to="/account" onClick={close}>
+          <ListItemIcon>
+            <PersonOutline sx={{ fontSize: "small" }} />
+          </ListItemIcon>
+          Meu perfil
+        </MenuItem>
+        <MenuItem component={Link} to="/orders" onClick={close}>
+          <ListItemIcon>
+            <ReceiptLongOutlined sx={{ fontSize: "small" }} />
+          </ListItemIcon>
+          Meus pedidos
+        </MenuItem>
+        <Divider />
+        <MenuItem onClick={signOut}>
+          <ListItemIcon>
+            <Logout sx={{ fontSize: "small" }} />
+          </ListItemIcon>
+          Sair
+        </MenuItem>
+      </Menu>
+    </>
+  );
 }
-
-export default UserOptions

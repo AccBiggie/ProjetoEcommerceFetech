@@ -1,89 +1,150 @@
-import React, { Fragment, useState, useEffect } from 'react'
+import { useState } from "react";
 import { Link } from "react-router";
-import Rating from "@mui/material/Rating";
-import "./Home.css"
-import { useDispatch } from 'react-redux';
-import { useAlert } from "../../utils/alerts.js";
-import { addItemsToCart } from '../../actions/cartAction';
-import { getErrorMessage } from '../../utils/api';
+import { useDispatch } from "react-redux";
+import {
+  Box,
+  Button,
+  Card,
+  CardActionArea,
+  CardActions,
+  CardContent,
+  Chip,
+  Rating,
+  Stack,
+  Typography,
+} from "@mui/material";
+import AddShoppingCart from "@mui/icons-material/AddShoppingCart";
+import { addItemsToCart } from "../../actions/cartAction";
+import { useAlert } from "../../utils/alerts";
+import { getErrorMessage } from "../../utils/api";
+import { money } from "../../utils/format";
 
-const ProductCard = ({ product }) => {
+export default function ProductCard({ product }) {
   const dispatch = useDispatch();
   const alert = useAlert();
   const [adding, setAdding] = useState(false);
-  const addToCart = async () => {
+  const add = async () => {
     setAdding(true);
-    try { await dispatch(addItemsToCart(product._id, 1)); alert.success("Produto adicionado ao carrinho."); }
-    catch (error) { alert.error(getErrorMessage(error)); }
-    finally { setAdding(false); }
+    try {
+      await dispatch(addItemsToCart(product._id, 1));
+      alert.success("Produto adicionado ao carrinho.");
+    } catch (error) {
+      alert.error(getErrorMessage(error));
+    } finally {
+      setAdding(false);
+    }
   };
-
-  /* Contador regressivo de promoções*/
-  const [timerDays, setTimerDays] = useState();
-  const [timerHours, setTimerHours] = useState();
-  const [timerMinutes, setTimerMinute] = useState();
-  const [timerSeconds, setTimerSeconds] = useState();
-  
-  useEffect(() => {
-    const countDownDate = new Date(product.countDown).getTime();
-    const updateTimer = () => {
-      const remaining = countDownDate - Date.now();
-      const distance = Number.isFinite(remaining) ? Math.max(0, remaining) : 0;
-      const days = Math.floor(distance / (24 * 60 * 60 * 1000));
-      const hours = Math.floor((distance % (24 * 60 * 60 * 1000)) / (1000 * 60 * 60));
-      const minutes = Math.floor((distance % (60 * 60 * 1000)) / (1000 * 60));
-      const seconds = Math.floor((distance % (60 * 1000)) / 1000);
-
-      setTimerDays(days);
-      setTimerHours(hours);
-      setTimerMinute(minutes);
-      setTimerSeconds(seconds);
-    };
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [product.countDown]);
-
   return (
-    <Fragment>
-      <div id="product">
-        <Link className="productCard" to={`/product/${product._id}`}>
-          <div className="contadorPromocao" alt="contadorPromocao" >
-            <span className="OFF">{product.off}% OFF</span>
-              <div className="countOffProduct">
-                <div>
-                    <p>{timerDays}</p>
-                    <small>Dias</small>
-                </div>{" "}
-                <div>
-                    <p>{timerHours}</p>
-                    <small>HRs</small>
-                </div>{" "}
-                <div>
-                    <p>{timerMinutes}</p>
-                    <small>Min.</small>
-                </div>
-                <div>
-                    <p>{timerSeconds}</p>
-                    <small>Seg.</small>
-                </div>
-            </div>
-            <div className="countExpire">Teste</div>
-          </div>
-          <img src={product.images[0]?.url || "/Profile.png"} alt={product.name} />
-          <p className="productName">{product.name}</p>
-          <div>
-            <Rating readOnly precision={0.5} value={Number(product.ratings) || 0} aria-label="Avaliacao" sx={{ color: 'tomato', fontSize: { xs: 20, sm: 25 } }} />{" "}
-            <span>({product.numOfReviews} Reviews)</span>
-          </div>
-          <span className="oldPrice">De {`R$ ${product.oldPrice}`} por</span>
-          <span className="productPrice">{`R$ ${product.price}`} Preço à vista.</span>
-          <span className="installmmentPrice">ou em 12x de {` R$ ${product.installmmentPrice}`} sem juros.</span>
-        </Link>
-        <button className="buttomCard" onClick={addToCart} disabled={adding || product.Stock < 1}>Adicionar ao Carrinho</button>
-      </div>
-    </Fragment>
+    <Card
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        transition: "box-shadow 180ms, border-color 180ms",
+        "&:hover": {
+          boxShadow: "0 8px 24px rgba(24,34,48,.08)",
+          borderColor: "primary.light",
+        },
+      }}
+    >
+      <CardActionArea
+        component={Link}
+        className="productCard"
+        to={"/product/" + product._id}
+        sx={{ flex: 1 }}
+      >
+        <Box
+          sx={{
+            position: "relative",
+            bgcolor: "#f8fafc",
+            p: 3,
+            height: 200,
+            display: "grid",
+            placeItems: "center",
+          }}
+        >
+          {!!product.off && (
+            <Chip
+              size="small"
+              label={product.off + "% OFF"}
+              color="primary"
+              sx={{ position: "absolute", top: 12, left: 12 }}
+            />
+          )}
+          <Box
+            component="img"
+            src={product.images?.[0]?.url || "/Profile.png"}
+            alt={product.name}
+            loading="lazy"
+            sx={{ maxHeight: 150, objectFit: "contain" }}
+          />
+        </Box>
+        <CardContent>
+          <Typography variant="caption" color="textSecondary">
+            {product.category}
+          </Typography>
+          <Typography
+            className="productName"
+            sx={{
+              mt: 0.5,
+              minHeight: 48,
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              fontWeight: 650,
+            }}
+          >
+            {product.name}
+          </Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ my: 1, alignItems: "center" }}
+          >
+            <Rating
+              readOnly
+              size="small"
+              precision={0.5}
+              value={Number(product.ratings) || 0}
+            />
+            <Typography variant="caption" color="textSecondary">
+              ({product.numOfReviews})
+            </Typography>
+          </Stack>
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{ textDecoration: "line-through", minHeight: 20 }}
+          >
+            {Number(product.oldPrice) > Number(product.price)
+              ? money(product.oldPrice)
+              : " "}
+          </Typography>
+          <Typography sx={{ fontSize: 24, fontWeight: 750 }}>
+            {money(product.price)}
+          </Typography>
+          <Typography variant="caption" color="textSecondary">
+            à vista · 12x de {money(product.installmmentPrice)}
+          </Typography>
+        </CardContent>
+      </CardActionArea>
+      <CardActions sx={{ px: 2, pb: 2 }}>
+        <Button
+          className="buttomCard"
+          fullWidth
+          variant="contained"
+          startIcon={<AddShoppingCart />}
+          disabled={adding || product.Stock < 1}
+          onClick={add}
+        >
+          {product.Stock < 1
+            ? "Sem estoque"
+            : adding
+              ? "Adicionando..."
+              : "Adicionar ao Carrinho"}
+        </Button>
+      </CardActions>
+    </Card>
   );
-};
-
-export default ProductCard;
+}

@@ -1,28 +1,30 @@
-* {
-    margin: 0;
-    scroll-behavior: smooth;
+html {
+  scroll-behavior: smooth;
 }
-
-/* Chrome, Safari, Edge, Opera */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-}
-
-/* Firefox */
-input [type="number"] {
-    -moz-appearance: textfield;
-}
-
 body {
-    background-color: #c7d0cc;
+  margin: 0;
 }
-
+img {
+  max-width: 100%;
+}
+:focus-visible {
+  outline: 3px solid #087f8c;
+  outline-offset: 3px;
+}
 .greenColor {
-    color: green;
+  color: #16794b;
 }
-
 .redColor {
-    color: red;
+  color: #b42318;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -1,17 +1,25 @@
-import React from 'react'
-import Rating from "@mui/material/Rating";
-import profileSvg from "../../images/usuario.svg"
-
-const ReviewCard = ({ review }) => {
-
-    return (
-    <div className="reviewCard">
-        <img src={profileSvg} alt="User" />
-        <p>{review.name}</p>
-        <Rating readOnly precision={0.5} value={Number(review.rating) || 0} aria-label="Avaliacao" sx={{ color: 'tomato', fontSize: { xs: 20, sm: 25 } }} />
-        <span>{review.comment}</span>
-    </div>
+import { Avatar, Card, Rating, Stack, Typography } from "@mui/material";
+export default function ReviewCard({ review }) {
+  return (
+    <Card sx={{ p: 3, height: "100%" }}>
+      <Stack sx={{ alignItems: "center" }} direction="row" spacing={1.5}>
+        <Avatar sx={{ bgcolor: "primary.main" }}>{review.name?.[0]}</Avatar>
+        <Stack>
+          <Typography sx={{ fontWeight: 650 }}>{review.name}</Typography>
+          <Rating
+            readOnly
+            size="small"
+            value={Number(review.rating)}
+            precision={0.5}
+          />
+        </Stack>
+      </Stack>
+      <Typography
+        color="textSecondary"
+        sx={{ mt: 2, overflowWrap: "anywhere" }}
+      >
+        {review.comment}
+      </Typography>
+    </Card>
   );
-};
-
-export default ReviewCard;
+}

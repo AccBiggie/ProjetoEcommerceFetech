@@ -28,8 +28,10 @@ pacotes que as utilizam.
 | dotenv | 18.0.5 |
 | Playwright | 1.63.0 |
 
-As demais dependencias diretas tambem foram conferidas e atualizadas;
-`webfontloader` continua em 1.6.28, a ultima versao publicada.
+As demais dependencias diretas tambem foram conferidas e atualizadas.
+Na revisao do layout, `webfontloader`, `react-icons` e `react-js-pagination`
+foram substituidos pelos recursos de tipografia, icones e paginacao do
+Material UI. Veja [FRONTEND.md](FRONTEND.md).
 
 ## Migracoes
 
@@ -103,8 +105,8 @@ pastas, sempre com o cache local. Os comandos de build e testes estao acima.
 Resultado: 8 grupos da API e 8 testes no navegador passaram; manifests e
 lockfiles consistentes; nenhuma dependencia direta desatualizada segundo
 `npm outdated`; zero vulnerabilidades conhecidas segundo `npm audit` nas
-duas arvores. O build produz um aviso de bundle acima de 500 kB, sem impedir
-a compilacao. SMTP e Cloudinary continuam simulados nos testes; contas
+duas arvores. A revisao do layout passou a carregar telas sob demanda,
+eliminando o aviso de bundle acima de 500 kB. SMTP e Cloudinary continuam simulados nos testes; contas
 externas reais precisam de suas respectivas credenciais.
 
 A API e o servidor Vite foram reiniciados. A verificacao da loja ativa

@@ -1,56 +1,78 @@
-import React, { Fragment, useEffect } from 'react'
 import { useSelector } from "react-redux";
-import MetaData from '../layout/MetaData';
-import { Link, useNavigate } from "react-router";
-import Loader from "../layout/Loader/Loader.jsx"
-import "./Profile.css";
+import { Link } from "react-router";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  Chip,
+  Divider,
+  Stack,
+  Typography,
+} from "@mui/material";
+import Page from "../layout/Page";
+import Loader from "../layout/Loader/Loader";
 
-const Profile = () => {
-  const { user, loading, isAuthenticated } = useSelector((state) => state.user);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (isAuthenticated === false) {
-      navigate("/login");
-    };
-  });
-
+export default function Profile() {
+  const { user, loading } = useSelector((state) => state.user);
+  if (loading || !user) return <Loader />;
   return (
-    <Fragment>
-      {loading ? (
-        <Loader />
-      ) : (
-        <Fragment>
-          <MetaData title={`${user.name}'s Profile`} />
-          <div className="profileContainer">
-            <div>
-              <h1>Meu perfil</h1>
-              <img src={user.avatar.url} alt={user.name} />
-              <Link to="/me/update">Editar perfil.</Link>
-            </div>
-            <div>
-              <div>
-                <h4>Nome completo</h4>
-                <p>{user.name}</p>
-              </div>
-              <div>
-                <h4>Email</h4>
-                <p>{user.email}</p>
-              </div>
-              <div>
-                <h4>Entrou em</h4>
-                <p>{String(user.createdAt).substr(0, 10)}</p>
-              </div>
-
-              <div>
-                <Link to="/orders">Meus pedidos</Link>
-                <Link to="/password/update">Mudar senha</Link>
-              </div>
-            </div>
-          </div>
-        </Fragment>
-      )}
-    </Fragment>
+    <Page
+      title="Meu perfil"
+      subtitle="Gerencie suas informações e acompanhe suas compras."
+    >
+      <Card sx={{ p: { xs: 3, md: 4 }, maxWidth: 780 }}>
+        <Stack sx={{ alignItems: "center" }} direction="row" spacing={2.5}>
+          <Avatar
+            src={user.avatar?.url}
+            alt={user.name}
+            sx={{ width: 80, height: 80 }}
+          />
+          <Box>
+            <Typography variant="h2">{user.name}</Typography>
+            <Chip
+              size="small"
+              variant="outlined"
+              label={user.role === "admin" ? "Administrador" : "Cliente"}
+              sx={{ mt: 1 }}
+            />
+          </Box>
+        </Stack>
+        <Divider sx={{ my: 3 }} />
+        <Stack spacing={2}>
+          <Box>
+            <Typography variant="body2" color="textSecondary">
+              E-mail
+            </Typography>
+            <Typography sx={{ overflowWrap: "anywhere" }}>
+              {user.email}
+            </Typography>
+          </Box>
+          <Box>
+            <Typography variant="body2" color="textSecondary">
+              Cliente desde
+            </Typography>
+            <Typography>
+              {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+            </Typography>
+          </Box>
+        </Stack>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={1.5}
+          sx={{ mt: 4 }}
+        >
+          <Button component={Link} to="/me/update" variant="contained">
+            Editar perfil
+          </Button>
+          <Button component={Link} to="/password/update" variant="outlined">
+            Alterar senha
+          </Button>
+          <Button component={Link} to="/orders">
+            Meus pedidos
+          </Button>
+        </Stack>
+      </Card>
+    </Page>
   );
-};
-export default Profile;
+}
