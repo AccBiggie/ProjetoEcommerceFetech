@@ -1,37 +1,34 @@
-const { remove } = require("../models/productModel");
-//Filter Features
+const ErrorHander = require("./errorHander");
 class ApiFeatures {
-    constructor(query, queryStr) {
-        this.query = query;
-        this.queryStr = queryStr;
-    }
+    constructor(query, queryStr) { this.query = query; this.queryStr = queryStr; }
     search() {
-        const keyword = this.queryStr.keyword ? {
-            name: {
-                $regex: this.queryStr.keyword,
-                $options:"i",
-            },
-        } : {};
-        this.query = this.query.find({...keyword});
+        if (this.queryStr.keyword) {
+            const keyword = String(this.queryStr.keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+            this.query = this.query.find({ name: { $regex: keyword, $options: "i" } });
+        }
         return this;
     }
     filter() {
-        const queryCopy = {...this.queryStr}
-        //removing some fields for category
-        const removeFields = ["keyword", "page", "limit"];
-
-        removeFields.forEach(key => delete queryCopy[key]);
-        //Filter for Price and Rating
-        let queryStr = JSON.stringify(queryCopy);
-        queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (key) => `${key}`);
-        this.query = this.query.find(JSON.parse(queryStr));
+        const filter = {};
+        if (typeof this.queryStr.category === "string") filter.category = this.queryStr.category;
+        const comparisons = [];
+        for (const field of ["price", "ratings"]) {
+            const values = this.queryStr[field];
+            if (!values || typeof values !== "object") continue;
+            for (const [operator, value] of Object.entries(values)) {
+                if (!["gt", "gte", "lt", "lte"].includes(operator) || !Number.isFinite(Number(value))) throw new ErrorHander("Filtro numérico inválido.", 400);
+                const expression = field === "price" ? { $convert: { input: "$price", to: "double", onError: null, onNull: null } } : "$ratings";
+                comparisons.push({ ["$" + operator]: [expression, Number(value)] });
+            }
+        }
+        if (comparisons.length) filter.$expr = { $and: comparisons };
+        this.query = this.query.find(filter);
         return this;
     }
     pagination(resultPerPage) {
-        const currentPage = Number(this.queryStr.page) || 1;
-        const skip = resultPerPage * (currentPage - 1);
-
-        this.query = this.query.limit(resultPerPage).skip(skip);
+        const page = Number(this.queryStr.page || 1);
+        if (!Number.isSafeInteger(page) || page < 1) throw new ErrorHander("Página inválida.", 400);
+        this.query = this.query.sort({ createdAt: -1, _id: -1 }).limit(resultPerPage).skip(resultPerPage * (page - 1));
         return this;
     }
 }

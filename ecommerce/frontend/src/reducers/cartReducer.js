@@ -1,4 +1,4 @@
-import { ADD_TO_CART } from "../constants/cartConstants.js";
+import { ADD_TO_CART, REMOVE_CART_ITEM, SAVE_SHIPPING_INFO, CLEAR_CART } from "../constants/cartConstants.js";
 
 export const cartReducer = (state = { cartItems: [] }, action) => {
     switch (action.type) {
@@ -9,7 +9,7 @@ export const cartReducer = (state = { cartItems: [] }, action) => {
             if (isItemExist) {
                 return {
                     ...state,
-                    cartItems: state.cartItems.map((i) => i.product === isItemExist.product ? item : 1),
+                    cartItems: state.cartItems.map((i) => i.product === isItemExist.product ? item : i),
                 };
             } else {
                 return {
@@ -17,6 +17,12 @@ export const cartReducer = (state = { cartItems: [] }, action) => {
                     cartItems: [...state.cartItems, item],
                 };
             };
+        case REMOVE_CART_ITEM:
+            return { ...state, cartItems: state.cartItems.filter(item => item.product !== action.payload) };
+        case SAVE_SHIPPING_INFO:
+            return { ...state, shippingInfo: action.payload };
+        case CLEAR_CART:
+            return { ...state, cartItems: [] };
         default:
             return state;
     };

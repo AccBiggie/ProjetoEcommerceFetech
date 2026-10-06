@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { clearErrors, forgotPassword } from "../../actions/userAction";
 import { useAlert } from "react-alert";
 import MetaData from "../layout/MetaData";
+import { FORGOT_PASSWORD_RESET } from '../../constants/userConstants';
 
 const ForgotPassword = () => {
   const dispatch = useDispatch();
@@ -20,11 +21,9 @@ const ForgotPassword = () => {
   const forgotPasswordSubmit = (e) => {
     e.preventDefault();
 
-    const myForm = new FormData();
-
-    myForm.set("email", email);
-    dispatch(forgotPassword(myForm));
+    dispatch(forgotPassword({ email }));
   };
+  useEffect(() => { dispatch({ type: FORGOT_PASSWORD_RESET }); }, [dispatch]);
 
   useEffect(() => {
     if (error) {

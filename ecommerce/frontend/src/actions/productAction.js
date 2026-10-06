@@ -1,3 +1,4 @@
+import { getErrorMessage } from "../utils/api";
 import axios from "axios";
 import {
     ALL_PRODUCT_FAIL,
@@ -6,10 +7,6 @@ import {
     PRODUCT_DETAILS_FAIL,
     PRODUCT_DETAILS_REQUEST,
     PRODUCT_DETAILS_SUCCESS,
-    UPDATE_PASSWORD_FAIL,
-    UPDATE_PASSWORD_REQUEST,
-    UPDATE_PASSWORD_SUCCESS,
-    UPDATE_PASSWORD_RESET,
     CLEAR_ERRORS,
 }from "../constants/productConstants";
 
@@ -17,7 +14,9 @@ export const getProduct = (keyword = "", currentPage = 1, category) => async (di
     try {
         dispatch({ type: ALL_PRODUCT_REQUEST });
         
-        const link = `/api/v1/products?keyword=${keyword}&page=${currentPage}`;
+        const params = new URLSearchParams({ keyword, page: String(currentPage) });
+        if (category) params.set("category", category);
+        const link = `/api/v1/products?${params}`;
 
         const { data } = await axios.get(link);
 
@@ -28,7 +27,7 @@ export const getProduct = (keyword = "", currentPage = 1, category) => async (di
     } catch (error) {
         dispatch ({
             type: ALL_PRODUCT_FAIL,
-            payload: error.response.data.message,
+            payload: getErrorMessage(error),
         });
     }
 };
@@ -46,7 +45,7 @@ export const getProductDetails = (id) => async (dispatch) => {
     } catch (error) {
         dispatch ({
             type: PRODUCT_DETAILS_FAIL,
-            payload: error.response.data.message,
+            payload: getErrorMessage(error),
         });
     }
 };

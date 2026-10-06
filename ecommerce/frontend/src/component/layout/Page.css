@@ -1,0 +1,14 @@
+.contentPage { max-width: 1100px; margin: 40px auto; padding: 20px; min-height: 45vh; font-family: Roboto, sans-serif; }
+.contentPage h1, .contentPage h2 { margin-bottom: 24px; }
+.contentPage p { margin: 12px 0; }
+.contentPage nav { display: flex; gap: 16px; margin: 20px 0; }
+.contentPage form { display: grid; gap: 16px; max-width: 650px; margin: 20px 0; }
+.contentPage label { display: grid; gap: 8px; }
+.contentPage input, .contentPage select, .contentPage textarea, .contentPage button { padding: 10px; font: inherit; }
+.contentPage button { cursor: pointer; }
+.contentPage button:disabled { cursor: default; opacity: .6; }
+.contentPage table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+.contentPage th, .contentPage td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+.contentPage .tableScroll { overflow-x: auto; }
+.contentPage [role=alert] { color: #b42318; }
+.contentPage .actions { display: flex; flex-wrap: wrap; gap: 10px; }

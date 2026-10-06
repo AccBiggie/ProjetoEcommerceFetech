@@ -2,8 +2,11 @@ import React, { Fragment, useEffect, useState } from 'react'
 import Carousel from "react-material-ui-carousel";
 import "./ProductDetails.css";
 import { useSelector, useDispatch } from "react-redux";
-import { clearErrors, getProductDetails } from "../../actions/productAction";
-import { useParams } from 'react-router-dom';
+import { getProductDetails } from "../../actions/productAction";
+import { useParams, Link } from 'react-router-dom';
+import axios from 'axios';
+import Page from '../layout/Page';
+import { getErrorMessage } from '../../utils/api';
 import ReactStars from 'react-rating-stars-component';
 import ReviewCard from './ReviewCard';
 import Loader from '../layout/Loader/Loader.js';
@@ -18,6 +21,11 @@ const ProductDetails = () => {
   const alert = useAlert();
 
   const { product, loading, error } = useSelector((state) => state.productDetails);
+  const { user, isAuthenticated } = useSelector(state => state.user);
+  const [rating, setRating] = useState('5');
+  const [comment, setComment] = useState('');
+  const [reviewError, setReviewError] = useState('');
+  const [pending, setPending] = useState(false);
 
   const [quantity, setQuantity] = useState(1);
   const increaseQuantity = () => {
@@ -35,18 +43,32 @@ const ProductDetails = () => {
     setQuantity(qty);
   }
 
-  const addToCartHandler = () => {
-    dispatch(addItemsToCart(product._id, quantity));
-    alert.success("Item adcionado ao carrinho.");
+  const addToCartHandler = async () => {
+    try { await dispatch(addItemsToCart(product._id, quantity)); alert.success("Produto adicionado ao carrinho."); }
+    catch (error) { alert.error(getErrorMessage(error)); }
   }
+  const submitReview = async event => {
+    event.preventDefault(); setPending(true); setReviewError('');
+    try {
+      await axios.put('/api/v1/review', { productId: id, rating: Number(rating), comment });
+      setComment(''); dispatch(getProductDetails(id)); alert.success('Avaliação salva.');
+    } catch (error) { setReviewError(getErrorMessage(error)); }
+    finally { setPending(false); }
+  };
+  const removeReview = async reviewId => {
+    setPending(true); setReviewError('');
+    try { await axios.delete('/api/v1/reviews', { params: { productId: id, id: reviewId } }); dispatch(getProductDetails(id)); }
+    catch (error) { setReviewError(getErrorMessage(error)); }
+    finally { setPending(false); }
+  };
 
     useEffect(() => {
-      if (error) {
-        alert.error(error);
-        dispatch(clearErrors());
-      }
+      setQuantity(1); setReviewError('');
       dispatch(getProductDetails(id));
-    }, [dispatch, id, error, alert]);
+    }, [dispatch, id]);
+
+  if (error) return <Page title="Produto indisponível"><p role="alert">{error}</p><Link to="/products">Ver produtos</Link></Page>;
+  if (loading || !product?._id || product._id !== id) return <Loader />;
 
   const options = {
     edit: false,
@@ -99,7 +121,7 @@ const ProductDetails = () => {
                     <input  readOnly value={quantity} type="number" />
                     <button onClick={increaseQuantity}>+</button>
                   </div>
-                  <button onClick={addToCartHandler}>Adcionar ao Carrinho</button>
+                  <button onClick={addToCartHandler} disabled={product.Stock < quantity}>Adicionar ao Carrinho</button>
                 </div>
                 <p>
                   Status:
@@ -114,14 +136,19 @@ const ProductDetails = () => {
           <div className="detailsBlock-4">
             Descrição técnicas do Produto: <p>{product.description}</p>
           </div>
-          <button className="submitReview">Enviar Comentário</button>
+          {reviewError && <p role="alert">{reviewError}</p>}
+          {isAuthenticated ? <form onSubmit={submitReview} className="contentPage">
+            <label>Nota<select value={rating} onChange={e => setRating(e.target.value)}>{[1, 2, 3, 4, 5].map(value => <option key={value}>{value}</option>)}</select></label>
+            <label>Comentário<textarea required value={comment} onChange={e => setComment(e.target.value)} /></label>
+            <button type="submit" disabled={pending}>Enviar comentário</button>
+          </form> : <Link to="/login" state={{ returnTo: `/product/${id}` }}>Entre para avaliar</Link>}
 
           <h3 className="reviewsHeading">COMENTÁRIOS</h3>
 
           {product.reviews && product.reviews[0] ? (
             <div className="reviews">
               {product.reviews &&
-                product.reviews.map((review) => <ReviewCard review={review} />)}
+                product.reviews.map((review) => <div key={review._id}><ReviewCard review={review} />{user && (user.role === 'admin' || user._id === review.user) && <button disabled={pending} onClick={() => removeReview(review._id)}>Remover avaliação</button>}</div>)}
             </div>
           ) : (
             <p className="noReviews">Sem Reviews</p>

@@ -18,6 +18,7 @@ let initialState = {
         cartItems: localStorage.getItem("cartItems")
         ? JSON.parse(localStorage.getItem("cartItems"))
         : [],
+        shippingInfo: JSON.parse(localStorage.getItem("shippingInfo") || "{}"),
     },
 };
 const midleWare = [thunk];

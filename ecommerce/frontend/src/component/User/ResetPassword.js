@@ -3,6 +3,8 @@ import "./ResetPassword.css";
 import Loader from '../layout/Loader/Loader';
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from 'react-router-dom';
+import { FORGOT_PASSWORD_RESET } from '../../constants/userConstants';
+import { loadUser } from '../../actions/userAction';
 import { clearErrors, resetPassword } from "../../actions/userAction";
 import { useAlert } from "react-alert";
 import MetaData from "../layout/MetaData.js";
@@ -10,7 +12,7 @@ import LockOpenIcon from "@material-ui/icons/LockOpen";
 import LockIcon from "@material-ui/icons/Lock";
 
 const ResetPassword = () => {
-    const { id } = useParams();
+    const { token } = useParams();
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const alert = useAlert();
@@ -25,13 +27,9 @@ const ResetPassword = () => {
     const resetPasswordSubmit = (e) => {
       e.preventDefault();
   
-      const myForm = new FormData();
-  
-      myForm.set("password", password);
-      myForm.set("confirmPassword", confirmPassword);
-  
-      dispatch(resetPassword(id.params.token, myForm));
+      dispatch(resetPassword(token, { password, confirmPassword }));
     };
+    useEffect(() => { dispatch({ type: FORGOT_PASSWORD_RESET }); }, [dispatch]);
   
     useEffect(() => {
       if (error) {
@@ -42,7 +40,8 @@ const ResetPassword = () => {
       if (success) {
         alert.success("Senha alterada com sucesso.");
   
-        navigate("/login");
+        dispatch(loadUser());
+        navigate("/account", { replace: true });
       }
     }, [dispatch, error, alert, navigate, success]);
   
@@ -55,7 +54,7 @@ const ResetPassword = () => {
             <MetaData title="Change Password" />
             <div className="resetPasswordContainer">
               <div className="resetPasswordBox">
-                <h2 className="resetPasswordHeading">Update Profile</h2>
+                <h2 className="resetPasswordHeading">Redefinir senha</h2>
   
                 <form
                   className="resetPasswordForm"

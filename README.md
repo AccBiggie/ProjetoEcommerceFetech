@@ -2,6 +2,9 @@
 
 ## Executar localmente no Windows
 
+O mapa das rotas, permissoes, integracoes e testes de ponta a ponta esta
+em [ROTAS.md](ROTAS.md).
+
 O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
 (porta 27017). WSL e Docker nao sao obrigatorios. Foi validado com Node
 24.19.0, npm 11.17.0 e MongoDB Community 8.0.26 nativo no Windows.
@@ -22,7 +25,7 @@ repetido sem duplicar ou alterar os exemplos existentes. As imagens ficam
 em `frontend/public/demo-products`; categorias sem foto propria usam o
 logo da loja como ilustracao. Precos e descricoes sao ficticios.
 
-Cadastro com avatar requer credenciais Cloudinary; recuperacao
+Cadastro sem foto funciona com o avatar padrao. Cadastro com avatar requer credenciais Cloudinary; recuperacao
 de senha requer SMTP no `config.env`. Essas integracoes nao foram
 validadas sem as credenciais. O projeto possui dependencias antigas e a
 compilacao pode apresentar avisos de descontinuacao e lint.

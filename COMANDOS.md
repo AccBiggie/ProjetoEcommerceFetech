@@ -113,21 +113,21 @@ npm.cmd start
 Acesse http://localhost:3000. Para encerrar processos iniciados nesses
 terminais, use Ctrl+C em cada um.
 
-Nesta sessao, MongoDB e API foram iniciados em segundo plano com:
+Para iniciar MongoDB e API em segundo plano e guardar os processos:
 
 ```powershell
 $projectRoot = (Get-Location).Path
-Start-Process -FilePath (Join-Path $projectRoot '.local/mongod.exe') -ArgumentList @('--dbpath', ('"' + (Join-Path $projectRoot '.local/mongo-data') + '"'), '--bind_ip', '127.0.0.1', '--port', '27017', '--logpath', ('"' + (Join-Path $projectRoot '.local/mongod.log') + '"')) -WindowStyle Hidden -PassThru
-Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList 'backend/server.js' -WorkingDirectory (Join-Path $projectRoot 'ecommerce') -RedirectStandardOutput (Join-Path $projectRoot '.local/backend.log') -RedirectStandardError (Join-Path $projectRoot '.local/backend-error.log') -WindowStyle Hidden -PassThru
+$mongoProcess = Start-Process -FilePath (Join-Path $projectRoot '.local/mongod.exe') -ArgumentList @('--dbpath', ('"' + (Join-Path $projectRoot '.local/mongo-data') + '"'), '--bind_ip', '127.0.0.1', '--port', '27017', '--logpath', ('"' + (Join-Path $projectRoot '.local/mongod.log') + '"')) -WindowStyle Hidden -PassThru
+$apiProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList 'backend/server.js' -WorkingDirectory (Join-Path $projectRoot 'ecommerce') -RedirectStandardOutput (Join-Path $projectRoot '.local/backend.log') -RedirectStandardError (Join-Path $projectRoot '.local/backend-error.log') -WindowStyle Hidden -PassThru
 ```
 
-Os processos deixados ativos nesta sessao sao MongoDB (PID 22120), API
-(PID 20556) e React (PID 16672). Para encerra-los antes de reiniciar,
-use o comando abaixo somente enquanto esses PIDs ainda corresponderem
-a esta sessao (os PIDs mudam ao reiniciar):
+Os comandos `Start-Process ... -PassThru` guardam os processos nas variaveis.
+Use essas variaveis para encerrar o MongoDB e a API antes de reiniciar.
+O React iniciado no terminal pode ser encerrado com Ctrl+C. Os PIDs mudam
+a cada inicializacao; execute no mesmo terminal que criou as variaveis:
 
 ```powershell
-Stop-Process -Id 22120,20556,16672
+Stop-Process -Id $mongoProcess.Id,$apiProcess.Id
 ```
 
 ## Verificacao (executados)
@@ -157,3 +157,8 @@ usuarios temporarios foram excluidos ao final de cada verificacao.
 
 Resultado final: build de producao concluido com codigo de saida 0 e
 avisos de lint; frontend e proxy `/api/v1/products` responderam HTTP 200.
+
+Na revisao posterior das rotas, a compilacao passou sem avisos de lint.
+Foram executados `npm.cmd test` (API) e `npm.cmd run test:e2e`
+(navegador) na pasta `ecommerce`, com bancos temporarios separados.
+Veja [ROTAS.md](ROTAS.md) para o mapa e os comandos completos dessa revisao.

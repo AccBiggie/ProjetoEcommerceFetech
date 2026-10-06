@@ -71,7 +71,6 @@ const orderSchema = new mongoose.Schema({
   },
   paidAt: {
     type: Date,
-    required: true,
   },
   itemsPrice: {
     type: Number,
@@ -95,6 +94,7 @@ const orderSchema = new mongoose.Schema({
   },
   orderStatus: {
     type: String,
+    enum: ["Processing", "Shipped", "Delivered"],
     required: true,
     default: "Processing",
   },
@@ -103,6 +103,6 @@ const orderSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-});
+}, { optimisticConcurrency: true });
 
 module.exports = mongoose.model("Order", orderSchema);

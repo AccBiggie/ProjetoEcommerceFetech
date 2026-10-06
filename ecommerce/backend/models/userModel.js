@@ -12,6 +12,8 @@ const userSchema = new mongoose.Schema ( {
     },
     email: {
         type: String,
+        trim: true,
+        lowercase: true,
         required: [true, "Please enter Your Email"],
         unique: [true],
         validate: [validator.isEmail, "Please enter a valid email"],
@@ -34,6 +36,7 @@ const userSchema = new mongoose.Schema ( {
     },
     role: {
         type: String,
+        enum: ["user", "admin"],
         default: "user",
     },
     createdAt: {
@@ -43,6 +46,12 @@ const userSchema = new mongoose.Schema ( {
     resetPasswordToken: String,
     resetPasswordExpire: Date,
 });
+userSchema.set("toJSON", { transform: (doc, result) => {
+    delete result.password;
+    delete result.resetPasswordToken;
+    delete result.resetPasswordExpire;
+    return result;
+} });
 userSchema.pre("save", async function() {
     if (!this.isModified("password")) {
         return;

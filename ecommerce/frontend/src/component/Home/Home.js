@@ -5,22 +5,16 @@ import MetaData from '../layout/MetaData';
 import { getProduct } from '../../actions/productAction';
 import { useSelector, useDispatch } from "react-redux";
 import Loader from '../layout/Loader/Loader';
-import { useAlert } from "react-alert";
-import Navbar from "../layout/Navbar/Navbar.js";
 import Header from '../layout/Header/Header.js';
 import ImgSection from "../../images/wallpaperLoja2.png"
 
 const Home = () => {
-  const alert = useAlert()
   const dispatch = useDispatch();
   const { loading, error, products } = useSelector((state) => state.products);
   useEffect(() => {
 
-    if (error) {
-      return alert.error(error);
-    }
     dispatch(getProduct());
-  }, [dispatch, error, alert]);
+  }, [dispatch]);
 
   return (
     <Fragment>
@@ -50,7 +44,8 @@ const Home = () => {
           <h2 className="homeHeading" alt="Product Most Wanted" title="Produtos Mais Procurados">Produtos Mais Procurados</h2>
 
           <div className="container" id="container" alt="Container de Produtos" title="Card de Produtos">
-            {products && products.map((product) => <Product product={product} />)};
+            {error && <p role="alert">{error}</p>}
+            {products && products.map((product) => <Product key={product._id} product={product} />)}
           </div>
         </React.Fragment>
       )};

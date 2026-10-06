@@ -1,36 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
-import { Link } from "react-router-dom";
-import { FaUserCircle } from "react-icons/fa";
-import "./Buttom.css";
-
-const Buttom = () => {
-    const [isActive, setIsActive] = useState(false);
-    const { isAuthenticated } = useSelector((state) => state.user);
-
-    const loginForm = ({ state }) => {
-        if (isAuthenticated) {
-            setIsActive(true);
-        } else {
-            setIsActive(false);
-        }
-    }
-
-    useEffect(() => {
-        if (isAuthenticated) {
-            loginForm(true);
-        } else {
-            loginForm(false);
-        }
-    })
-
-    return (
-        <div className={isActive ? "buttonLoginFormUser" : "buttonLogin"}>
-            <Link to="/login" className="ButtonLogin" type="text">
-                <FaUserCircle className="iconUser" />
-            </Link>
-        </div >
-    )
+import { Link } from 'react-router-dom';
+import { FaUserCircle } from 'react-icons/fa';
+import './Buttom.css';
+export default function Buttom() {
+    const { isAuthenticated } = useSelector(state => state.user);
+    return <div className={isAuthenticated ? 'buttonLoginFormUser' : 'buttonLogin'}>
+        <Link to={isAuthenticated ? '/account' : '/login'} aria-label={isAuthenticated ? 'Minha conta' : 'Entrar'} className="ButtonLogin"><FaUserCircle className="iconUser" /></Link>
+    </div>;
 }
-
-export default Buttom;

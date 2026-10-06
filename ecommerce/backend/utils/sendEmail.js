@@ -1,13 +1,14 @@
 const nodeMailer = require("nodemailer");
-const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHander = require("./errorHander");
-const dotenv = require("dotenv").config();
 
 const sendEmail = async (options) => {
+    if (!process.env.HOST || !process.env.USER || !process.env.PASSWORD) {
+        throw new ErrorHander("Envio de e-mail indisponível. Configure HOST, PORTEMAIL, USER e PASSWORD no servidor.", 503);
+    }
     const transporter = nodeMailer.createTransport ({
         host: process.env.HOST,
         port: process.env.PORTEMAIL,
-        secure: true,
+        secure: process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === "true" : Number(process.env.PORTEMAIL) === 465,
         auth: {
                 user: process.env.USER,
                 pass: process.env.PASSWORD,

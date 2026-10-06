@@ -10,6 +10,7 @@ exports.isAuthenticatedUser = catchAsyncErrors (async (req, res, next) => {
     }
     const decodedData = jwt.verify(token, process.env.JWT_SECRET);
     req.user = await User.findById(decodedData.id);  
+    if (!req.user) return next(new ErrorHander("Sua conta não existe mais. Entre novamente.", 401));
     next();
 });
 exports.authorizeRoles = (...roles) => {

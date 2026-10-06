@@ -42,10 +42,11 @@ const UserOptions = ({ user }) => {
         navigate("/account");
     }
 
-    function logoutUser() {
-        dispatch(logout())
-        navigate("/");
-        alert.success("Você saiu da conta.");
+    async function logoutUser() {
+        if (await dispatch(logout())) {
+            navigate("/");
+            alert.success("Você saiu da conta.");
+        } else alert.error("Não foi possível sair. Tente novamente.");
     }
 
     return (
@@ -59,7 +60,7 @@ const UserOptions = ({ user }) => {
                 className="speedDial"
                 icon={<img
                     className="speedDialIcon"
-                    src={user.avatar.url ? user.avatar.url : "/Profile.png"}
+                    src={user.avatar?.url || "/Profile.png"}
                     alt={"Profile"}
                 />
                 }

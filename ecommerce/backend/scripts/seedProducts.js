@@ -26,8 +26,7 @@ async function seed() {
         throw new Error("Este cadastro de exemplos exige o banco local fetech na porta 27017.");
     }
     const frontend = path.resolve(__dirname, "../../frontend");
-    const header = fs.readFileSync(path.join(frontend, "src/component/layout/Header/Header.js"), "utf8");
-    const categories = [...header.matchAll(/<a\s+className="list"\s+href="\/">([^<]+)<\/a>/g)].map(match => match[1]);
+    const categories = JSON.parse(fs.readFileSync(path.join(frontend, "src/data/categories.json"), "utf8"));
     if (categories.length !== examples.length || examples.some(([category]) => !categories.includes(category))) {
         throw new Error("As categorias do menu mudaram. Atualize os exemplos antes de executar.");
     }

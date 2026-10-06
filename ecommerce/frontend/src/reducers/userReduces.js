@@ -21,6 +21,7 @@ import {
     FORGOT_PASSWORD_REQUEST,
     FORGOT_PASSWORD_SUCCESS,
     FORGOT_PASSWORD_FAIL,
+    FORGOT_PASSWORD_RESET,
     RESET_PASSWORD_REQUEST,
     RESET_PASSWORD_SUCCESS,
     RESET_PASSWORD_FAIL,
@@ -41,15 +42,16 @@ import {
     CLEAR_ERRORS,
 } from "../constants/userConstants";
 
-export const userReducer = (state = { user: {} }, action) => {
+export const userReducer = (state = { user: null, loading: true }, action) => {
     switch (action.type) {
         case LOGIN_REQUEST:
         case REGISTER_USER_REQUEST:
-        case LOAD_USER_REQUEST:
             return {
                 loading: true,
                 isAuthenticated: false,
             };
+        case LOAD_USER_REQUEST:
+            return { ...state, loading: true, error: null };
         case LOGIN_SUCCESS:
         case REGISTER_USER_SUCCESS:
         case LOAD_USER_SUCCESS:
@@ -172,6 +174,8 @@ export const forgotPasswordReducer = (state = {}, action) => {
           ...state,
           loading: true,
           error: null,
+          success: false,
+          message: null,
         };
       case FORGOT_PASSWORD_SUCCESS:
         return {
@@ -179,14 +183,14 @@ export const forgotPasswordReducer = (state = {}, action) => {
           loading: false,
           message: action.payload,
         };
-  
+
       case RESET_PASSWORD_SUCCESS:
         return {
           ...state,
           loading: false,
           success: action.payload,
         };
-  
+
       case FORGOT_PASSWORD_FAIL:
       case RESET_PASSWORD_FAIL:
         return {
@@ -194,15 +198,17 @@ export const forgotPasswordReducer = (state = {}, action) => {
           loading: false,
           error: action.payload,
         };
-  
+
       case CLEAR_ERRORS:
         return {
           ...state,
           error: null,
         };
-  
+      case FORGOT_PASSWORD_RESET:
+        return {};
+
       default:
         return state;
     }
   };
-  
+

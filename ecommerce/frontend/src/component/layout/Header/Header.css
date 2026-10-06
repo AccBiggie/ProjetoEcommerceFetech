@@ -36,11 +36,13 @@ header {
 }
 
 .nav-area {
+    position: relative;
     display: flex;
     align-items: center;
     max-width: 100%;
     margin: 0 auto;
-    padding: 0 15vmax;
+    padding: 0 clamp(12px, 5vw, 64px);
+    gap: 12px;
     /* margin-top: 4.4vmax; */
     height: 64px;
     background-color: rgb(170, 195, 204);
@@ -72,4 +74,21 @@ header {
     color: white;
     margin-inline: 1.6vmax;
     font: 100 0.9vmax Arial;
+}
+
+.nav-area > .menu { display: none; position: absolute; left: clamp(12px, 5vw, 64px); top: 100%; z-index: 100; width: 260px; max-width: calc(100vw - 24px); background: #353333; }
+.nav-area > .menu.active { display: block; }
+.nav-area > .menu ul { list-style: none; }
+.nav-area > .menu .list { display: block; margin: 0; padding: 11px 16px; color: white; font: 14px Arial, sans-serif; }
+.nav-area > .menu .list:hover, .nav-area > .menu .list:focus { background: #b42318; }
+.nav-area .searchProduct, .nav-area .iconUser { position: static; margin: 0; }
+.nav-area .searchProducts { margin: 0; }
+@media (max-width: 700px) {
+    header { height: auto; }
+    .nav-area { height: auto; min-height: 64px; flex-wrap: wrap; padding: 12px; }
+    .nav-area .Header-Logo { width: 130px; }
+    .nav-area > .menu-buttom { width: 130px; height: 40px; font-size: 13px; }
+    .nav-area .searchBox { width: 100%; order: 4; }
+    .nav-area .searchBox input { flex: 1; width: auto; height: 38px; font-size: 14px; margin: 0; }
+    .nav-area .searchProducts { height: 38px; width: 38px; margin: 0; }
 }

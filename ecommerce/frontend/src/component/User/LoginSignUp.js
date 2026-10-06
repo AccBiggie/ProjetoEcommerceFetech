@@ -9,11 +9,14 @@ import Loader from "../layout/Loader/Loader.js";
 import { useDispatch, useSelector } from "react-redux";
 import { clearErrors, login, register } from "../../actions/userAction";
 import { useAlert } from "react-alert";
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 export const LoginSignUp = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const requested = location.state?.returnTo || new URLSearchParams(location.search).get("redirect") || "/";
+  const redirect = requested === "shipping" ? "/shipping" : requested.startsWith("/") && !requested.startsWith("//") && !requested.startsWith("/login") ? requested : "/";
   const alert = useAlert();
   const { error, loading, isAuthenticated } = useSelector((state) => state.user);
 
@@ -48,12 +51,13 @@ export const LoginSignUp = () => {
     myForm.set("name", name);
     myForm.set("email", email);
     myForm.set("password", password);
-    myForm.set("avatar", avatar)
+    if (avatar) myForm.set("avatar", avatar);
     dispatch(register(myForm));
   };
 
   const registerDataChange = (e) => {
     if (e.target.name === "avatar") {
+      if (!e.target.files[0]) return;
       const reader = new FileReader();
 
       reader.onload = () => {
@@ -77,9 +81,9 @@ export const LoginSignUp = () => {
     }
 
     if (isAuthenticated) {
-      navigate("/");
+      navigate(redirect, { replace: true });
     }
-  }, [dispatch, error, alert, navigate, isAuthenticated]);
+  }, [dispatch, error, alert, navigate, isAuthenticated, redirect]);
 
   const switchTabs = (e, tab) => {
     if (tab === "login") {

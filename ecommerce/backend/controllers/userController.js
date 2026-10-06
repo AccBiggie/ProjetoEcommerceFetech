@@ -4,23 +4,16 @@ const User = require("../models/userModel");
 const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-const cloudinary = require("cloudinary");
+const uploadAvatar = require("../utils/avatar");
 //Register a User
 exports.registerUser = catchAsyncErrors( async (req,res,next) => {
-    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "avatars",
-        width: 150,
-        crop: "scale",
-    });
+    const avatar = await uploadAvatar(req.body.avatar);
     const { name, email, password } = req.body;
     const user = await User.create ({
         name,
         email,
         password,
-        avatar: {
-            public_id: myCloud.public_id,
-            url: myCloud.secure_url,
-        },
+        avatar: avatar || { public_id: "default-avatar", url: "/Profile.png" },
     });
     sendToken(user, 201, res);
 });
@@ -31,7 +24,7 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
     if(!email || !password) {
         return next(new ErrorHander ("Please enter Email and Password", 400));
     }
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() }).select("+password");
     if(!user) {
         return next(new ErrorHander ("Invalid email or password", 401));
     }
@@ -49,13 +42,13 @@ exports.logout = catchAsyncErrors (async (req, res, next) => {
     });
 
     res.status(200).json ({
-        sucess: true,
+        success: true,
         message: "Logged Out"
     });
 });
 //Forgot Password
 exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
-    const user = await User.findOne({ email: req.body.email });
+    const user = await User.findOne({ email: String(req.body.email || "").trim().toLowerCase() });
     if (!user) {
         return next(new ErrorHander ("User not found", 404));
     }
@@ -82,7 +75,7 @@ exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
         user.resetPasswordExpire = undefined;     
         await user.save({ validateBeforeSave:false });
 
-        return next(new ErrorHander (error.message, 500));
+        return next(new ErrorHander(error.message, error.statusCode || 503));
     };
 });
 //RESET PASSWORD
@@ -138,7 +131,8 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
         name: req.body.name,
         email: req.body.email,
     }
-    //We will add ordinary later
+    const avatar = await uploadAvatar(req.body.avatar);
+    if (avatar) newUserData.avatar = avatar;
     const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
         new: true,
         runValidators: true,
@@ -146,6 +140,7 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
     });
     res.status(200).json({
         success: true,
+        user,
     });
 });
 //GET ALL USERS (Admin)
@@ -162,7 +157,7 @@ exports.getSingleUser = catchAsyncErrors (async (req, res, next) => {
     const user = await User.findById(req.params.id);
 
     if(!user) {
-        return next( new ErrorHander (`User does not exist with id: ${req.params.id}`));
+        return next(new ErrorHander("Usuário não encontrado.", 404));
     }
 
     res.status(200).json({
@@ -172,6 +167,9 @@ exports.getSingleUser = catchAsyncErrors (async (req, res, next) => {
 });
 //UPDATE USER ROLE --ADMIN
 exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
+    if (req.body.role !== undefined && !["admin", "user"].includes(req.body.role)) {
+        return next(new ErrorHander("Perfil inválido.", 400));
+    }
     const newUserData = {
         name: req.body.name,
         email: req.body.email,
@@ -182,8 +180,10 @@ exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
         runValidators: true,
         useFindAndModify: false,
     });
+    if (!user) return next(new ErrorHander("Usuário não encontrado.", 404));
     res.status(200).json({
         success: true,
+        user,
     });
 });
 //DELETE USER --ADMIN
@@ -191,7 +191,7 @@ exports.deleteUser = catchAsyncErrors(async(req, res, next) => {
     const user = await User.findById(req.params.id);
     //We will remove ordinary later
     if(!user) {
-        return next( new ErrorHander (`User does not exist with id: ${req.params.id}`));
+        return next(new ErrorHander("Usuário não encontrado.", 404));
     }
 
     await user.remove();

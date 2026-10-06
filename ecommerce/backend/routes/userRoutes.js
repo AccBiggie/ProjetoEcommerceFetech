@@ -2,6 +2,7 @@ const express = require("express");
 const { registerUser, loginUser, logout, forgotPassword, resetPassword, getUserDetails, updatePassword, updateProfile, getAllUser, getSingleUser, updateUserRole, deleteUser } = require("../controllers/userController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
+router.param("id", require("../middleware/validateId"));
 //Route For Api Register User e User Details
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);

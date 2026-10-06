@@ -5,9 +5,14 @@ import { useSelector, useDispatch } from "react-redux";
 import { addItemsToCart, removeItemsFromCart } from "../../actions/cartAction";
 import { Typography } from "@material-ui/core";
 import RemoveShoppingCartIcon from "@material-ui/icons/RemoveShoppingCart";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAlert } from 'react-alert';
+import { getErrorMessage } from '../../utils/api';
+import Page from '../layout/Page';
 
-const Cart = ({ history }) => {
+const Cart = () => {
+  const navigate = useNavigate();
+  const alert = useAlert();
   const dispatch = useDispatch();
   const { cartItems } = useSelector((state) => state.cart);
 
@@ -16,7 +21,7 @@ const Cart = ({ history }) => {
     if (stock <= quantity) {
       return;
     }
-    dispatch(addItemsToCart(id, newQty));
+    dispatch(addItemsToCart(id, newQty)).catch(error => alert.error(getErrorMessage(error)));
   };
 
   const decreaseQuantity = (id, quantity) => {
@@ -24,7 +29,7 @@ const Cart = ({ history }) => {
     if (1 >= quantity) {
       return;
     }
-    dispatch(addItemsToCart(id, newQty));
+    dispatch(addItemsToCart(id, newQty)).catch(error => alert.error(getErrorMessage(error)));
   };
 
   const deleteCartItems = (id) => {
@@ -32,11 +37,11 @@ const Cart = ({ history }) => {
   };
 
   const checkoutHandler = () => {
-    history.push("/login?redirect=shipping");
+    navigate("/shipping");
   };
 
   return (
-    <Fragment>
+    <Page title="Carrinho">
       {cartItems.length === 0 ? (
         <div className="emptyCart">
           <RemoveShoppingCartIcon />
@@ -95,13 +100,13 @@ const Cart = ({ history }) => {
               </div>
               <div></div>
               <div className="checkOutBtn">
-                <button onClick={checkoutHandler}>Finalizar Pagamento</button>
+                <button onClick={checkoutHandler}>Finalizar pedido</button>
               </div>
             </div>
           </div>
         </Fragment>
       )}
-    </Fragment>
+    </Page>
   );
 };
 

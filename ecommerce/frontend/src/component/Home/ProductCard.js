@@ -2,8 +2,21 @@ import React, { Fragment, useState, useEffect } from 'react'
 import { Link } from "react-router-dom";
 import ReactStars from "react-rating-stars-component";
 import "./Home.css"
+import { useDispatch } from 'react-redux';
+import { useAlert } from 'react-alert';
+import { addItemsToCart } from '../../actions/cartAction';
+import { getErrorMessage } from '../../utils/api';
 
 const ProductCard = ({ product }) => {
+  const dispatch = useDispatch();
+  const alert = useAlert();
+  const [adding, setAdding] = useState(false);
+  const addToCart = async () => {
+    setAdding(true);
+    try { await dispatch(addItemsToCart(product._id, 1)); alert.success("Produto adicionado ao carrinho."); }
+    catch (error) { alert.error(getErrorMessage(error)); }
+    finally { setAdding(false); }
+  };
   const options = {
     edit: false,
     color: "rgba(20,20,20,0.1)",
@@ -72,7 +85,7 @@ const ProductCard = ({ product }) => {
             </div>
             <div className="countExpire">Teste</div>
           </div>
-          <img src={product.images[0].url} alt={product.name} />
+          <img src={product.images[0]?.url || "/Profile.png"} alt={product.name} />
           <p className="productName">{product.name}</p>
           <div>
             <ReactStars {...options} />{" "}
@@ -82,7 +95,7 @@ const ProductCard = ({ product }) => {
           <span className="productPrice">{`R$ ${product.price}`} Preço à vista.</span>
           <span className="installmmentPrice">ou em 12x de {` R$ ${product.installmmentPrice}`} sem juros.</span>
         </Link>
-        <button className="buttomCard" value="">Adcionar ao Carrinho.</button>
+        <button className="buttomCard" onClick={addToCart} disabled={adding || product.Stock < 1}>Adicionar ao Carrinho</button>
       </div>
     </Fragment>
   );

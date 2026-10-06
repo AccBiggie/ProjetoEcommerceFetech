@@ -22,16 +22,19 @@ const productSchema = mongoose.Schema( {
     },
     oldPrice: {
         type: String,
+        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Preço anterior inválido." },
         required: [true, "Please enter old price product"],
         maxLength: [15, "Price cannot exceed 8 characters"],
     },
     price: {
         type: String,
+        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Preço inválido." },
         required: [true, "Please enter product price"],
         maxLength: [15, "Price cannot exceed 8 characters"]
     },
     installmmentPrice: {
         type: String,
+        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Parcela inválida." },
         required: [true, "Please enter product installmmente Price"],
         maxLength: [15, "Price canoot exceed 15 characters"],
     },
@@ -61,6 +64,8 @@ const productSchema = mongoose.Schema( {
     },
     Stock: {
         type: Number,
+        validate: { validator: Number.isSafeInteger, message: "Estoque deve ser inteiro." },
+        min: [0, "Estoque não pode ser negativo."],
         required: [true, "Please enter product stock"],
         maxLength: [4, "Stock cannot exceed 4 characters"],
         default: 1

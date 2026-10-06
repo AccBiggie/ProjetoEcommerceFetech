@@ -4,7 +4,8 @@
   "description": "",
   "main": "backend/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/api.test.js",
+    "test:e2e": "playwright test",
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "seed:products": "node backend/scripts/seedProducts.js"
@@ -26,6 +27,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "nodemon": "^3.0.1"
   }
 }
