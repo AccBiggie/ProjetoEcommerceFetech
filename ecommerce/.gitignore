@@ -1,1 +1,4 @@
 node_modules
+.npm-cache/
+backend/config/config.env
+frontend/build/

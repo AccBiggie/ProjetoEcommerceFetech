@@ -35,7 +35,7 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
     if(!user) {
         return next(new ErrorHander ("Invalid email or password", 401));
     }
-    const isPasswordMatched = user.comparePassword(password);
+    const isPasswordMatched = await user.comparePassword(password);
     if(!isPasswordMatched) {
         return next(new ErrorHander ("Invalid email or password", 401));
     }
@@ -92,17 +92,17 @@ exports.resetPassword = catchAsyncErrors (async (req, res, next) => {
         resetPasswordToken, resetPasswordExpire : { $gt: Date.now() },
     });
     if(!user) {
-        return next( ErrorHander("Reset Password Token is invalid or hass been expired",400));
+        return next(new ErrorHander("Reset Password Token is invalid or hass been expired",400));
     };
-    if(req.body.password !== req.body.password.confirmPassword ) {
-        return next( ErrorHander("Password does not password",400));
+    if(req.body.password !== req.body.confirmPassword ) {
+        return next(new ErrorHander("Password does not match",400));
     }
     
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
-    await user.save().
+    await user.save();
 
     sendToken(user, 200, res);
 });

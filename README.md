@@ -1,4 +1,35 @@
 # ProjetoEcommerceFetech
+
+## Executar localmente no Windows
+
+O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
+(porta 27017). WSL e Docker nao sao obrigatorios. Foi validado com Node
+24.19.0, npm 11.17.0 e MongoDB Community 8.0.26 nativo no Windows.
+
+Os comandos de instalacao, configuracao, inicializacao e verificacao estao
+em [COMANDOS.md](COMANDOS.md). Use `npm.cmd` no PowerShell para evitar a
+restricao de execucao de `npm.ps1`.
+
+Copie `ecommerce/backend/config/config.env.example` para `config.env` na
+mesma pasta e configure uma chave JWT aleatoria. O arquivo real fica fora
+do Git. O backend so abre a porta depois de conectar ao MongoDB.
+
+Abra http://localhost:3000. O banco de uma instalacao nova inicia vazio.
+Depois de criar o administrador `admin@fetech.local`, execute
+`npm.cmd run seed:products` na pasta `ecommerce` para cadastrar um produto
+de exemplo em cada uma das 11 categorias do menu. O comando pode ser
+repetido sem duplicar ou alterar os exemplos existentes. As imagens ficam
+em `frontend/public/demo-products`; categorias sem foto propria usam o
+logo da loja como ilustracao. Precos e descricoes sao ficticios.
+
+Cadastro com avatar requer credenciais Cloudinary; recuperacao
+de senha requer SMTP no `config.env`. Essas integracoes nao foram
+validadas sem as credenciais. O projeto possui dependencias antigas e a
+compilacao pode apresentar avisos de descontinuacao e lint.
+
+O MongoDB baixado e seus dados ficam em `.local/`, fora do Git. Ele usa
+apenas a interface local. Os comandos abaixo sao para desenvolvimento local.
+
  Projeto Fetech Hardware && Technology
 ## Projeto consistirá em uma loja virtual.
 

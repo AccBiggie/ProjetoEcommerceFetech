@@ -13,49 +13,31 @@ const ProductCard = ({ product }) => {
     isHalf: true,
   };
 
-  const defaultProps = {
-    timerDays: 10,
-    timerHours: 10,
-    timerMinutes: 10,
-    timerSeconds: 10,
-    value: product.countDown,
-  };
-
   /* Contador regressivo de promoções*/
   const [timerDays, setTimerDays] = useState();
   const [timerHours, setTimerHours] = useState();
   const [timerMinutes, setTimerMinute] = useState();
   const [timerSeconds, setTimerSeconds] = useState();
   
-  let interval;
-
-  const startTimer = () => {
+  useEffect(() => {
     const countDownDate = new Date(product.countDown).getTime();
-    interval = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = countDownDate - now;
+    const updateTimer = () => {
+      const remaining = countDownDate - Date.now();
+      const distance = Number.isFinite(remaining) ? Math.max(0, remaining) : 0;
       const days = Math.floor(distance / (24 * 60 * 60 * 1000));
       const hours = Math.floor((distance % (24 * 60 * 60 * 1000)) / (1000 * 60 * 60));
       const minutes = Math.floor((distance % (60 * 60 * 1000)) / (1000 * 60));
       const seconds = Math.floor((distance % (60 * 1000)) / 1000);
 
-      if (distance < 0 || distance.Date < 0) 
-      {
-        clearInterval(interval);
-      } 
-      else 
-      {
-        setTimerDays(days);
-        setTimerHours(hours);
-        setTimerMinute(minutes);
-        setTimerSeconds(seconds);
-      }
-    })
-  }
-
-  useEffect(() => {
-    startTimer();
-  })
+      setTimerDays(days);
+      setTimerHours(hours);
+      setTimerMinute(minutes);
+      setTimerSeconds(seconds);
+    };
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+    return () => clearInterval(interval);
+  }, [product.countDown]);
 
   return (
     <Fragment>
