@@ -8,6 +8,25 @@ node --version
 npm.cmd --version
 ```
 
+## Endereços por usuário
+
+O cadastro está em `/addresses`, acessível em **Meus endereços** no perfil
+e no menu da conta. O backend prepara os índices da coleção `addresses`
+antes de abrir a porta. Não há seed ou migração de `Order.shippingInfo`:
+contas existentes começam sem endereços nesse cadastro independente.
+
+Validação da funcionalidade, com MongoDB ativo e a partir da raiz:
+
+```powershell
+npm.cmd test --prefix ecommerce
+npm.cmd run build --prefix ecommerce/frontend
+npm.cmd run test:e2e --prefix ecommerce
+```
+
+Os testes usam bancos temporários, verificam isolamento por proprietário,
+favorito único e telas em 360/768/1440 px. Não apontar os testes para `fetech`.
+Detalhes: [docs/ENDERECOS.md](docs/ENDERECOS.md).
+
 ## Cadastrar produtos de exemplo
 
 Depois de criar o administrador `admin@fetech.local`, na raiz do projeto:

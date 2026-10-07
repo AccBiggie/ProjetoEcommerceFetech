@@ -36,7 +36,15 @@ remova a chave `fetech-color-mode` do armazenamento local e recarregue a página
   bloqueados durante a atualizacao de quantidade para evitar cliques repetidos.
 - Login, cadastro, perfil e senhas com campos rotulados, autocomplete,
   visualizacao de senha e feedback durante o envio.
+- Meus endereços em `/addresses`, acessível no perfil e menu da conta:
+  cards, favorito destacado, Drawer de cadastro/edição e confirmação de
+  exclusão. Estado local e Axios centralizado em `utils/addressApi.js`.
+  Campos de CEP/telefone são texto, com validação sem biblioteca de máscaras.
+  Os temas claro/escuro e o checkout atual são preservados.
 - Checkout e pedidos com resumo, endereco, etapas e estado do pagamento.
+- Na etapa de entrega, cards selecionáveis dos endereços da conta preenchem
+  os campos atuais. Edição manual continua disponível, com carregamento,
+  mensagem de lista vazia, recuperação de falha e acesso à gestão de endereços.
 - Painel administrativo com indicadores, abas, formularios, tabelas com
   rolagem interna e dialogos de confirmacao de exclusao.
 - Aba de categorias e botão de cadastro com offcanvas Material UI (`Drawer`)
@@ -87,3 +95,12 @@ Após adicionar os temas claro/escuro em 07/10/2026, o build e os 12 fluxos E2E
 passaram. Os testes de tema verificam teclado, recarga, persistência, troca
 entre abas, preferência do sistema, armazenamento bloqueado e layout em
 360, 768 e 1440 px, incluindo dashboard e offcanvas escuros.
+
+Após o cadastro de endereços em 07/10/2026, o build e os 15 fluxos E2E
+passaram. Os três novos fluxos verificam gestão de endereços em 360, 768 e
+1440 px, favorito único, recarga e preservação de `localStorage.shippingInfo`.
+
+Após integrar os cards de seleção na entrega, o build e os 19 fluxos E2E
+passaram. Os novos testes verificam seleção por teclado e pelo card,
+preenchimento dos campos existentes, edição manual, snapshot do pedido e
+conclusão da compra mesmo quando a consulta de endereços falha.

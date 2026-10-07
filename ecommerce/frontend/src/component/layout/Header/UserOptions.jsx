@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import PersonOutline from "@mui/icons-material/PersonOutlined";
 import ReceiptLongOutlined from "@mui/icons-material/ReceiptLongOutlined";
+import LocationOnOutlined from "@mui/icons-material/LocationOnOutlined";
 import DashboardOutlined from "@mui/icons-material/DashboardOutlined";
 import Logout from "@mui/icons-material/Logout";
 import { logout } from "../../../actions/userAction";
@@ -79,6 +80,12 @@ export default function UserOptions({ user }) {
             <ReceiptLongOutlined sx={{ fontSize: "small" }} />
           </ListItemIcon>
           Meus pedidos
+        </MenuItem>
+        <MenuItem component={Link} to="/addresses" onClick={close}>
+          <ListItemIcon>
+            <LocationOnOutlined sx={{ fontSize: "small" }} />
+          </ListItemIcon>
+          Meus endereços
         </MenuItem>
         <Divider />
         <MenuItem onClick={signOut}>

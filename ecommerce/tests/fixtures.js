@@ -1,6 +1,7 @@
 const User = require('../backend/models/userModel');
 const Product = require('../backend/models/productModel');
 const Category = require('../backend/models/categoryModel');
+const Address = require('../backend/models/addressModel');
 const { categoryKey } = require('../backend/utils/categories');
 const categories = require('../frontend/src/data/categories.json');
 
@@ -19,6 +20,7 @@ async function fixtures() {
     });
     const products = [];
     await Category.init();
+    await Address.init();
     for (const category of categories) {
         const record = await Category.create({ name: category, name_key: categoryKey(category) });
         products.push(await Product.create(productData({ name: `Produto ${category}`, category, category_id: record._id, user: users.admin._id })));

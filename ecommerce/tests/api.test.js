@@ -11,6 +11,7 @@ const User = require('../backend/models/userModel');
 const Product = require('../backend/models/productModel');
 const Order = require('../backend/models/orderModel');
 const Category = require('../backend/models/categoryModel');
+const Address = require('../backend/models/addressModel');
 const { migrateLegacyCategories } = require('../backend/utils/categories');
 
 Object.assign(process.env, { JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
@@ -280,4 +281,93 @@ test('categorias: migração preserva produtos antigos, é repetível e não rec
     await legacy.deleteOne(); await category.deleteOne();
     await migrateLegacyCategories();
     assert.equal(await Category.exists({ name: 'Categoria legada' }), null);
+});
+
+const addressData = overrides => ({
+    label: 'Casa', recipientName: 'Cliente Endereços', address: 'Rua das Flores', number: '10',
+    complement: '', neighborhood: 'Centro', city: 'São Paulo', state: 'SP', country: 'Brasil',
+    pinCode: '01234-567', phoneNo: '(011) 99999-9999', ...overrides,
+});
+
+test('endereços: múltiplos registros, CRUD privado, dados string e proprietário da sessão', async () => {
+    const accounts = {};
+    for (const role of ['addressOwner', 'addressOther']) {
+        const registration = await request('POST', '/register', { name: 'Cliente ' + role, email: `${role.toLowerCase()}@routes.example.com`, password }, 'anonymous', 201);
+        accounts[role] = registration.result.user;
+        cookies[role] = registration.response.headers.get('set-cookie').split(';')[0];
+    }
+    await request('GET', '/addresses', null, 'anonymous', 401);
+    await request('POST', '/address/new', addressData(), 'anonymous', 401);
+    assert.equal((await request('GET', '/addresses', null, 'addressOwner')).result.addresses.length, 0);
+    const first = (await request('POST', '/address/new', addressData({ user: accounts.addressOther._id, userId: accounts.addressOther._id, role: 'admin' }), 'addressOwner', 201)).result.address;
+    assert.equal(first.user, accounts.addressOwner._id);
+    assert.equal(first.pinCode, '01234567'); assert.equal(typeof first.pinCode, 'string');
+    assert.equal(first.phoneNo, '011999999999'); assert.equal(typeof first.phoneNo, 'string');
+    assert.equal(first.favorite, false); assert.ok(first.createdAt); assert.ok(first.updatedAt);
+    const second = (await request('POST', '/address/new', addressData({ label: 'Trabalho', country: undefined, favorite: true }), 'addressOwner', 201)).result.address;
+    assert.equal(second.country, 'Brasil');
+    const foreign = (await request('POST', '/address/new', addressData({ label: 'Outro usuário', favorite: true }), 'addressOther', 201)).result.address;
+    const list = (await request('GET', '/addresses?user=' + accounts.addressOther._id, null, 'addressOwner')).result.addresses;
+    assert.equal(list.length, 2); assert.equal(list[0]._id, second._id);
+    assert.ok(list.every(address => address.user === accounts.addressOwner._id));
+    assert.equal((await request('GET', '/addresses', null, 'addressOther')).result.addresses.length, 1);
+    for (const [method, suffix] of [['GET', ''], ['PUT', ''], ['DELETE', ''], ['PUT', '/favorite']]) {
+        await request(method, '/address/' + first._id + suffix, method === 'PUT' ? addressData() : null, 'anonymous', 401);
+        await request(method, '/address/' + first._id + suffix, method === 'PUT' ? addressData() : null, 'addressOther', 404);
+        await request(method, '/address/' + first._id + suffix, method === 'PUT' ? addressData() : null, 'admin', 404);
+        await request(method, '/address/invalid' + suffix, method === 'PUT' ? {} : null, 'addressOwner', 400);
+        await request(method, '/address/' + missing + suffix, method === 'PUT' ? {} : null, 'addressOwner', 404);
+    }
+    const updated = (await request('PUT', '/address/' + first._id, { label: 'Apartamento', number: '20A', complement: 'Fundos', user: accounts.addressOther._id, userId: accounts.addressOther._id, favorite: true }, 'addressOwner')).result.address;
+    assert.equal(updated.label, 'Apartamento'); assert.equal(updated.number, '20A'); assert.equal(updated.complement, 'Fundos');
+    assert.equal(updated.user, accounts.addressOwner._id);
+    let own = (await request('GET', '/addresses', null, 'addressOwner')).result.addresses;
+    assert.equal(own.filter(address => address.favorite).length, 1); assert.equal(own[0]._id, first._id);
+    assert.equal((await request('GET', '/address/' + second._id, null, 'addressOwner')).result.address.favorite, false);
+    await request('PUT', '/address/' + second._id + '/favorite', null, 'addressOwner');
+    await request('PUT', '/address/' + second._id + '/favorite', null, 'addressOwner');
+    own = (await request('GET', '/addresses', null, 'addressOwner')).result.addresses;
+    assert.equal(own[0]._id, second._id); assert.equal(own.filter(address => address.favorite).length, 1);
+    const third = (await request('POST', '/address/new', addressData({ label: 'Outra casa', favorite: true }), 'addressOwner', 201)).result.address;
+    assert.equal((await request('GET', '/address/' + second._id, null, 'addressOwner')).result.address.favorite, false);
+    await request('PUT', '/address/' + third._id, { favorite: false }, 'addressOwner');
+    assert.equal((await request('GET', '/addresses', null, 'addressOwner')).result.addresses.filter(address => address.favorite).length, 0);
+    await request('PUT', '/address/' + third._id + '/favorite', null, 'addressOwner');
+    await request('DELETE', '/address/' + third._id, null, 'addressOwner');
+    assert.equal((await request('GET', '/addresses', null, 'addressOwner')).result.addresses.filter(address => address.favorite).length, 0);
+    assert.equal((await request('GET', '/address/' + foreign._id, null, 'addressOther')).result.address.favorite, true);
+    await request('DELETE', '/address/' + first._id, null, 'addressOwner');
+    await request('DELETE', '/address/' + second._id, null, 'addressOwner');
+    await request('GET', '/address/' + first._id, null, 'addressOwner', 404);
+    await request('DELETE', '/address/' + foreign._id, null, 'addressOther');
+});
+
+test('endereços: validação não remove favorito e índice protege alterações concorrentes', async () => {
+    const first = (await request('POST', '/address/new', addressData({ favorite: true }), 'addressOwner', 201)).result.address;
+    for (const field of ['label', 'recipientName', 'address', 'number', 'neighborhood', 'city', 'state', 'country', 'pinCode', 'phoneNo']) {
+        await request('POST', '/address/new', addressData({ [field]: '   ', favorite: true }), 'addressOwner', 400);
+    }
+    for (const invalid of [{ pinCode: 1234567 }, { phoneNo: 11999999999 }, { pinCode: '123' }, { pinCode: '01234567a' }, { phoneNo: '123' }, { phoneNo: '011999999999x' }, { favorite: 'true' }, { label: ['Casa'] }, { label: 'x'.repeat(81) }]) {
+        await request('POST', '/address/new', addressData({ ...invalid, favorite: true, ...(invalid.favorite !== undefined ? { favorite: invalid.favorite } : {}) }), 'addressOwner', 400);
+        await request('PUT', '/address/' + first._id, invalid, 'addressOwner', 400);
+    }
+    assert.equal((await request('GET', '/address/' + first._id, null, 'addressOwner')).result.address.favorite, true);
+    const results = await Promise.all(Array.from({ length: 4 }, (_, i) => request('POST', '/address/new', addressData({ label: `Concorrente ${i}`, favorite: true }), 'addressOwner', 201)));
+    let list = (await request('GET', '/addresses', null, 'addressOwner')).result.addresses;
+    assert.equal(list.filter(address => address.favorite).length, 1);
+    await Promise.all(results.map(({ result }) => request('PUT', '/address/' + result.address._id + '/favorite', null, 'addressOwner')));
+    list = (await request('GET', '/addresses', null, 'addressOwner')).result.addresses;
+    assert.equal(list.filter(address => address.favorite).length, 1);
+    await assert.rejects(Address.create({ ...addressData({ pinCode: '01234567', phoneNo: '011999999999', favorite: true }), user: first.user }), error => error.code === 11000);
+    for (const address of list) await request('DELETE', '/address/' + address._id, null, 'addressOwner');
+});
+
+test('endereços: editar e excluir cadastro não altera snapshot de pedidos', async () => {
+    const shippingInfo = { address: 'Rua Histórica, 100', city: 'São Paulo', state: 'SP', country: 'Brasil', pinCode: 1234567, phoneNo: 11999999999 };
+    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: data.products[0].id, quantity: 1 }] }, 'addressOwner', 201)).result.order;
+    const address = (await request('POST', '/address/new', addressData(), 'addressOwner', 201)).result.address;
+    await request('PUT', '/address/' + address._id, { address: 'Rua alterada', pinCode: '00000001' }, 'addressOwner');
+    await request('DELETE', '/address/' + address._id, null, 'addressOwner');
+    assert.deepEqual((await request('GET', '/order/' + order._id, null, 'addressOwner')).result.order.shippingInfo, shippingInfo);
+    await request('DELETE', '/admin/order/' + order._id, null, 'admin');
 });

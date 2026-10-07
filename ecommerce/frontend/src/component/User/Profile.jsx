@@ -60,7 +60,8 @@ export default function Profile() {
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={1.5}
-          sx={{ mt: 4 }}
+          useFlexGap
+          sx={{ mt: 4, flexWrap: "wrap" }}
         >
           <Button component={Link} to="/me/update" variant="contained">
             Editar perfil
@@ -70,6 +71,9 @@ export default function Profile() {
           </Button>
           <Button component={Link} to="/orders">
             Meus pedidos
+          </Button>
+          <Button component={Link} to="/addresses">
+            Meus endereços
           </Button>
         </Stack>
       </Card>

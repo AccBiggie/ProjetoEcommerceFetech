@@ -18,6 +18,7 @@ import { saveShippingInfo } from "../../actions/cartAction";
 import { CLEAR_CART } from "../../constants/cartConstants";
 import { getErrorMessage } from "../../utils/api";
 import { money } from "../../utils/format";
+import SavedAddressPicker from "./SavedAddressPicker";
 
 export default function Shipping() {
   const { cartItems, shippingInfo } = useSelector((state) => state.cart);
@@ -31,9 +32,22 @@ export default function Shipping() {
     ...shippingInfo,
   });
   const [pending, setPending] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState("");
   const [error, setError] = useState("");
   const dispatch = useDispatch();
   const completedOrder = useRef(null);
+  const selectAddress = address => {
+    setSelectedAddressId(address?._id || "");
+    if (!address) return;
+    setShipping({
+      address: [address.address, address.number, address.complement, address.neighborhood].filter(Boolean).join(", "),
+      city: address.city,
+      state: address.state,
+      country: address.country,
+      pinCode: address.pinCode,
+      phoneNo: address.phoneNo,
+    });
+  };
   const submit = async (event) => {
     event.preventDefault();
     setPending(true);
@@ -88,6 +102,7 @@ export default function Shipping() {
               {error}
             </Alert>
           )}
+          <SavedAddressPicker selectedId={selectedAddressId} onSelect={selectAddress} disabled={pending} />
           <Box
             sx={{
               display: "grid",
@@ -109,6 +124,7 @@ export default function Shipping() {
                 name={key}
                 value={shipping[key]}
                 required
+                disabled={pending}
                 autoComplete={autoComplete}
                 sx={{ gridColumn: key === "address" ? "1 / -1" : undefined }}
                 slotProps={{
@@ -121,9 +137,10 @@ export default function Shipping() {
                       : undefined,
                   },
                 }}
-                onChange={(e) =>
-                  setShipping({ ...shipping, [key]: e.target.value })
-                }
+                onChange={(e) => {
+                  setSelectedAddressId("");
+                  setShipping({ ...shipping, [key]: e.target.value });
+                }}
               />
             ))}
           </Box>

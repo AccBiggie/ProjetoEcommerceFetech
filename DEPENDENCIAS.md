@@ -1,5 +1,11 @@
 # Dependencias atualizadas
 
+Atualização funcional de 07/10/2026: o cadastro de endereços utiliza apenas
+Express/Mongoose, React, Material UI e Axios já instalados. Não adiciona
+dependências, máscaras externas, novo estado global ou alterações nos
+lockfiles. `Address` usa coleção própria e índice único parcial de favorito;
+o MongoDB local não precisa de replica set. Ver [docs/ENDERECOS.md](docs/ENDERECOS.md).
+
 Versoes estaveis consultadas no registro oficial do npm em 06/10/2026.
 Os manifests usam as versoes `latest` sem prereleases; os lockfiles fixam
 a arvore instalada. Dependencias transitivas respeitam os intervalos dos

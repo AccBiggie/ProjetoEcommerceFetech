@@ -15,9 +15,10 @@
 | `/password/forgot` | Solicita e-mail de recuperacao |
 | `/password/reset/:token` | Redefine senha utilizando o token da URL |
 | `/account` | Perfil autenticado |
+| `/addresses` | CRUD dos próprios endereços e favorito único; acesso no perfil e menu da conta |
 | `/me/update` | Atualiza nome, e-mail e avatar opcional |
 | `/password/update` | Altera senha autenticada |
-| `/shipping` | Endereco e criacao do pedido autenticado |
+| `/shipping` | Cards de endereços cadastrados, campos editáveis e criação de pedido autenticado |
 | `/orders` | Pedidos do cliente autenticado |
 | `/order/:id` | Detalhe do pedido; disponivel para o proprietario e o administrador |
 | `/dashboard` | Administracao de produtos, usuarios e pedidos; exclusivo para `admin` |
@@ -33,6 +34,18 @@ dados de demonstração e fixtures. Veja [docs/CATEGORIAS.md](docs/CATEGORIAS.md
 ## API
 
 Todas as rotas abaixo usam o prefixo `/api/v1`.
+
+Endereços usam o model `Address`, coleção própria vinculada ao usuário.
+Rotas autenticadas: `GET /addresses`, `POST /address/new`,
+`GET/PUT/DELETE /address/:id` e `PUT /address/:id/favorite`.
+O proprietário vem da sessão; IDs de outra conta retornam 404, inclusive
+para admin. CEP e telefone são strings. O índice único parcial protege o
+favorito por usuário; excluir o favorito não escolhe outro automaticamente.
+O checkout e `Order.shippingInfo` permanecem como antes, sem vínculo com
+`Address`. Consulte [docs/ENDERECOS.md](docs/ENDERECOS.md).
+
+Validação após endereços em 07/10/2026: 13 testes da API, build e 15 fluxos
+E2E aprovados, incluindo checkout existente e snapshot histórico de pedidos.
 
 O CRUD de categorias tem rotas próprias: `GET /categories` e
 `GET /category/:id` públicos; `GET /admin/categories`,

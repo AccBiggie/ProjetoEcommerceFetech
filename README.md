@@ -12,6 +12,13 @@ A interface tem tema claro e escuro, alternado pelo botão de sol/lua no
 cabeçalho. A primeira visita segue o tema do sistema; a escolha manual é
 salva no navegador e preservada nas próximas visitas.
 
+Usuários autenticados podem cadastrar vários endereços em **Meus endereços**,
+nas ações do perfil e no menu da conta. O cadastro possui favorito único por
+usuário e mantém CEP/telefone como strings. Na entrega, cards dos endereços
+cadastrados permitem preencher os campos atuais, mantendo edição manual e
+snapshot do pedido. Veja [docs/ENDERECOS.md](docs/ENDERECOS.md)
+e [o estado atual do projeto](docs/ESTADO_ATUAL_PROJETO_FETECH.md).
+
 Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
 No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
 criação/edição; a aba **Categorias** permite gerenciar os vínculos.
