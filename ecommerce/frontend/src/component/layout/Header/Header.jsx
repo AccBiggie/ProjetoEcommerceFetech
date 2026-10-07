@@ -12,16 +12,22 @@ import {
   Menu,
   MenuItem,
   Stack,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingBagOutlined from "@mui/icons-material/ShoppingBagOutlined";
+import DarkModeOutlined from "@mui/icons-material/DarkModeOutlined";
+import LightModeOutlined from "@mui/icons-material/LightModeOutlined";
 import Logo from "../../../images/ProjetoLogoFetech2.svg";
 import { useCategories } from "../../../context/CategoriesContext";
+import { useColorMode } from "../../../context/ColorModeContext";
 import Search from "../../Product/Search";
 import UserOptions from "./UserOptions";
 
 export default function Header() {
+  const { mode, toggleMode } = useColorMode();
+  const themeLabel = mode === "dark" ? "Ativar modo claro" : "Ativar modo escuro";
   const { ordered: categories, loading, error } = useCategories();
   const [anchor, setAnchor] = useState(null);
   const { isAuthenticated, user } = useSelector((state) => state.user);
@@ -34,14 +40,14 @@ export default function Header() {
       position="sticky"
       color="inherit"
       elevation={0}
-      sx={{ borderBottom: 1, borderColor: "divider" }}
+      sx={{ bgcolor: "background.paper", color: "text.primary", borderBottom: 1, borderColor: "divider" }}
     >
       <Container maxWidth="lg">
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr auto", md: "180px 1fr auto" },
-            gap: 2,
+            gridTemplateColumns: { xs: "minmax(0, 1fr) auto", md: "180px 1fr auto" },
+            gap: { xs: 1, sm: 2 },
             alignItems: "center",
             py: 2,
           }}
@@ -57,7 +63,13 @@ export default function Header() {
               gridRow: 1,
             }}
           >
-            <Box component="img" src={Logo} alt="Fetech" sx={{ width: 150 }} />
+            <Box
+              component="img"
+              className="fetech-logo"
+              src={Logo}
+              alt="Fetech"
+              sx={{ width: { xs: 110, sm: 150 } }}
+            />
           </Box>
           <Box
             sx={{
@@ -69,13 +81,18 @@ export default function Header() {
           </Box>
           <Stack
             direction="row"
-            spacing={1}
+            spacing={{ xs: 0.25, sm: 1 }}
             sx={{
               gridColumn: { xs: 2, md: 3 },
               gridRow: 1,
               alignItems: "center",
             }}
           >
+            <Tooltip title={themeLabel}>
+              <IconButton aria-label={themeLabel} onClick={toggleMode} color="inherit">
+                {mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
+              </IconButton>
+            </Tooltip>
             <IconButton
               component={Link}
               to="/cart"

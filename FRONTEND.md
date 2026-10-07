@@ -4,6 +4,26 @@ O frontend utiliza um tema unico em `ecommerce/frontend/src/theme.js`:
 paleta Fetech, tipografia legivel, espacamento, bordas e estados de foco.
 Os estilos dos componentes seguem `ThemeProvider`, `CssBaseline` e `sx`.
 
+## Tema claro e escuro
+
+O botão de sol/lua no cabeçalho alterna entre os modos claro e escuro em
+qualquer tela, inclusive no celular. A primeira visita acompanha a preferência
+de cores do sistema; após uma escolha manual, ela tem prioridade e fica salva
+em `localStorage`, na chave `fetech-color-mode`. A preferência permanece ao
+navegar ou recarregar e é sincronizada entre abas da mesma origem.
+
+`context/ColorModeContext.jsx` controla a preferência e cria o tema com
+`createAppTheme(mode)` de `theme.js`. O tema cobre fundos, textos, cores da
+marca, bordas, tabelas, formulários, menus, diálogos, offcanvas e notificações.
+O modo escuro usa fundo `#101722`, painéis `#182230` e cor primária `#f06b91`.
+Logos monocromáticos são exibidos com contraste adequado nos fundos escuros;
+fotos de produtos mantêm suas cores. Elementos nativos usam `color-scheme`.
+
+O botão tem nome acessível indicando o modo que será ativado, tooltip e
+acionamento por teclado. Se o armazenamento da preferência estiver bloqueado,
+o tema pode ser alternado durante a sessão. Para voltar a acompanhar o sistema,
+remova a chave `fetech-color-mode` do armazenamento local e recarregue a página.
+
 ## Telas atualizadas
 
 - Cabecalho unico e fixo durante a navegacao, com busca, departamentos,
@@ -62,3 +82,8 @@ sem erros JavaScript ou avisos de propriedades invalidas no React.
 Atualização de 07/10/2026: CRUD de categorias integrado à loja e ao dashboard,
 build aprovado e 10 fluxos E2E aprovados. O offcanvas foi conferido em desktop
 e celular, com foco após erro e fechamento por Escape.
+
+Após adicionar os temas claro/escuro em 07/10/2026, o build e os 12 fluxos E2E
+passaram. Os testes de tema verificam teclado, recarga, persistência, troca
+entre abas, preferência do sistema, armazenamento bloqueado e layout em
+360, 768 e 1440 px, incluindo dashboard e offcanvas escuros.

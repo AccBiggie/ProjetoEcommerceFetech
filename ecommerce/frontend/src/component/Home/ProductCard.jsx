@@ -56,7 +56,7 @@ export default function ProductCard({ product }) {
         <Box
           sx={{
             position: "relative",
-            bgcolor: "#f8fafc",
+            bgcolor: "background.default",
             p: 3,
             height: 200,
             display: "grid",

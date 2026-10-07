@@ -8,14 +8,14 @@ img {
   max-width: 100%;
 }
 :focus-visible {
-  outline: 3px solid #087f8c;
+  outline: 3px solid var(--fetech-focus, #087f8c);
   outline-offset: 3px;
 }
 .greenColor {
-  color: #16794b;
+  color: var(--fetech-success, #16794b);
 }
 .redColor {
-  color: #b42318;
+  color: var(--fetech-error, #b42318);
 }
 @media (prefers-reduced-motion: reduce) {
   html {

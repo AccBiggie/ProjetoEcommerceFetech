@@ -515,3 +515,82 @@ test("layout Material UI responsivo, menu da conta e navegação por teclado", a
     page.locator(".loginForm input[autocomplete=current-password]"),
   ).toHaveAttribute("type", "text");
 });
+
+test("modo escuro: controle por teclado, persistência, sincronização e telas responsivas", async ({ page, context }) => {
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.goto("/");
+  const root = page.locator("html");
+  await expect(root).toHaveAttribute("data-color-mode", "light");
+  await page.getByRole("button", { name: "Ativar modo escuro" }).focus();
+  await page.keyboard.press("Space");
+  await expect(root).toHaveAttribute("data-color-mode", "dark");
+  await expect(page.locator("body")).toHaveCSS("background-color", "rgb(16, 23, 34)");
+  for (const logo of await page.locator(".fetech-logo").all()) await expect(logo).toHaveCSS("filter", "invert(1)");
+  expect(await page.evaluate(() => localStorage.getItem("fetech-color-mode"))).toBe("dark");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Ativar modo claro" })).toBeVisible();
+  for (const width of [360, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const route of ["/", "/products", "/login", "/cart"]) {
+      await page.goto(route);
+      await expect(root).toHaveAttribute("data-color-mode", "dark");
+      await expect(page.getByRole("button", { name: "Ativar modo claro" })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
+  await login(page, "admin@routes.example.com");
+  await page.goto("/dashboard");
+  await expect(page.getByRole("columnheader").first()).toHaveCSS("background-color", "rgb(32, 43, 61)");
+  await page.getByRole("button", { name: "Cadastrar categoria" }).click();
+  const drawer = page.getByRole("dialog", { name: "Nova categoria" });
+  await expect(drawer).toHaveCSS("background-color", "rgb(24, 34, 48)");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  const otherTab = await context.newPage();
+  try {
+    await otherTab.goto("/");
+    await expect(otherTab.locator("html")).toHaveAttribute("data-color-mode", "dark");
+    await page.getByRole("button", { name: "Ativar modo claro" }).click();
+    await expect(root).toHaveAttribute("data-color-mode", "light");
+    await expect(otherTab.locator("html")).toHaveAttribute("data-color-mode", "light");
+    await page.reload();
+    await expect(root).toHaveAttribute("data-color-mode", "light");
+    await expect(page.locator("body")).toHaveCSS("background-color", "rgb(245, 247, 250)");
+  } finally { await otherTab.close(); }
+});
+
+test("tema: preferência do sistema, escolha manual e armazenamento indisponível", async ({ page, context }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  await expect(page.locator("html")).toHaveAttribute("data-color-mode", "dark");
+  await page.emulateMedia({ colorScheme: "light" });
+  await expect(page.locator("html")).toHaveAttribute("data-color-mode", "light");
+  await page.getByRole("button", { name: "Ativar modo escuro" }).click();
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-color-mode", "dark");
+  await page.evaluate(() => localStorage.setItem("fetech-color-mode", "invalid"));
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-color-mode", "light");
+  const restricted = await context.newPage();
+  try {
+    await restricted.emulateMedia({ colorScheme: "light" });
+    await restricted.addInitScript(() => {
+      const originalGet = Storage.prototype.getItem;
+      const originalSet = Storage.prototype.setItem;
+      Storage.prototype.getItem = function(key) {
+        if (key === "fetech-color-mode") throw new DOMException("Armazenamento bloqueado", "SecurityError");
+        return originalGet.call(this, key);
+      };
+      Storage.prototype.setItem = function(key, value) {
+        if (key === "fetech-color-mode") throw new DOMException("Armazenamento bloqueado", "SecurityError");
+        return originalSet.call(this, key, value);
+      };
+    });
+    await restricted.goto("/");
+    await restricted.getByRole("button", { name: "Ativar modo escuro" }).click();
+    await expect(restricted.locator("html")).toHaveAttribute("data-color-mode", "dark");
+    await restricted.getByRole("button", { name: "Ativar modo claro" }).click();
+    await expect(restricted.locator("html")).toHaveAttribute("data-color-mode", "light");
+  } finally { await restricted.close(); }
+});

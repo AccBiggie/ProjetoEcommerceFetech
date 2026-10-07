@@ -29,7 +29,7 @@ export default function Footer() {
           }}
         >
           <Box>
-            <Box component="img" src={Logo} alt="Fetech" width={140} />
+            <Box component="img" className="fetech-logo" src={Logo} alt="Fetech" width={140} />
             <Typography
               variant="body2"
               color="textSecondary"

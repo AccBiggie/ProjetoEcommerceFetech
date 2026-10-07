@@ -7,8 +7,8 @@ import store from "./store";
 import { loadUser } from "./actions/userAction";
 import Header from "./component/layout/Header/Header";
 import ScrollToTop from "./component/layout/ScrollToTop";
-import { Box, CssBaseline, ThemeProvider } from "@mui/material";
-import theme from "./theme";
+import { Box } from "@mui/material";
+import { ColorModeProvider } from "./context/ColorModeContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
 
 function App() {
@@ -17,23 +17,22 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ColorModeProvider>
       <Router>
         <CategoriesProvider>
-        <ScrollToTop />
-        <Box
-          sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
-        >
-          <Header />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Routes />
+          <ScrollToTop />
+          <Box
+            sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
+          >
+            <Header />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Routes />
+            </Box>
+            <Footer />
           </Box>
-          <Footer />
-        </Box>
         </CategoriesProvider>
       </Router>
-    </ThemeProvider>
+    </ColorModeProvider>
   );
 }
 

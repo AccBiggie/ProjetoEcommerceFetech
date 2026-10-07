@@ -8,6 +8,10 @@ em [ROTAS.md](ROTAS.md).
 O layout responsivo e os componentes Material UI estao documentados em
 [FRONTEND.md](FRONTEND.md).
 
+A interface tem tema claro e escuro, alternado pelo botão de sol/lua no
+cabeçalho. A primeira visita segue o tema do sistema; a escolha manual é
+salva no navegador e preservada nas próximas visitas.
+
 Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
 No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
 criação/edição; a aba **Categorias** permite gerenciar os vínculos.
