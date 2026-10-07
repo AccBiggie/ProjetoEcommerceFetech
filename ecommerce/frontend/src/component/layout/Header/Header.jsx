@@ -17,11 +17,12 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import ShoppingBagOutlined from "@mui/icons-material/ShoppingBagOutlined";
 import Logo from "../../../images/ProjetoLogoFetech2.svg";
-import categories from "../../../data/categories.json";
+import { useCategories } from "../../../context/CategoriesContext";
 import Search from "../../Product/Search";
 import UserOptions from "./UserOptions";
 
 export default function Header() {
+  const { ordered: categories, loading, error } = useCategories();
   const [anchor, setAnchor] = useState(null);
   const { isAuthenticated, user } = useSelector((state) => state.user);
   const count = useSelector((state) =>
@@ -146,13 +147,16 @@ export default function Header() {
             <MenuItem
               component={Link}
               role="link"
-              key={category}
-              to={"/products?category=" + encodeURIComponent(category)}
+              key={category._id}
+              to={"/products?category=" + encodeURIComponent(category.name)}
               onClick={() => setAnchor(null)}
+              sx={{ pl: 2 + Math.min(category.depth, 4) * 2 }}
             >
-              {category}
+              {category.name}
             </MenuItem>
           ))}
+          {loading && <MenuItem disabled>Carregando categorias...</MenuItem>}
+          {error && <MenuItem disabled>Categorias indisponíveis</MenuItem>}
           <Divider />
           <MenuItem
             component={Link}

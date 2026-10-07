@@ -62,6 +62,11 @@ const productSchema = mongoose.Schema( {
         type: String,
         required: [true, "Please enter product category"],
     },
+    category_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+        index: true,
+    },
     Stock: {
         type: Number,
         validate: { validator: Number.isSafeInteger, message: "Estoque deve ser inteiro." },

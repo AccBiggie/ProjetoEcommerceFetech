@@ -26,20 +26,22 @@ import axios from "axios";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import Page from "../layout/Page";
-import categories from "../../data/categories.json";
+import { useCategories } from "../../context/CategoriesContext";
+import CategoriesManager from "./CategoriesManager";
 import { getErrorMessage } from "../../utils/api";
 import { money, statusLabel } from "../../utils/format";
 
 const emptyProduct = () => ({
   name: "",
   description: "",
-  category: categories[0],
+  category_id: "",
   price: "",
   oldPrice: "",
   Stock: 10,
   imageUrl: "/demo-products/ProjetoLogoFetech2.svg",
 });
 export default function Dashboard() {
+  const { ordered: categories } = useCategories();
   const { user } = useSelector((state) => state.user);
   const [confirmation, setConfirmation] = useState(null);
   const [tab, setTab] = useState("products");
@@ -81,7 +83,7 @@ export default function Dashboard() {
     const payload = {
       name: draft.name,
       description: draft.description,
-      category: draft.category,
+      category_id: draft.category_id,
       price: price.toFixed(2),
       oldPrice: oldPrice.toFixed(2),
       Stock: Number(draft.Stock),
@@ -139,6 +141,7 @@ export default function Dashboard() {
       >
         {[
           ["products", "Produtos"],
+          ["categories", "Categorias"],
           ["users", "Usuários"],
           ["orders", "Pedidos"],
         ].map(([value, label]) => (
@@ -151,6 +154,7 @@ export default function Dashboard() {
           {error}
         </Alert>
       )}
+      <CategoriesManager showTable={tab === "categories"} onChanged={load} />
       {tab === "products" && (
         <>
           <Card
@@ -205,14 +209,16 @@ export default function Dashboard() {
               <TextField
                 select
                 label="Categoria"
-                value={draft.category}
+                required
+                value={draft.category_id || ""}
                 slotProps={{ select: { native: true } }}
                 onChange={(event) =>
-                  setDraft({ ...draft, category: event.target.value })
+                  setDraft({ ...draft, category_id: event.target.value })
                 }
               >
+                <option value="">Selecione uma categoria</option>
                 {categories.map((category) => (
-                  <option key={category}>{category}</option>
+                  <option key={category._id} value={category._id}>{category.label}</option>
                 ))}
               </TextField>
             </Box>

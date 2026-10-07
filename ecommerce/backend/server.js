@@ -19,7 +19,8 @@ cloudinary.config({
 });
 
 let server;
-connectDataBase().then(() => {
+connectDataBase().then(async () => {
+    await require("./utils/categories").migrateLegacyCategories();
     const port = process.env.PORT || 4000;
     server = app.listen(port, "127.0.0.1", () => {
         console.log(`Server is Working on http://localhost:${port}`);

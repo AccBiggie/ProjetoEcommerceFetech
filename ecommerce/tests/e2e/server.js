@@ -17,6 +17,7 @@ const app = require('../../backend/app');
     await fixtures();
     await Product.create(productData({ name: 'Teste & / Pesquisa' }));
     await Product.create(productData({ name: 'Produto extra para paginação' }));
+    await require('../../backend/utils/categories').migrateLegacyCategories();
     fs.writeFileSync(path.join(__dirname, '../../.test-state.json'), JSON.stringify({ database }));
     const server = express();
     let listener;

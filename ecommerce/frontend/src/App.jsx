@@ -9,6 +9,7 @@ import Header from "./component/layout/Header/Header";
 import ScrollToTop from "./component/layout/ScrollToTop";
 import { Box, CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./theme";
+import { CategoriesProvider } from "./context/CategoriesContext";
 
 function App() {
   React.useEffect(() => {
@@ -19,6 +20,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
+        <CategoriesProvider>
         <ScrollToTop />
         <Box
           sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
@@ -29,6 +31,7 @@ function App() {
           </Box>
           <Footer />
         </Box>
+        </CategoriesProvider>
       </Router>
     </ThemeProvider>
   );

@@ -24,13 +24,22 @@
 | `/sad` | Redireciona para o inicio; evita a antiga tela de carregamento permanente |
 | demais URLs | Pagina nao encontrada, com acesso ao catalogo |
 
-As 11 categorias agora compartilham o mesmo arquivo
-`ecommerce/frontend/src/data/categories.json`, usado pelo menu, filtro,
-formulario administrativo e cadastro de exemplos.
+As categorias são registros do MongoDB, consultados pela API e compartilhados
+entre menu, home, filtro e dashboard. Subcategorias usam `parent_id` como
+referência da categoria pai; produtos usam `category_id`. O filtro de uma
+categoria inclui seus descendentes. `categories.json` permanece apenas para
+dados de demonstração e fixtures. Veja [docs/CATEGORIAS.md](docs/CATEGORIAS.md).
 
 ## API
 
 Todas as rotas abaixo usam o prefixo `/api/v1`.
+
+O CRUD de categorias tem rotas próprias: `GET /categories` e
+`GET /category/:id` públicos; `GET /admin/categories`,
+`POST /admin/category` e `GET/PUT/DELETE /admin/category/:id` para admin.
+`GET /categories?parent_id=null` lista categorias principais; usar o ID
+em `parent_id` lista filhos diretos. A API rejeita ciclos, pais inexistentes
+e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 
 | Metodo | Rota | Acesso |
 | --- | --- | --- |
@@ -109,3 +118,7 @@ O build com Vite foi concluido. A loja ativa
 em `http://localhost:3000` tambem foi conferida no navegador, com filtro
 e menu funcionando, API respondendo 200, rota administrativa exigindo
 autenticacao e nenhum erro JavaScript nessa verificacao.
+
+Atualização de 07/10/2026: 10 testes da API e 10 fluxos de navegador aprovados
+após implementar categorias. A API local foi reiniciada e a migração vinculou
+os 12 produtos existentes às 11 categorias, sem apagar dados.

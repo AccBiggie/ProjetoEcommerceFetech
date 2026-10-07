@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 require("dotenv").config({ path: path.join(__dirname, "../config/config.env") });
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
+const Category = require("../models/categoryModel");
+const { categoryKey, migrateLegacyCategories } = require("../utils/categories");
 
 // Dados ficticios para testar a loja local. Nao apaga nem altera produtos existentes.
 const examples = [
@@ -40,15 +42,17 @@ async function seed() {
     try {
         const admin = await User.findOne({ email: "admin@fetech.local", role: "admin" });
         if (!admin) throw new Error("Crie primeiro o administrador admin@fetech.local.");
+        await migrateLegacyCategories();
         const countDown = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         let created = 0;
         for (const [category, name, price, oldPrice, image, description] of examples) {
+            const categoryRecord = await Category.findOneAndUpdate({ name_key: categoryKey(category) }, { $setOnInsert: { name: category, parent_id: null } }, { upsert: true, returnDocument: "after" });
             if (await Product.exists({ name, category })) {
                 console.log(`Já cadastrado: ${category}`);
                 continue;
             }
             await Product.create({
-                name, category, description, countDown,
+                name, category, category_id: categoryRecord._id, description, countDown,
                 price: price.toFixed(2),
                 oldPrice: oldPrice.toFixed(2),
                 installmmentPrice: (price / 12).toFixed(2),

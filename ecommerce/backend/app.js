@@ -18,6 +18,7 @@ const order = require("./routes/orderRoute");
 app.use("/api/v1", product);
 app.use("/api/v1", user);
 app.use("/api/v1", order);
+app.use("/api/v1", require("./routes/categoryRoute"));
 //Middleware for Errors
 app.use((req, res, next) => next(new (require("./utils/errorHander"))("Rota não encontrada.", 404)));
 app.use(errorMiddleware);

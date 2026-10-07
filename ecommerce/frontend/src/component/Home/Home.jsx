@@ -16,7 +16,7 @@ import { getProduct } from "../../actions/productAction";
 import ProductCard from "./ProductCard";
 import MetaData from "../layout/MetaData";
 import hero from "../../images/wallpaperLoja2.png";
-import categories from "../../data/categories.json";
+import { useCategories } from "../../context/CategoriesContext";
 
 export const productGrid = {
   display: "grid",
@@ -39,6 +39,7 @@ export function ProductSkeletons() {
 }
 
 export default function Home() {
+  const { categories } = useCategories();
   const dispatch = useDispatch();
   const { loading, error, products } = useSelector((state) => state.products);
   useEffect(() => {
@@ -113,13 +114,13 @@ export default function Home() {
         useFlexGap
         sx={{ flexWrap: "wrap", mb: 5 }}
       >
-        {categories.slice(2, 8).map((category) => (
+        {categories.filter(category => !category.parent_id).slice(0, 6).map((category) => (
           <Chip
-            key={category}
-            label={category}
+            key={category._id}
+            label={category.name}
             component={Link}
             clickable
-            to={"/products?category=" + encodeURIComponent(category)}
+            to={"/products?category=" + encodeURIComponent(category.name)}
             variant="outlined"
           />
         ))}

@@ -1,5 +1,7 @@
 const User = require('../backend/models/userModel');
 const Product = require('../backend/models/productModel');
+const Category = require('../backend/models/categoryModel');
+const { categoryKey } = require('../backend/utils/categories');
 const categories = require('../frontend/src/data/categories.json');
 
 const password = 'RouteTest123!';
@@ -16,7 +18,11 @@ async function fixtures() {
         avatar: { public_id: 'test-avatar', url: '/Profile.png' },
     });
     const products = [];
-    for (const category of categories) products.push(await Product.create(productData({ name: `Produto ${category}`, category, user: users.admin._id })));
+    await Category.init();
+    for (const category of categories) {
+        const record = await Category.create({ name: category, name_key: categoryKey(category) });
+        products.push(await Product.create(productData({ name: `Produto ${category}`, category, category_id: record._id, user: users.admin._id })));
+    }
     return { users, products };
 }
 module.exports = { fixtures, password, productData, categories };

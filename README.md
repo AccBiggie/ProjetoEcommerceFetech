@@ -8,6 +8,11 @@ em [ROTAS.md](ROTAS.md).
 O layout responsivo e os componentes Material UI estao documentados em
 [FRONTEND.md](FRONTEND.md).
 
+Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
+No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
+criação/edição; a aba **Categorias** permite gerenciar os vínculos.
+Veja [docs/CATEGORIAS.md](docs/CATEGORIAS.md) para API, migração e uso.
+
 O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
 (porta 27017). WSL e Docker nao sao obrigatorios. Foi validado com Node
 24.19.0, npm 11.17.0 e MongoDB Community 8.0.26 nativo no Windows.
@@ -15,6 +20,11 @@ O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
 Os comandos de instalacao, configuracao, inicializacao e verificacao estao
 em [COMANDOS.md](COMANDOS.md). Use `npm.cmd` no PowerShell para evitar a
 restricao de execucao de `npm.ps1`.
+
+O comando de MongoDB documentado resolve o executável e os dados por caminhos
+absolutos da raiz do projeto; pode ser usado mesmo com o terminal aberto em
+`ecommerce` ou `frontend`. Reutilize `.local/mongo-data` da raiz para manter
+os dados existentes.
 
 Copie `ecommerce/backend/config/config.env.example` para `config.env` na
 mesma pasta e configure uma chave JWT aleatoria. O arquivo real fica fora

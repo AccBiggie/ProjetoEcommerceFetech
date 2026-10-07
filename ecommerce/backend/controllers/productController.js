@@ -2,15 +2,30 @@ const Product = require("../models/productModel");
 const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ApiFeatures = require("../utils/apiFeatures");
+const Category = require("../models/categoryModel");
+const { categoryKey, resolveProductCategory } = require("../utils/categories");
 const productFields = ["name", "description", "category", "price", "oldPrice", "installmmentPrice", "off", "countDown", "Stock", "images"];
 const productInput = body => Object.fromEntries(productFields.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
 exports.createProduct = catchAsyncErrors(async (req, res) => {
-    const product = await Product.create({ ...productInput(req.body), user: req.user._id });
+    const product = await Product.create({ ...productInput(req.body), ...await resolveProductCategory(req.body), user: req.user._id });
     res.status(201).json({ success: true, product });
 });
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
     const resultPerPage = 12;
-    const feature = new ApiFeatures(Product.find(), req.query).search().filter();
+    const feature = new ApiFeatures(Product.find(), { ...req.query, category: undefined }).search().filter();
+    if (typeof req.query.category === "string" && req.query.category) {
+        const categories = await Category.find().lean();
+        const selected = categories.find(category => String(category._id) === req.query.category || categoryKey(category.name) === categoryKey(req.query.category));
+        if (selected) {
+            const ids = new Set([String(selected._id)]);
+            let previousSize;
+            do {
+                previousSize = ids.size;
+                for (const category of categories) if (ids.has(String(category.parent_id))) ids.add(String(category._id));
+            } while (previousSize !== ids.size);
+            feature.query = feature.query.find({ category_id: { $in: [...ids] } });
+        } else feature.query = feature.query.find({ category: req.query.category });
+    }
     const filteredProductsCount = await Product.countDocuments(feature.query.getFilter());
     const productsCount = await Product.countDocuments();
     const products = await feature.pagination(resultPerPage).query;
@@ -25,7 +40,8 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, product });
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByIdAndUpdate(req.params.id, productInput(req.body), { returnDocument: "after", runValidators: true });
+    if (!await Product.exists({ _id: req.params.id })) return next(new ErrorHander("Produto não encontrado.", 404));
+    const product = await Product.findByIdAndUpdate(req.params.id, { ...productInput(req.body), ...await resolveProductCategory(req.body) }, { returnDocument: "after", runValidators: true });
     if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
     res.json({ success: true, product });
 });

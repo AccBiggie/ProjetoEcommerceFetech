@@ -67,7 +67,7 @@ try {
     [System.IO.Compression.ZipFileExtensions]::ExtractToFile($entry, (Join-Path (Get-Location) '.local/mongod.exe'), $true)
 } finally { $archive.Dispose() }
 New-Item -ItemType Directory -Force .local/mongo-data | Out-Null
-& .local/mongod.exe --version
+& ".\.local\mongod.exe" --version
 ```
 
 Referencia: [instalacao oficial do MongoDB por ZIP no Windows](https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-windows-zip/).
@@ -76,25 +76,36 @@ Referencia: [instalacao oficial do MongoDB por ZIP no Windows](https://www.mongo
 
 Se os processos desta sessao ainda estiverem ativos, use a loja diretamente.
 Para reiniciar, encerre primeiro os processos existentes, evitando duplicar
-as portas. Em cada terminal, comece na raiz do repositorio.
+as portas. Os comandos abaixo identificam a pasta do projeto explicitamente;
+cada terminal pode começar em uma pasta diferente.
 
-Terminal 1: MongoDB (dados persistidos em `.local/mongo-data`).
+Terminal 1: MongoDB (dados persistidos em `.local/mongo-data`). No PowerShell,
+use o operador `&` para executar o binário e caminhos absolutos para o
+executável e o banco. O comando anterior com `.local/...` dependia de estar
+na raiz; não localizava esses arquivos a partir de `ecommerce` ou `frontend`.
 
 ```powershell
-& .local/mongod.exe --dbpath .local/mongo-data --bind_ip 127.0.0.1 --port 27017
+$projectRoot = 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech'
+$mongoExecutable = Join-Path $projectRoot '.local\mongod.exe'
+$mongoDataPath = Join-Path $projectRoot '.local\mongo-data'
+if (-not (Test-Path -LiteralPath $mongoExecutable -PathType Leaf)) {
+    throw "MongoDB não encontrado em $mongoExecutable. Prepare o binário conforme a seção de instalação."
+}
+New-Item -ItemType Directory -Force -Path $mongoDataPath | Out-Null
+& $mongoExecutable --dbpath $mongoDataPath --bind_ip 127.0.0.1 --port 27017
 ```
 
 Terminal 2: API.
 
 ```powershell
-cd ecommerce
+Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech\ecommerce'
 npm.cmd start
 ```
 
 Terminal 3: React (comando usado na sessao).
 
 ```powershell
-cd ecommerce/frontend
+Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech\ecommerce\frontend'
 npm.cmd start
 ```
 
@@ -104,9 +115,15 @@ terminais, use Ctrl+C em cada um.
 Para iniciar MongoDB e API em segundo plano e guardar os processos:
 
 ```powershell
-$projectRoot = (Get-Location).Path
-$mongoProcess = Start-Process -FilePath (Join-Path $projectRoot '.local/mongod.exe') -ArgumentList @('--dbpath', ('"' + (Join-Path $projectRoot '.local/mongo-data') + '"'), '--bind_ip', '127.0.0.1', '--port', '27017', '--logpath', ('"' + (Join-Path $projectRoot '.local/mongod.log') + '"')) -WindowStyle Hidden -PassThru
-$apiProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList 'backend/server.js' -WorkingDirectory (Join-Path $projectRoot 'ecommerce') -RedirectStandardOutput (Join-Path $projectRoot '.local/backend.log') -RedirectStandardError (Join-Path $projectRoot '.local/backend-error.log') -WindowStyle Hidden -PassThru
+$projectRoot = 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech'
+$mongoExecutable = Join-Path $projectRoot '.local\mongod.exe'
+$mongoDataPath = Join-Path $projectRoot '.local\mongo-data'
+if (-not (Test-Path -LiteralPath $mongoExecutable -PathType Leaf)) {
+    throw "MongoDB não encontrado em $mongoExecutable. Prepare o binário conforme a seção de instalação."
+}
+New-Item -ItemType Directory -Force -Path $mongoDataPath | Out-Null
+$mongoProcess = Start-Process -FilePath $mongoExecutable -ArgumentList @('--dbpath', ('"' + $mongoDataPath + '"'), '--bind_ip', '127.0.0.1', '--port', '27017', '--logpath', ('"' + (Join-Path $projectRoot '.local\mongo-start.log') + '"'), '--logappend') -WindowStyle Hidden -PassThru
+$apiProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList 'backend/server.js' -WorkingDirectory (Join-Path $projectRoot 'ecommerce') -RedirectStandardOutput (Join-Path $projectRoot '.local\api-start.log') -RedirectStandardError (Join-Path $projectRoot '.local\api-start-error.log') -WindowStyle Hidden -PassThru
 ```
 
 Os comandos `Start-Process ... -PassThru` guardam os processos nas variaveis.

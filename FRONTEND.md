@@ -19,6 +19,9 @@ Os estilos dos componentes seguem `ThemeProvider`, `CssBaseline` e `sx`.
 - Checkout e pedidos com resumo, endereco, etapas e estado do pagamento.
 - Painel administrativo com indicadores, abas, formularios, tabelas com
   rolagem interna e dialogos de confirmacao de exclusao.
+- Aba de categorias e botão de cadastro com offcanvas Material UI (`Drawer`)
+  para criação/edição de categorias e subcategorias. O seletor de pai usa o ID
+  da categoria; as listas da loja vêm da API e são atualizadas após o CRUD.
 - Rodape, mensagens de erro, estados vazios e carregamento padronizados.
 
 As telas carregam sob demanda com `React.lazy` e `Suspense`. O cabecalho
@@ -55,3 +58,7 @@ Resultado: build aprovado sem aviso de bundle grande, 9 testes de
 navegador aprovados, zero vulnerabilidades no `npm audit` do frontend.
 As telas locais tambem foram conferidas visualmente no desktop e celular,
 sem erros JavaScript ou avisos de propriedades invalidas no React.
+
+Atualização de 07/10/2026: CRUD de categorias integrado à loja e ao dashboard,
+build aprovado e 10 fluxos E2E aprovados. O offcanvas foi conferido em desktop
+e celular, com foco após erro e fechamento por Escape.

@@ -10,6 +10,8 @@ const { fixtures, password, productData, categories } = require('./fixtures');
 const User = require('../backend/models/userModel');
 const Product = require('../backend/models/productModel');
 const Order = require('../backend/models/orderModel');
+const Category = require('../backend/models/categoryModel');
+const { migrateLegacyCategories } = require('../backend/utils/categories');
 
 Object.assign(process.env, { JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 const database = `fetech_routes_${process.pid}_${Date.now()}`;
@@ -211,4 +213,71 @@ test('envio com falha de estoque restaura os itens anteriores e mantém o pedido
     await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin');
     assert.equal((await Product.findById(first.id)).Stock, 18);
     assert.equal((await Product.findById(second.id)).Stock, 19);
+});
+
+test('categorias: CRUD separado, permissões, parent_id, ciclos e produtos vinculados', async () => {
+    assert.equal((await request('GET', '/categories', null, 'anonymous')).result.categories.length, 11);
+    await request('GET', '/admin/categories', null, 'anonymous', 401);
+    await request('GET', '/admin/categories', null, 'user', 403);
+    await request('POST', '/admin/category', { name: 'Negada' }, 'anonymous', 401);
+    await request('POST', '/admin/category', { name: 'Negada' }, 'user', 403);
+    for (const name of ['', '   ', 42, 'x'.repeat(81)]) await request('POST', '/admin/category', { name }, 'admin', 400);
+    await request('POST', '/admin/category', { name: 'Pai inválido', parent_id: 'invalid' }, 'admin', 400);
+    await request('POST', '/admin/category', { name: 'Pai ausente', parent_id: missing }, 'admin', 400);
+    const parent = (await request('POST', '/admin/category', { name: '  Componentes   novos  ' }, 'admin', 201)).result.category;
+    assert.equal(parent.name, 'Componentes novos'); assert.equal(parent.parent_id, null);
+    assert.equal(parent.name_key, undefined);
+    await request('POST', '/admin/category', { name: 'COMPONENTES NOVOS' }, 'admin', 400);
+    const child = (await request('POST', '/admin/category', { name: 'Placas novas', parent_id: parent._id }, 'admin', 201)).result.category;
+    assert.equal(child.parent_id, parent._id);
+    const leaf = (await request('POST', '/admin/category', { name: 'Placas especiais', parent_id: child._id }, 'admin', 201)).result.category;
+    assert.equal((await request('GET', '/category/' + child._id, null, 'anonymous')).result.category.parent_id, parent._id);
+    assert.equal((await request('GET', '/categories?parent_id=' + parent._id)).result.categories[0]._id, child._id);
+    assert.ok((await request('GET', '/categories?parent_id=null')).result.categories.every(category => category.parent_id === null));
+    await request('GET', '/categories?parent_id=invalid', null, 'anonymous', 400);
+    await request('GET', '/category/invalid', null, 'anonymous', 400);
+    await request('GET', '/category/' + missing, null, 'anonymous', 404);
+    for (const method of ['PUT', 'DELETE']) {
+        await request(method, '/admin/category/' + parent._id, { name: 'Negada' }, 'anonymous', 401);
+        await request(method, '/admin/category/' + parent._id, { name: 'Negada' }, 'user', 403);
+        await request(method, '/admin/category/' + missing, { name: 'Ausente' }, 'admin', 404);
+    }
+    await request('PUT', '/admin/category/' + parent._id, { parent_id: parent._id }, 'admin', 400);
+    await request('PUT', '/admin/category/' + parent._id, { parent_id: leaf._id }, 'admin', 400);
+    await request('PUT', '/admin/category/' + child._id, { name: 'Hardware' }, 'admin', 400);
+    await request('DELETE', '/admin/category/' + parent._id, null, 'admin', 409);
+    await request('POST', '/product/new', productData({ category_id: missing }), 'admin', 400);
+    await request('POST', '/product/new', productData({ category_id: 'invalid' }), 'admin', 400);
+    await request('POST', '/product/new', productData({ category: 'Não cadastrada' }), 'admin', 400);
+    const product = (await request('POST', '/product/new', productData({ category: undefined, category_id: leaf._id }), 'admin', 201)).result.product;
+    assert.equal(product.category, leaf.name); assert.equal(product.category_id, leaf._id);
+    assert.equal((await request('GET', '/products?category=' + parent._id)).result.products[0]._id, product._id);
+    assert.equal((await request('GET', '/products?category=' + encodeURIComponent(parent.name))).result.filteredProductsCount, 1);
+    await request('PUT', '/admin/category/' + leaf._id, { name: 'Placas renomeadas' }, 'admin');
+    assert.equal((await request('GET', '/product/' + product._id)).result.product.category, 'Placas renomeadas');
+    await request('DELETE', '/admin/category/' + leaf._id, null, 'admin', 409);
+    await request('PUT', '/admin/category/' + leaf._id, { parent_id: null }, 'admin');
+    assert.equal((await request('GET', '/products?category=' + parent._id)).result.filteredProductsCount, 0);
+    await request('PUT', '/product/' + product._id, { category_id: child._id }, 'admin');
+    assert.equal((await request('GET', '/product/' + product._id)).result.product.category, child.name);
+    await request('DELETE', '/admin/category/' + leaf._id, null, 'admin');
+    await request('DELETE', '/product/' + product._id, null, 'admin');
+    await request('DELETE', '/admin/category/' + child._id, null, 'admin');
+    await request('DELETE', '/admin/category/' + parent._id, null, 'admin');
+});
+
+test('categorias: migração preserva produtos antigos, é repetível e não recria registros excluídos', async () => {
+    const legacy = await Product.create(productData({ category: 'Categoria legada', user: data.users.admin._id }));
+    await migrateLegacyCategories();
+    const migrated = await Product.findById(legacy._id);
+    const category = await Category.findById(migrated.category_id);
+    assert.equal(category.name, 'Categoria legada'); assert.equal(category.parent_id, null);
+    assert.equal(migrated.price, legacy.price); assert.equal(migrated.Stock, legacy.Stock);
+    const count = await Category.countDocuments();
+    await migrateLegacyCategories();
+    assert.equal(await Category.countDocuments(), count);
+    assert.equal(String((await Product.findById(legacy._id)).category_id), String(category._id));
+    await legacy.deleteOne(); await category.deleteOne();
+    await migrateLegacyCategories();
+    assert.equal(await Category.exists({ name: 'Categoria legada' }), null);
 });

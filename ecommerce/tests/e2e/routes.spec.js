@@ -264,6 +264,7 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   await page
     .getByRole("spinbutton", { name: "Preço", exact: true })
     .fill("150");
+  await page.getByRole("combobox", { name: "Categoria", exact: true }).selectOption({ label: "Hardware" });
   await page.getByRole("button", { name: "Salvar produto" }).click();
   const row = page
     .getByRole("row")
@@ -358,6 +359,85 @@ test("carrossel atualizado: imagens, controles e título do produto", async ({
       (await page.request.delete("/api/v1/product/" + product._id)).status(),
     ).toBe(200);
   }
+});
+
+test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exclusão protegida", async ({ page }) => {
+  await login(page, "admin@routes.example.com");
+  await page.goto("/dashboard");
+  await page.getByRole("tab", { name: "Categorias", exact: true }).click();
+  await page.setViewportSize({ width: 360, height: 900 });
+  await page.getByRole("button", { name: "Cadastrar categoria" }).click();
+  const drawer = page.getByRole("dialog", { name: "Nova categoria" });
+  await expect(drawer).toBeVisible();
+  await expect(drawer.getByRole("textbox", { name: "Nome da categoria" })).toBeFocused();
+  await drawer.getByRole("textbox", { name: "Nome da categoria" }).fill("Departamento E2E");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await drawer.getByRole("button", { name: "Salvar categoria" }).click();
+  await expect(drawer).toHaveCount(0);
+  const parentRow = page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Departamento E2E", { exact: true }) });
+  await expect(parentRow).toBeVisible();
+  await parentRow.getByRole("button", { name: "Adicionar subcategoria" }).click();
+  await drawer.getByRole("textbox", { name: "Nome da categoria" }).fill("Subcategoria E2E");
+  const { categories: initial } = await (await page.request.get("/api/v1/categories")).json();
+  const parent = initial.find(category => category.name === "Departamento E2E");
+  await expect(drawer.getByRole("combobox", { name: "Categoria pai" })).toHaveValue(parent._id);
+  await drawer.getByRole("button", { name: "Salvar categoria" }).click();
+  await expect(drawer).toHaveCount(0);
+  const { categories } = await (await page.request.get("/api/v1/categories")).json();
+  const child = categories.find(category => category.name === "Subcategoria E2E");
+  expect(child.parent_id).toBe(parent._id);
+  await parentRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  const confirmation = page.getByRole("dialog", { name: "Excluir categoria?" });
+  await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
+  await expect(confirmation.getByRole("alert")).toContainText("subcategorias");
+  await confirmation.getByRole("button", { name: "Cancelar" }).click();
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.getByRole("tab", { name: "Produtos", exact: true }).click();
+  await page.getByRole("textbox", { name: "Nome", exact: true }).fill("Produto da subcategoria E2E");
+  await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Produto vinculado por referência");
+  await page.getByRole("spinbutton", { name: "Preço", exact: true }).fill("200");
+  await page.getByRole("combobox", { name: "Categoria", exact: true }).selectOption({ label: "Departamento E2E / Subcategoria E2E" });
+  await page.getByRole("button", { name: "Salvar produto" }).click();
+  await expect(page.getByRole("row").filter({ hasText: "Produto da subcategoria E2E" })).toBeVisible();
+  await page.getByRole("tab", { name: "Categorias", exact: true }).click();
+  const childRow = page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E", { exact: true }) });
+  await childRow.getByRole("button", { name: "Editar", exact: true }).click();
+  const edit = page.getByRole("dialog", { name: "Editar categoria" });
+  await expect(edit.getByRole("combobox", { name: "Categoria pai" }).locator(`option[value="${child._id}"]`)).toHaveCount(0);
+  await edit.getByRole("textbox", { name: "Nome da categoria" }).fill("Subcategoria E2E editada");
+  await edit.getByRole("button", { name: "Salvar categoria" }).click();
+  await expect(edit).toHaveCount(0);
+  await page.reload();
+  await page.getByRole("tab", { name: "Categorias", exact: true }).click();
+  const editedRow = page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E editada", { exact: true }) });
+  await editedRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
+  await expect(confirmation.getByRole("alert")).toContainText("possui produtos");
+  await confirmation.getByRole("button", { name: "Cancelar" }).click();
+  await page.getByRole("button", { name: "Compre por departamento" }).click();
+  await page.getByRole("link", { name: "Departamento E2E", exact: true }).click();
+  await expect(page.locator(".products .productCard")).toHaveCount(1);
+  await expect(page.locator(".productName")).toHaveText("Produto da subcategoria E2E");
+  const products = await (await page.request.get(`/api/v1/products?category=${child._id}`)).json();
+  expect(products.products[0].category).toBe("Subcategoria E2E editada");
+  expect((await page.request.delete(`/api/v1/product/${products.products[0]._id}`)).status()).toBe(200);
+  await page.goto("/dashboard");
+  await page.getByRole("tab", { name: "Categorias", exact: true }).click();
+  await editedRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
+  await expect(confirmation).toHaveCount(0);
+  await expect(editedRow).toHaveCount(0);
+  await parentRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
+  await expect(confirmation).toHaveCount(0);
+  await expect(parentRow).toHaveCount(0);
+  await page.getByRole("button", { name: "Cadastrar categoria" }).click();
+  await drawer.getByRole("textbox", { name: "Nome da categoria" }).fill("Hardware");
+  await drawer.getByRole("button", { name: "Salvar categoria" }).click();
+  await expect(drawer.getByRole("alert")).toContainText("Já existe");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Cadastrar categoria" })).toBeFocused();
 });
 
 test("layout Material UI responsivo, menu da conta e navegação por teclado", async ({

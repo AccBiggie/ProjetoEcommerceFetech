@@ -11,12 +11,13 @@ import {
   Typography,
 } from "@mui/material";
 import { getProduct } from "../../actions/productAction";
-import categories from "../../data/categories.json";
+import { useCategories } from "../../context/CategoriesContext";
 import ProductCard from "../Home/ProductCard";
 import { productGrid, ProductSkeletons } from "../Home/Home";
 import Page from "../layout/Page";
 
 export default function Products() {
+  const { ordered: categories, error: categoryError } = useCategories();
   const dispatch = useDispatch();
   const { keyword: legacyKeyword } = useParams();
   const [params, setParams] = useSearchParams();
@@ -35,7 +36,7 @@ export default function Products() {
   }, [dispatch, keyword, currentPage, category]);
   return (
     <Page
-      title={category || "Todos os produtos"}
+      title={categories.find(item => item._id === category)?.name || category || "Todos os produtos"}
       subtitle="Escolha o que combina com o seu setup."
     >
       <Stack
@@ -46,7 +47,7 @@ export default function Products() {
         <TextField
           select
           label="Categoria"
-          value={category}
+          value={categories.find(item => item._id === category)?.name || category}
           size="small"
           sx={{ maxWidth: { sm: 280 } }}
           slotProps={{
@@ -63,8 +64,9 @@ export default function Products() {
           }}
         >
           <option value="">Todas as categorias</option>
+          {category && !categories.some(item => item.name === category || item._id === category) && <option value={category}>{category}</option>}
           {categories.map((item) => (
-            <option key={item}>{item}</option>
+            <option key={item._id} value={item.name}>{item.label}</option>
           ))}
         </TextField>
         {keyword && (
@@ -93,6 +95,7 @@ export default function Products() {
           {error}
         </Alert>
       )}
+      {categoryError && <Alert severity="warning" sx={{ mb: 3 }}>{categoryError}</Alert>}
       {!loading && !error && !products?.length && (
         <Alert severity="info">Nenhum produto encontrado.</Alert>
       )}
