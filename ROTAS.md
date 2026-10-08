@@ -1,5 +1,9 @@
 # Revisao das rotas e dos fluxos
 
+## Lifecycle de User — FET-DATA-003
+
+DELETE físico de User é 405 (Allow: PATCH). Admin usa PATCH `/api/v1/admin/user/:id/deactivate` ou `/reactivate`, com no-store/Request ID/CSRF e auditoria atômica. GET `/api/v1/admin/users?status=active|deactivated|all` filtra contas; padrão active. Campos administrativos aparecem apenas no DTO admin. [Contrato completo](docs/LIFECYCLE_USUARIOS.md).
+
 ## Observabilidade — FET-OPS-002
 
 Todas as respostas da API recebem `X-Request-Id` UUID v4 do servidor. Header de entrada não escolhe o ID.
@@ -84,7 +88,10 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | GET | `/order/:id` | Proprietario ou administrador |
 | GET | `/admin/products`, `/admin/users`, `/admin/orders`, `/admin/user/:id` | Administrador |
 | POST | `/product/new` | Administrador |
-| PUT, DELETE | `/product/:id`, `/admin/user/:id` | Administrador |
+| PUT, DELETE | `/product/:id` | Administrador |
+| PUT | `/admin/user/:id` | Administrador ativo |
+| DELETE | `/admin/user/:id` | Administrador ativo; 405 Allow: PATCH |
+| PATCH | `/admin/user/:id/deactivate`, `/admin/user/:id/reactivate` | Administrador ativo; CSRF |
 | PUT | `/admin/order/:id` | Administrador; transição comercial |
 | DELETE | `/admin/order/:id` | Administrador; sempre 405, Allow: PATCH |
 | PATCH | `/admin/order/:id/archive`, `/admin/order/:id/unarchive` | Administrador; arquivamento não destrutivo |
@@ -230,18 +237,20 @@ build aprovado e 19 fluxos E2E aprovados.
 `PUT /api/v1/admin/user/:id`: autorrebaixamento retorna 403; manter a própria
 role admin ou atualizar campos sem alterar role continua permitido. Promoção
 de user e rebaixamento de outro admin funcionam com executor atualmente admin.
-`DELETE /api/v1/admin/user/:id`: autoexclusão administrativa retorna 403.
-Reduções que deixariam zero admins retornam 409. Conflito/lease perdido: 409;
+`DELETE /api/v1/admin/user/:id`: retorna 405 Allow: PATCH, sem desativar.
+`PATCH /api/v1/admin/user/:id/deactivate` e `/reactivate`: transição administrativa auditada; auto-desativação retorna 403.
+Reduções que deixariam zero admins ACTIVE retornam 409. Conflito/lease perdido: 409;
 indisponibilidade do lock: 503. Formato de erro existente preservado, sem stack.
 
 Executor/alvo/contagem são recarregados dentro do lock MongoDB compartilhado;
 gerações condicionam escritas atrasadas. Queda/crash é tratada pelo lease.
 Body não altera tokenVersion ou geração interna. Rebaixamento retira acesso
-admin imediatamente; exclusão invalida autenticação do usuário removido.
-Exclusão comum permanece; relações órfãs continuam em F016.
+admin imediatamente; desativação invalida autenticação e preserva User/referências.
+F016 corrigido no código. Conta reativada exige novo login;
+veja o [lifecycle](docs/LIFECYCLE_USUARIOS.md).
 
 Bootstrap é CLI: `npm.cmd run admin:bootstrap --prefix ecommerce`.
-Somente zero admins, confirmação explícita da database, senha oculta, sem
+Somente zero admins ACTIVE, confirmação explícita da database, senha oculta, sem
 e-mail/senha fixos, sem promoção automática e sem emissão de sessão. Não é
 rota HTTP. Dashboard preserva controles próprios desabilitados e exibe 403/409.
 Contrato, lock e procedimento: [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).

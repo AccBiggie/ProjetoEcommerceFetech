@@ -94,7 +94,7 @@ test('CC-23 F009 preserva recuperação uniforme', async () => {
 });
 test('CC-24 F010 mantém autoações 403', async () => {
     const admin = await h.createUser('admin'), cookie = await h.login(admin);
-    await h.request('PUT', '/admin/user/' + admin.id, { role: 'user' }, cookie, 403); await h.request('DELETE', '/admin/user/' + admin.id, null, cookie, 403);
+    await h.request('PUT', '/admin/user/' + admin.id, { role: 'user' }, cookie, 403); await h.request('PATCH', '/admin/user/' + admin.id + '/deactivate', null, cookie, 403);
 });
 test('CC-25 todos os emissores têm atributos equivalentes', () => environment('production', async () => {
     const replies = [await login(), await h.request('POST', '/register', { name: 'Emissor cookie', email: 'emitter' + user.email, password: h.password }, null, 201)];

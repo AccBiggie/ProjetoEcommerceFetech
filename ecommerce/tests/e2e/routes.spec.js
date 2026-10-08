@@ -342,7 +342,7 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   const role = page.getByLabel("Perfil de other@routes.example.com");
   await expect(page.getByLabel("Perfil de admin@routes.example.com")).toBeDisabled();
   await expect(page.getByRole("row").filter({ hasText: "admin@routes.example.com" })
-    .getByRole("button", { name: "Excluir", exact: true })).toBeDisabled();
+    .getByRole("button", { name: "Desativar conta", exact: true })).toBeDisabled();
   for (const [status, message] of [
     [403, "Não é permitido remover sua própria permissão administrativa."],
     [409, "Outra alteração administrativa está em andamento. Tente novamente."],

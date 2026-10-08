@@ -82,15 +82,16 @@ test('HISTORY guardas de modelo/documento/collection/bulkWrite impedem exclusão
     assert.ok(await Order.findById(id));
     assert.equal(typeof Order.findOneAndRemove, 'undefined');
 });
-test('HISTORY arquivado permite transições existentes e preserva referência ao ator removido', async () => {
+test('HISTORY arquivado permite transições existentes e preserva referência ao ator desativado', async () => {
     const { id } = await create(), actor = await h.createUser('admin'), cookie = await h.login(actor);
     await markOrderPaidFixture(id);
     await patch(id, true, cookie);
     await h.request('PUT', '/admin/order/' + id, { status: 'Shipped' }, admin, 200);
     await h.request('PUT', '/admin/order/' + id, { status: 'Delivered' }, admin, 200);
-    await h.request('DELETE', '/admin/user/' + actor.id, null, admin, 200);
+    await h.request('PATCH', '/admin/user/' + actor.id + '/deactivate', null, admin, 200);
     const reply = await h.request('GET', '/order/' + id, null, admin, 200);
     assert.equal(reply.result.order.administrativeArchivedBy, actor.id);
+    assert.equal((await h.User.findById(actor.id)).accountStatus, 'DEACTIVATED');
     assert.equal(reply.result.order.orderStatus, 'Delivered');
 });
 test('HISTORY arquitetura não permite deletes ou acesso bruto a orders em controllers/services', () => {

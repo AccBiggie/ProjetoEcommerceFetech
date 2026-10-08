@@ -3,6 +3,10 @@ const { registerUser, loginUser, logout, forgotPassword, resetPassword, getUserD
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const authRateLimit = require("../middleware/authRateLimit");
 const router = express.Router();
+// Authentication/recovery failures and limiter responses are private too.
+router.use(['/register', '/login', '/password/forgot', '/password/reset'], (req, res, next) => {
+    require('../utils/privateResponse')(res); next();
+});
 router.param("id", require("../middleware/validateId"));
 //Route For Api Register User e User Details
 router.route("/register").post(authRateLimit("register"), registerUser);
@@ -22,4 +26,6 @@ router
 .get(isAuthenticatedUser, authorizeRoles("admin"), getSingleUser)
 .put(isAuthenticatedUser, authorizeRoles("admin"), updateUserRole)
 .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteUser);
+for (const action of ['deactivate', 'reactivate']) router.patch('/admin/user/:id/' + action,
+    isAuthenticatedUser, authorizeRoles('admin'), require('../controllers/userController')[action + 'User']);
 module.exports = router;

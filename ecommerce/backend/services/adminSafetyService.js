@@ -1,9 +1,10 @@
 const DefaultUser = require('../models/userModel');
 const ErrorHander = require('../utils/errorHander');
 const { createAdminMutationLock, conflict } = require('./adminMutationLock');
+const { activeFilter, isActive, statusOf } = require('../utils/userLifecycle');
 
 async function ensureAnotherAdmin(User) {
-    if (await User.countDocuments({ role: 'admin' }) <= 1) {
+    if (await User.countDocuments({ role: 'admin', ...activeFilter() }) <= 1) {
         throw new ErrorHander('A operação deixaria o sistema sem administradores.', 409);
     }
 }
@@ -18,7 +19,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
     async function context(lease, executorId, targetId) {
         await fenceAdmins(lease);
         const executor = await User.findById(executorId);
-        if (!executor || executor.role !== 'admin') throw new ErrorHander('Permissão administrativa necessária.', 403);
+        if (!isActive(executor) || executor.role !== 'admin') throw new ErrorHander('Permissão administrativa necessária.', 403);
         // Alvos comuns também recebem geração, sem sobrescrever uma geração nova.
         await User.updateOne({ _id: targetId, role: 'user', ...older(lease.fence) },
             { $set: { adminMutationFence: lease.fence } });
@@ -31,7 +32,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
         if (body.role !== undefined && !['admin', 'user'].includes(body.role)) throw new ErrorHander('Perfil inválido.', 400);
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
-            const reducing = target.role === 'admin' && body.role === 'user';
+            const reducing = isActive(target) && target.role === 'admin' && body.role === 'user';
             if (reducing && String(executorId) === target.id) {
                 throw new ErrorHander('Não é permitido remover sua própria permissão administrativa.', 403);
             }
@@ -48,19 +49,34 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
             return auditRequest ? require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db }) : (await mutate()).value;
         });
     }
-    async function deleteUser(executorId, targetId, auditRequest) {
+    async function changeStatus(executorId, targetId, nextStatus, auditRequest) {
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
-            if (String(executorId) === target.id) throw new ErrorHander('Não é permitido excluir sua própria conta administrativa.', 403);
-            if (target.role === 'admin') await ensureAnotherAdmin(User);
+            if (nextStatus === 'DEACTIVATED' && String(executorId) === target.id) throw new ErrorHander('Não é permitido desativar sua própria conta administrativa.', 403);
+            const previous = statusOf(target);
+            if (!['ACTIVE', 'DEACTIVATED'].includes(previous)) throw new ErrorHander('Estado de conta inválido.', 409);
+            if (previous === nextStatus) return target;
+            if (nextStatus === 'DEACTIVATED' && target.role === 'admin') await ensureAnotherAdmin(User);
+            if (nextStatus === 'DEACTIVATED' && !require('../utils/authSession').isValidVersion(target.tokenVersion)) throw conflict();
             await lock.assertHeld(lease);
             const mutate = async session => {
-                const result = await User.deleteOne(filter(target, lease), { session });
-                if (result.deletedCount !== 1) throw conflict();
-                return { event: { action: 'USER_DELETED', targetId: target._id } };
+                const deactivating = nextStatus === 'DEACTIVATED';
+                const update = { $set: { accountStatus: nextStatus, deactivatedAt: deactivating ? new Date() : null,
+                    deactivatedBy: deactivating ? executorId : null } };
+                if (deactivating) {
+                    update.$inc = { tokenVersion: 1 };
+                    update.$unset = { resetPasswordToken: '', resetPasswordExpire: '' };
+                }
+                const statusFilter = previous === 'ACTIVE' ? activeFilter() : { accountStatus: previous };
+                // Version CAS prevents concurrent reset/logout from silently undoing a revocation.
+                const user = await User.findOneAndUpdate({ $and: [filter(target, lease), statusFilter,
+                    require('../utils/authSession').versionFilter(target.tokenVersion)] }, update,
+                { returnDocument: 'after', runValidators: true, session });
+                if (!user) throw conflict();
+                return { value: user, event: { action: deactivating ? 'USER_DEACTIVATED' : 'USER_REACTIVATED', targetId: target._id,
+                    metadata: { fromStatus: previous, toStatus: nextStatus } } };
             };
-            if (auditRequest) await require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db });
-            else await mutate();
+            return auditRequest ? require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db }) : (await mutate()).value;
         });
     }
     async function bootstrap(input) {
@@ -73,7 +89,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
         catch { throw new ErrorHander('Informe nome, e-mail e senha válidos.', 400); }
         return lock.run(async lease => {
             await lock.assertHeld(lease);
-            if (await User.countDocuments({ role: 'admin' }) > 0) {
+            if (await User.countDocuments({ role: 'admin', ...activeFilter() }) > 0) {
                 throw new ErrorHander('Já existe pelo menos um administrador. Utilize a administração da aplicação para gerenciar outros administradores.', 409);
             }
             if (await User.exists({ email: candidate.email })) {
@@ -93,6 +109,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
             return candidate;
         });
     }
-    return { updateUser, deleteUser, bootstrap };
+    return { updateUser, deactivateUser: (executor, target, request) => changeStatus(executor, target, 'DEACTIVATED', request),
+        reactivateUser: (executor, target, request) => changeStatus(executor, target, 'ACTIVE', request), bootstrap };
 }
 module.exports = { createAdminSafetyService, ensureAnotherAdmin };

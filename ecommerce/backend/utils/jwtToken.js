@@ -4,7 +4,7 @@ const setNoStore = require('./privateResponse');
 const sendToken = (user, statusCode, res) => {
     setNoStore(res);
     const token = user.getJWTToken();
-    const publicUser = user.toObject();
+    const publicUser = require('./userLifecycle').publicUser(user);
     delete publicUser.password;
     delete publicUser.resetPasswordToken;
     delete publicUser.resetPasswordExpire;

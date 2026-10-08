@@ -1,5 +1,14 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F016 — Lifecycle seguro de User — FET-DATA-003
+
+**CORRIGIDO NO CÓDIGO** (08/10/2026): DELETE físico de User retorna 405; model/runtime bloqueia deletes. Lifecycle ACTIVE/DEACTIVATED com metadata técnica; desativação revoga sessões/recuperação e mantém identidade/referências, reativação exige novo login. Auth verifica status e versão; F010/CLI contam somente admins ativos. Transições e eventos F025 são atômicos. Dashboard oferece status, filtros e desativar/reativar. Auditoria audit:users é somente leitura.
+
+Validação: focused96/96, API918 aprovados/15 skips exclusivos F024, build aprovado, E2E32/32 e diff aprovado. [Relatório](RELATORIO_FET_DATA_003.md), [contrato](LIFECYCLE_USUARIOS.md), [testes individuais](TESTES_FET_DATA_003.md).
+
+**Limites:** PII permanece armazenada; anonimização/privacy erasure pertence a F030. Órfãos históricos não foram reparados; qualquer reparo real depende de F024 validado. F024 permanece **PARCIAL / AGUARDANDO MONGODUMP + MONGORESTORE**, sem download/drill real. F001/F027 continuam adiados. Banco real/config.env/auditoria histórica preservados; tarefa sem commit. Próxima recomendação **F015 — consistência concorrente de reviews**, sem início automático. Este status corrente prevalece sobre recomendações históricas abaixo.
+
+
 ## Atualização FET-OPS-002 — 08/10/2026
 
 F025 **CORRIGIDO NO CÓDIGO**: request ID server-side/response header, AsyncLocalStorage, logs JSON com níveis e redaction, rota template segura, live/ready e audit administrativo append-only implementados. Mutações Mongo e evento são transacionais; read API admin-only paginada e aba Auditoria no dashboard. Sem dependência/collector externo, sem TTL até F030. Validação: focused116/116, API822 aprovados/15 skips F024, build aprovado, E2E31/31, diff aprovado. Evidências finais: [relatório](RELATORIO_FET_OPS_002.md); contrato: [OBSERVABILIDADE.md](OBSERVABILIDADE.md).

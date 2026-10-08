@@ -1,5 +1,9 @@
 # Configuração de ambiente — FET-SEC-008
 
+## Perfil users-audit — FET-DATA-003
+
+`audit:users` usa `loadConfig(env, { profile: "users-audit" })`, loader central NODE_ENV/DB_URI e database explícita. Não exige JWT/SMTP/Cloudinary/frontend; sem novas variáveis. AutoCreate/autoIndex false, sem flags de escrita. Comando não executado no banco real nesta task. [Operação e limites](LIFECYCLE_USUARIOS.md).
+
 FET-OPS-002 acrescenta `LOG_LEVEL` ao inventário central (18 variáveis): enum `debug/info/warn/error`, default test=`error`, development/production=`info`. Vazio/desconhecido falha antes de app/Mongo/listen; todos os perfis validam a opção. Consumidor: `config.logging.level`, logger central. Configuração real preservada; somente `config.env.example` atualizado. Startup emite JSON com nome da exceção e nomes permitidos de variáveis inválidas, sem valores/stack livre. [Contrato de observabilidade](OBSERVABILIDADE.md).
 
 FET-OPS-001 acrescenta o perfil `database-operations`: valida centralmente `NODE_ENV` e `DB_URI` com database explícita, sem exigir JWT/SMTP/Cloudinary. Nenhuma variável obrigatória nova ou alteração em `config.env`. `--tools-dir` é argumento opcional da CLI; `FETECH_TEST_MONGO_TOOLS` pertence apenas ao runner de testes. Database Tools oficiais 100.3+ da série 100.x são pré-requisito externo, não dependência npm. [Runbook de backup/restore](BACKUP_RESTORE.md). F024 continua parcial até prova real de recuperação.

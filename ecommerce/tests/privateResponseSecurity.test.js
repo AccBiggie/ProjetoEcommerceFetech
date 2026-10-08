@@ -117,5 +117,5 @@ test('PRV-34 F009 recuperação uniforme', async () => {
 test('PRV-35 F010 autoações 403 no-store', async () => {
     const admin = data.users.admin, current = await h.login(admin);
     noStore(await h.request('PUT', '/admin/user/' + admin.id, { role: 'user' }, current, 403));
-    noStore(await h.request('DELETE', '/admin/user/' + admin.id, null, current, 403));
+    noStore(await h.request('PATCH', '/admin/user/' + admin.id + '/deactivate', null, current, 403));
 });

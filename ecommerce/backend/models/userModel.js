@@ -45,6 +45,9 @@ const userSchema = new mongoose.Schema ( {
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    accountStatus: { type: String, enum: ['ACTIVE', 'DEACTIVATED'], default: 'ACTIVE' },
+    deactivatedAt: { type: Date, default: null },
+    deactivatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     // Geração interna do lock administrativo; nunca aceita pelo body público.
     adminMutationFence: { type: Number, default: 0, select: false },
     tokenVersion: {
@@ -63,8 +66,14 @@ userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.resetPasswordToken;
     delete result.resetPasswordExpire;
     delete result.adminMutationFence;
+    delete result.deactivatedBy;
+    delete result.deactivatedAt;
     return result;
 } });
+userSchema.pre('validate', function () {
+    if (this.accountStatus === 'ACTIVE' && (this.deactivatedAt != null || this.deactivatedBy != null)) this.invalidate('accountStatus', 'Active account metadata must be null');
+    if (this.accountStatus === 'DEACTIVATED' && (!(this.deactivatedAt instanceof Date) || !Number.isFinite(this.deactivatedAt.getTime()) || !this.deactivatedBy)) this.invalidate('accountStatus', 'Deactivation metadata required');
+});
 userSchema.pre("save", async function() {
     if (!this.isModified("password")) {
         return;
@@ -74,7 +83,7 @@ userSchema.pre("save", async function() {
 //JWT TOKEN
 userSchema.methods.getJWTToken = function () {
     const { isValidVersion, invalidSession } = require("../utils/authSession");
-    if (!isValidVersion(this.tokenVersion)) throw invalidSession();
+    if (!isValidVersion(this.tokenVersion) || !require('../utils/userLifecycle').isActive(this)) throw invalidSession();
     return jwt.sign({ id: this._id, tokenVersion: this.tokenVersion }, require('../config/runtimeConfig').getRuntimeConfig().jwt.secret, {
         expiresIn: require('../config/runtimeConfig').getRuntimeConfig().jwt.expiresIn,
     }); 
@@ -85,6 +94,7 @@ userSchema.methods.comparePassword = async function(enteredPassword) {
 };
 //Generating Password Reset Token
 userSchema.methods.getResetPasswordToken = function() {
+    if (!require('../utils/userLifecycle').isActive(this)) throw require('../utils/authSession').invalidSession();
     //Generating Token
     const resetToken = crypto.randomBytes(20).toString("hex");
     //Hashing and adding resetPasswordToken to userSchema
@@ -92,4 +102,30 @@ userSchema.methods.getResetPasswordToken = function() {
     this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
     return resetToken;
 };
-module.exports = mongoose.model("User", userSchema);
+function forbidPhysicalDelete() {
+    const error = new Error('User physical deletion is forbidden');
+    error.code = 'USER_PHYSICAL_DELETE_FORBIDDEN';
+    error.statusCode = 405;
+    throw error;
+}
+for (const operation of ['findOneAndDelete', 'deleteOne', 'deleteMany', 'remove', 'findOneAndRemove']) {
+    userSchema.pre(operation, { query: true, document: false }, forbidPhysicalDelete);
+}
+userSchema.pre('deleteOne', { document: true, query: false }, forbidPhysicalDelete);
+// The raw database driver remains outside this model's guard (isolated fixtures/DB operations).
+// Replacement writes through the commercial model would also discard identity.
+userSchema.pre('bulkWrite', function (operations) {
+    if (operations.some(operation => operation.deleteOne || operation.deleteMany || operation.replaceOne)) forbidPhysicalDelete();
+});
+for (const operation of ['replaceOne', 'findOneAndReplace']) userSchema.pre(operation, forbidPhysicalDelete);
+userSchema.pre('aggregate', function () {
+    if (this.pipeline().some(stage => stage.$out || stage.$merge)) forbidPhysicalDelete();
+});
+const User = mongoose.model('User', userSchema);
+for (const operation of ['deleteOne', 'deleteMany', 'findOneAndDelete', 'replaceOne', 'findOneAndReplace']) User.collection[operation] = async () => forbidPhysicalDelete();
+const bulkWrite = User.collection.bulkWrite.bind(User.collection);
+User.collection.bulkWrite = async (operations, ...options) => {
+    if (operations.some(operation => operation.deleteOne || operation.deleteMany || operation.replaceOne)) forbidPhysicalDelete();
+    return bulkWrite(operations, ...options);
+};
+module.exports = User;

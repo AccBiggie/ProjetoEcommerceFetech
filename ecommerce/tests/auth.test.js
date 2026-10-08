@@ -83,8 +83,8 @@ test('TEST-13 reset é single-use e limpa hash e expiração', async () => {
     const saved = await h.User.findById(user.id);
     assert.equal(saved.resetPasswordToken, undefined); assert.equal(saved.resetPasswordExpire, undefined);
 });
-test('TEST-14 usuário removido não autentica com JWT capturado', async () => {
-    await user.deleteOne(); await me(cookie, 401); await logout(cookie);
+test('TEST-14 usuário desativado não autentica com JWT capturado', async () => {
+    const admin = await h.createUser('admin'); await h.request('PATCH', '/admin/user/' + user.id + '/deactivate', null, await h.login(admin), 200); await me(cookie, 401); await logout(cookie);
 });
 test('TEST-15 role persistida remove privilégios sem revogar autenticação', async () => {
     await h.User.updateOne({ _id: user.id }, { role: 'admin' });

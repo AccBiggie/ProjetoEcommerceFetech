@@ -1,27 +1,29 @@
 # Segurança administrativa e primeiro administrador
 
-FET-SEC-004 / F010 / FET-P1-002, 08/10/2026. Funciona no MongoDB standalone.
-As regras são aplicadas pelo backend em PUT/DELETE `/api/v1/admin/user/:id`.
+FET-SEC-004 / F010 / FET-P1-002, atualizado pela FET-DATA-003 em 08/10/2026. Mutações HTTP auditadas exigem MongoDB com transações (replica set), conforme F025.
+As regras são aplicadas pelo backend em PUT e PATCH de lifecycle; DELETE físico retorna 405. [Contrato atual](LIFECYCLE_USUARIOS.md).
 
 ## Política
 
 | Operação | Resultado |
 | --- | --- |
-| Excluir a própria conta administrativa | 403, conta preservada |
+| Desativar a própria conta administrativa | 403, conta preservada |
+| DELETE de qualquer usuário, inclusive próprio | 405 Allow: PATCH, sem mudança |
 | Rebaixar a própria conta para user | 403, role preservada |
 | Atualizar a própria conta mantendo admin, ou sem enviar role | Permitido, validações existentes |
-| Rebaixar/excluir outro admin | Permitido quando resta pelo menos um admin |
-| Operação que deixaria zero admins | 409 |
+| Rebaixar/desativar outro admin | Permitido quando resta pelo menos um admin ACTIVE |
+| Operação que deixaria zero admins ACTIVE | 409; ação própria continua 403 |
 | Promover um user | Permitido por executor atualmente admin |
-| Excluir user comum | Comportamento anterior preservado |
+| Desativar user comum | Preserva User e dependentes, revoga sessões |
+| Reativar conta | ACTIVE, sem restaurar sessões; novo login necessário |
 | Executor perdeu role enquanto aguardava | 403 após recarregar executor |
 | Conflito/lease perdido | 409, mensagem segura em português |
 | Storage do lock indisponível | 503, sem executar por fallback |
 
 Formato de erro: `{ "success": false, "message": "..." }`, sem stack ou owner.
 Role atual do MongoDB controla autorização. Após rebaixamento, JWT anterior
-continua autenticando como user, mas rotas admin retornam 403; exclusão causa
-401. Body não pode manipular `tokenVersion` ou `adminMutationFence`.
+continua autenticando como user, mas rotas admin retornam 403; desativação causa
+401. Admin desativado não opera nem conta para a invariante. Body não pode manipular `tokenVersion` ou `adminMutationFence`.
 Dashboard mantém controles próprios desabilitados e apresenta erros 403/409.
 
 ## Lock e escritas atrasadas
@@ -45,27 +47,28 @@ a geração usada para impedir escritas antigas.
 
 Nas mutações HTTP, antes de ler executor, alvo e contagem, uma aquisição marca admins com a nova
 geração interna `User.adminMutationFence`; alvos comuns também recebem geração.
-A marcação só aumenta valores. Escritas de role/delete exigem a mesma geração
+A marcação só aumenta valores. Escritas de role/lifecycle exigem a mesma geração
 e role lida, e a propriedade do lease é verificada antes da escrita. Assim,
 uma operação pausada perde a capacidade de escrever quando uma aquisição nova
 marca os documentos. Contagem e decisões são recarregadas após essa marcação.
 Campo select:false e removido no toJSON; não aparece nas respostas públicas.
-Nenhuma alteração é feita em tokenVersion por essas operações.
+Edição de role não altera tokenVersion. Desativação incrementa uma vez; reativação mantém a versão.
 
 O ID reservado de bootstrap impede duas inserções, inclusive quando uma save
 antiga retorna após perder lease. Se esse ID já existir como conta comum e
-o banco tiver zero admins, o ID pode ser rotacionado sob o mesmo lock; isso
+o banco tiver zero admins ACTIVE, o ID pode ser rotacionado sob o mesmo lock; isso
 não promove nem modifica a conta existente. Índices `_id` e e-mail do User
 protegem duplicações. Serviços/CLI usam User e seu hook bcrypt.
 
 Referências: [atomicidade por documento no MongoDB](https://www.mongodb.com/docs/v8.0/core/write-operations-atomicity/)
 e [updates com pipeline e $$NOW](https://www.mongodb.com/docs/manual/tutorial/update-documents-with-aggregation-pipeline/).
-Não são utilizadas transações multi-documento ou replica set obrigatório.
+O lock usa atomicidade por documento. Mutações HTTP com audit F025 usam
+transações multi-documento e exigem replica set; bootstrap mantém seu contrato próprio.
 
 Consulta por role foi avaliada no probe: COLLSCAN examinou um documento na
 fixture final. Não foi adicionado índice role nesta task; avaliar seletividade
 e volume operacional antes de acrescentá-lo. O lock serializa inclusive
-promoções e exclusões comuns para preservar revalidação e evitar corridas de role.
+promoções e transições de lifecycle para preservar revalidação e evitar corridas de role.
 
 ## Bootstrap operacional
 
@@ -77,14 +80,14 @@ npm.cmd run admin:bootstrap --prefix ecommerce
 ```
 
 1. O comando lê a conexão configurada no servidor e exibe host, database,
-   ambiente e quantidade de admins. Não exibe URI/credenciais MongoDB.
+   ambiente e quantidade de admins ACTIVE. Não exibe URI/credenciais MongoDB.
 2. Digite exatamente o nome da database para confirmar. Nome errado cancela.
    A conexão inicial desativa criação automática de coleções/índices; índices
    do User são preparados somente após essa confirmação.
 3. Informe nome e e-mail de uma conta nova.
 4. Informe senha e confirmação. A entrada fica oculta, sem eco ou histórico
    de readline. As validações do User são reutilizadas.
-5. Com zero admins confirmado novamente dentro do lock, cria um único admin
+5. Com zero admins ACTIVE confirmado novamente dentro do lock, cria um único admin
    com avatar default. Não utiliza Cloudinary/SMTP nem emite JWT/cookie.
 6. Faça login pela aplicação normalmente; emissão de JWT e rate limiter são
    os mesmos do restante do sistema.

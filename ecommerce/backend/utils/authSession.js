@@ -27,9 +27,9 @@ function versionFilter(version) {
 
 async function saveWithRevokedSessions(user) {
     const version = user.tokenVersion;
-    if (!isValidVersion(version)) throw invalidSession();
+    if (!isValidVersion(version) || !require('./userLifecycle').isActive(user)) throw invalidSession();
     // Evita que um save iniciado antes de outra revogação restaure uma versão antiga.
-    user.$where = { ...user.$where, ...versionFilter(version) };
+    user.$where = { $and: [user.$where || {}, versionFilter(version), require('./userLifecycle').activeFilter()] };
     user.tokenVersion = version + 1;
     try { await user.save(); }
     catch (error) {

@@ -33,8 +33,8 @@ async function runBootstrapCli({ connection, environment = 'test', service = cre
         write('Banco alvo: ' + connection.name);
         write('Host: ' + connection.host);
         write('Ambiente: ' + environment);
-        const count = await connection.model('User').countDocuments({ role: 'admin' });
-        write('Administradores atuais: ' + count);
+        const count = await connection.model('User').countDocuments({ role: 'admin', ...require('../utils/userLifecycle').activeFilter() });
+        write('Administradores ativos: ' + count);
         if (count > 0) {
             write('Já existe pelo menos um administrador. Utilize a administração da aplicação para gerenciar outros administradores.');
             return 1;

@@ -10,7 +10,7 @@ exports.isAuthenticatedUser = catchAsyncErrors (async (req, res, next) => {
     const decodedData = decodeSession(token);
     if (!decodedData) return next(invalidSession());
     req.user = await User.findById(decodedData.id);  
-    if (!req.user || decodedData.tokenVersion !== req.user.tokenVersion) return next(invalidSession());
+    if (!require('../utils/userLifecycle').isActive(req.user) || decodedData.tokenVersion !== req.user.tokenVersion) return next(invalidSession());
     const context = require('../observability/context').current();
     if (context) { context.userId = String(req.user._id); context.role = req.user.role; }
     next();

@@ -1,5 +1,14 @@
 # Plano de melhorias Fetech
 
+## F016 — Lifecycle seguro de User — FET-DATA-003
+
+**CORRIGIDO NO CÓDIGO** (08/10/2026): DELETE físico de User retorna 405; model/runtime bloqueia deletes. Lifecycle ACTIVE/DEACTIVATED com metadata técnica; desativação revoga sessões/recuperação e mantém identidade/referências, reativação exige novo login. Auth verifica status e versão; F010/CLI contam somente admins ativos. Transições e eventos F025 são atômicos. Dashboard oferece status, filtros e desativar/reativar. Auditoria audit:users é somente leitura.
+
+Validação: focused96/96, API918 aprovados/15 skips exclusivos F024, build aprovado, E2E32/32 e diff aprovado. [Relatório](RELATORIO_FET_DATA_003.md), [contrato](LIFECYCLE_USUARIOS.md), [testes individuais](TESTES_FET_DATA_003.md).
+
+**Limites:** PII permanece armazenada; anonimização/privacy erasure pertence a F030. Órfãos históricos não foram reparados; qualquer reparo real depende de F024 validado. F024 permanece **PARCIAL / AGUARDANDO MONGODUMP + MONGORESTORE**, sem download/drill real. F001/F027 continuam adiados. Banco real/config.env/auditoria histórica preservados; tarefa sem commit. Próxima recomendação **F015 — consistência concorrente de reviews**, sem início automático. Este status corrente prevalece sobre recomendações históricas abaixo.
+
+
 ## F025 / FET-P1-012 — Observabilidade operacional
 
 **Status: CORRIGIDO NO CÓDIGO.** FET-OPS-002 (08/10/2026): implementados Request ID server-side/X-Request-Id, AsyncLocalStorage, logs JSON/LOG_LEVEL validado, redaction de secrets/PII, templates de rotas sem body/headers/query/raw URL, live/ready, audit administrativo append-only atômico e consulta admin paginada com UI mínima. Correlação header ↔ log ↔ audit e testes sentinelas/rollback. Validação: focused116/116, API822 pass/15 skipped F024, build aprovado, E2E31/31 e diff aprovado. [RELATORIO_FET_OPS_002.md](RELATORIO_FET_OPS_002.md). Contrato: [OBSERVABILIDADE.md](OBSERVABILIDADE.md).

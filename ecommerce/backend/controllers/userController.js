@@ -12,6 +12,7 @@ const recoveryConfig = require('../config/passwordRecovery');
 const uploadAvatar = require("../utils/avatar");
 const { decodeSession, versionFilter, saveWithRevokedSessions, invalidSession } = require("../utils/authSession");
 const adminSafety = require('../services/adminSafetyService').createAdminSafetyService();
+const { activeFilter, isActive, adminUser } = require('../utils/userLifecycle');
 //Register a User
 exports.registerUser = catchAsyncErrors( async (req,res,next) => {
     const avatar = await uploadAvatar(req.body.avatar);
@@ -30,7 +31,8 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
         const { email, password } = req.body;
         if (!email || !password) throw new ErrorHander("Please enter Email and Password", 400);
         const user = await User.findOne({ email: String(email).trim().toLowerCase() }).select("+password");
-        if (!user || !await user.comparePassword(password)) {
+        if (!user || !await user.comparePassword(password) || !isActive(user) ||
+            !await User.exists({ $and: [{ _id: user._id }, activeFilter(), versionFilter(user.tokenVersion)] })) {
             require('../observability/logger').warn('auth.login.failed', { status: 401, reason: 'invalid_credentials' });
             throw new ErrorHander("Invalid email or password", 401);
         }
@@ -59,17 +61,20 @@ exports.logout = catchAsyncErrors (async (req, res, next) => {
 //Forgot Password
 exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
     const started = performance.now();
-    const user = await User.findOne({ email: String(req.body.email || "").trim().toLowerCase() });
+    const user = await User.findOne({ email: String(req.body.email || "").trim().toLowerCase(), ...activeFilter() });
     if (user) {
         //Get Reset Password Token
         const resetToken =  user.getResetPasswordToken();
-        await user.save({ validateBeforeSave:false });
+        user.$where = { $and: [activeFilter(), versionFilter(user.tokenVersion)] };
+        let saved = true;
+        try { await user.save({ validateBeforeSave:false }); }
+        catch (error) { if (error.name !== 'DocumentNotFoundError') throw error; saved = false; }
 
         const resetPasswordUrl = `${require('../config/runtimeConfig').getRuntimeConfig().frontend.origin}/password/reset/${resetToken}`;
         const message = `Your password reset token is :- \n\n ${ resetPasswordUrl } \n\nIf you have not requested this email then please ignore it`;
 
         try {
-            await sendEmail ({
+            if (saved && await User.exists({ _id: user._id, resetPasswordToken: user.resetPasswordToken, ...activeFilter() })) await sendEmail ({
                 email: user.email,
                 subject: `Ecommerce Password Recovery`,
                 message,
@@ -92,6 +97,7 @@ exports.resetPassword = catchAsyncErrors (async (req, res, next) => {
     const resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex"); //Create Token Hash
     const user = await User.findOne({
         resetPasswordToken, resetPasswordExpire : { $gt: Date.now() },
+        ...activeFilter(),
     });
     if(!user) {
         return next(new ErrorHander("Reset Password Token is invalid or hass been expired",400));
@@ -144,10 +150,11 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
     }
     const avatar = await uploadAvatar(req.body.avatar);
     if (avatar) newUserData.avatar = avatar;
-    const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
+    const user = await User.findOneAndUpdate({ $and: [{ _id: req.user.id }, activeFilter(), versionFilter(req.user.tokenVersion)] }, newUserData, {
         returnDocument: "after",
         runValidators: true,
     });
+    if (!user) throw invalidSession();
     res.status(200).json({
         success: true,
         user,
@@ -155,11 +162,13 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
 });
 //GET ALL USERS (Admin)
 exports.getAllUser = catchAsyncErrors (async (req, res, next) => {
-    const users = await User.find();
+    const status = req.query.status === undefined ? 'active' : req.query.status;
+    if (typeof status !== 'string' || !['active', 'deactivated', 'all'].includes(status)) throw new ErrorHander('Filtro de status inválido.', 400);
+    const users = await User.find(status === 'active' ? activeFilter() : status === 'deactivated' ? { accountStatus: 'DEACTIVATED' } : {});
 
     res.status(200).json({
         success: true,
-        users,
+        users: users.map(adminUser),
     });
 });
 //GET SINGLE USER (Admin)
@@ -172,7 +181,7 @@ exports.getSingleUser = catchAsyncErrors (async (req, res, next) => {
 
     res.status(200).json({
         success: true,
-        user,
+        user: adminUser(user),
     });
 });
 //UPDATE USER ROLE --ADMIN
@@ -180,15 +189,18 @@ exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
     const user = await adminSafety.updateUser(req.user.id, req.params.id, req.body, req);
     res.status(200).json({
         success: true,
-        user,
+        user: adminUser(user),
     });
 });
 //DELETE USER --ADMIN
 exports.deleteUser = catchAsyncErrors(async(req, res, next) => {
-    await adminSafety.deleteUser(req.user.id, req.params.id, req);
-
-    res.status(200).json({
-        success: true,
-        message: "User Deleted Successfully",
-    });
+    res.set('Allow', 'PATCH').status(405).json({ success: false, message: 'Usuários não podem ser excluídos fisicamente.' });
+});
+exports.deactivateUser = catchAsyncErrors(async (req, res) => {
+    const user = await adminSafety.deactivateUser(req.user.id, req.params.id, req);
+    res.status(200).json({ success: true, user: adminUser(user) });
+});
+exports.reactivateUser = catchAsyncErrors(async (req, res) => {
+    const user = await adminSafety.reactivateUser(req.user.id, req.params.id, req);
+    res.status(200).json({ success: true, user: adminUser(user) });
 });

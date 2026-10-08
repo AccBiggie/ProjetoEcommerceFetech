@@ -46,6 +46,7 @@ export default function Dashboard() {
   const { ordered: categories } = useCategories();
   const { user } = useSelector((state) => state.user);
   const [confirmation, setConfirmation] = useState(null);
+  const [userStatus, setUserStatus] = useState('active');
   const [archived, setArchived] = useState('active');
   const [tab, setTab] = useState("products");
   const [data, setData] = useState({ products: [], users: [], orders: [] });
@@ -55,7 +56,7 @@ export default function Dashboard() {
   const load = useCallback(async () => {
     const [products, users, orders] = await Promise.all([
       axios.get("/api/v1/admin/products"),
-      axios.get("/api/v1/admin/users"),
+      axios.get("/api/v1/admin/users", { params: { status: userStatus } }),
       axios.get("/api/v1/admin/orders", { params: { archived } }),
     ]);
     setData({
@@ -63,7 +64,7 @@ export default function Dashboard() {
       users: users.data.users,
       orders: orders.data.orders,
     });
-  }, [archived]);
+  }, [archived, userStatus]);
   useEffect(() => {
     load().catch((error) => setError(getErrorMessage(error)));
   }, [load]);
@@ -294,20 +295,26 @@ export default function Dashboard() {
         </>
       )}
       {tab === "users" && (
+        <Box>
+        <TextField select label="Filtrar usuários" value={userStatus} disabled={pending}
+          slotProps={{ select: { native: true } }} onChange={event => setUserStatus(event.target.value)} sx={{ mb: 2 }}>
+          <option value="active">Ativos</option><option value="deactivated">Desativados</option><option value="all">Todos</option>
+        </TextField>
         <DataTable
           label="Usuários cadastrados"
-          columns={["Nome", "E-mail", "Perfil", "Ações"]}
+          columns={["Nome", "E-mail", "Status", "Perfil", "Ações"]}
         >
           {data.users.map((account) => (
             <TableRow key={account._id} hover>
               <TableCell>{account.name}</TableCell>
               <TableCell>{account.email}</TableCell>
+              <TableCell><Chip size="small" label={account.accountStatus === "ACTIVE" ? "Ativo" : account.accountStatus === "DEACTIVATED" ? "Desativado" : "Estado inválido"} color={account.accountStatus === "ACTIVE" ? "success" : "default"} /></TableCell>
               <TableCell>
                 <TextField
                   select
                   size="small"
                   value={account.role}
-                  disabled={pending || account._id === user._id}
+                  disabled={pending || account._id === user._id || account.accountStatus !== "ACTIVE"}
                   slotProps={{
                     select: { native: true },
                     htmlInput: { "aria-label": "Perfil de " + account.email },
@@ -326,22 +333,25 @@ export default function Dashboard() {
               </TableCell>
               <TableCell>
                 <Button
-                  color="error"
-                  disabled={pending || account._id === user._id}
+                  color="primary"
+                  disabled={pending || account._id === user._id || !["ACTIVE", "DEACTIVATED"].includes(account.accountStatus)}
                   onClick={() =>
                     setConfirmation({
-                      title: "Excluir este usuário?",
-                      action: () =>
-                        axios.delete("/api/v1/admin/user/" + account._id),
+                      title: account.accountStatus === "DEACTIVATED" ? "Reativar esta conta?" : "Desativar esta conta?",
+                      description: account.accountStatus === "DEACTIVATED" ? "O usuário poderá entrar novamente com sua senha atual. As sessões antigas continuam inválidas." : "O acesso será bloqueado e as sessões serão revogadas. Pedidos, endereços, avaliações e histórico serão preservados.",
+                      label: account.accountStatus === "DEACTIVATED" ? "Confirmar reativação" : "Confirmar desativação",
+                      color: "primary",
+                      action: () => axios.patch("/api/v1/admin/user/" + account._id + (account.accountStatus === "DEACTIVATED" ? "/reactivate" : "/deactivate")),
                     })
                   }
                 >
-                  Excluir
+                  {account.accountStatus === "DEACTIVATED" ? "Reativar conta" : "Desativar conta"}
                 </Button>
               </TableCell>
             </TableRow>
           ))}
         </DataTable>
+        </Box>
       )}
       {tab === "orders" && (
         <Box>

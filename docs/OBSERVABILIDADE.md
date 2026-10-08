@@ -1,5 +1,9 @@
 # Observabilidade operacional — FET-OPS-002
 
+## Lifecycle de User — extensão FET-DATA-003
+
+Eventos USER_DEACTIVATED/USER_REACTIVATED usam actor/target autenticados, metadata fromStatus/toStatus e transaction compartilhada com User. Nenhuma PII/JWT/reset token é copiada. Header, log e audit mantêm correlação. USER_DELETED permanece somente como ação histórica legível; DELETE HTTP é 405 e não cria evento. User/actor histórico é preservado após desativação. [Lifecycle](LIFECYCLE_USUARIOS.md).
+
 Contrato em 08/10/2026. F025 / FET-P1-012: instrumentação da aplicação, sem serviço externo de coleta.
 
 ## Correlação por requisição
@@ -51,7 +55,8 @@ Ambos retornam `Cache-Control: no-store` e Request ID. Ready consulta a conexão
 | `ORDER_UNARCHIVED` | PATCH `/admin/order/:id/unarchive` | Order | Sim |
 | `ORDER_STATUS_CHANGED` | PUT `/admin/order/:id` | Order | Sim |
 | `USER_ROLE_CHANGED` / `USER_UPDATED` | PUT `/admin/user/:id` | User | Sim |
-| `USER_DELETED` | DELETE `/admin/user/:id` | User | Sim |
+| `USER_DEACTIVATED` | PATCH `/admin/user/:id/deactivate` | User | Sim |
+| `USER_REACTIVATED` | PATCH `/admin/user/:id/reactivate` | User | Sim |
 | `PRODUCT_CREATED` | POST `/product/new` | Product | Sim |
 | `PRODUCT_UPDATED` | PUT `/product/:id` | Product | Sim |
 | `PRODUCT_DELETED` | DELETE `/product/:id` | Product | Sim |

@@ -1,6 +1,7 @@
 const actions = Object.freeze({
     ORDER_ARCHIVED: ['ORDER', ['archived']], ORDER_UNARCHIVED: ['ORDER', ['archived']], ORDER_STATUS_CHANGED: ['ORDER', ['from','to']],
     USER_ROLE_CHANGED: ['USER', ['fromRole','toRole']], USER_UPDATED: ['USER', ['changedFields']], USER_DELETED: ['USER', []],
+    USER_DEACTIVATED: ['USER', ['fromStatus','toStatus']], USER_REACTIVATED: ['USER', ['fromStatus','toStatus']],
     PRODUCT_CREATED: ['PRODUCT', []], PRODUCT_UPDATED: ['PRODUCT', ['changedFields']], PRODUCT_DELETED: ['PRODUCT', []],
     CATEGORY_CREATED: ['CATEGORY', []], CATEGORY_UPDATED: ['CATEGORY', ['changedFields']], CATEGORY_DELETED: ['CATEGORY', []],
     PRODUCT_REVIEW_DELETED: ['PRODUCT', ['reviewId']]
@@ -15,6 +16,7 @@ function metadataFor(action, input = {}) {
         if (key === 'archived' && typeof value === 'boolean' && value === (action === 'ORDER_ARCHIVED')) result[key] = value;
         else if (['from','to'].includes(key) && ['Processing','Shipped','Delivered'].includes(value)) result[key] = value;
         else if (['fromRole','toRole'].includes(key) && ['admin','user'].includes(value)) result[key] = value;
+        else if (['fromStatus','toStatus'].includes(key) && ['ACTIVE','DEACTIVATED'].includes(value)) result[key] = value;
         else if (key === 'reviewId' && /^[a-f0-9]{24}$/i.test(value)) result[key] = String(value);
         else if (key === 'changedFields' && Array.isArray(value) && value.length <= changedFields.size && value.every(field => changedFields.has(field))) result[key] = [...new Set(value)].sort();
         else throw new Error('Invalid audit metadata value');

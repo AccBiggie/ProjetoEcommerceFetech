@@ -45,10 +45,10 @@ test('AUD-04 status PAID possui metadata from/to e mesmo estado é no-op',async(
     await h.request('PUT','/admin/order/'+id,{status:'Shipped'},admin,200);assert.equal(await Audit.countDocuments({action:'ORDER_STATUS_CHANGED',targetId:id}),1);
 });
 test('AUD-05 PENDING não envia nem cria evento de sucesso',async()=>{const id=await order();await h.request('PUT','/admin/order/'+id,{status:'Shipped',paymentStatus:'PAID'},admin,409);assert.equal(await Audit.countDocuments(),0);assert.equal((await Order.findById(id)).orderStatus,'Processing');});
-test('AUD-06 User role, update e delete preservam IDs sem PII',async()=>{
+test('AUD-06 User role, update e desativação preservam IDs sem PII',async()=>{
     const user=await h.createUser();let r=await h.request('PUT','/admin/user/'+user.id,{role:'admin'},admin,200);assert.deepEqual((await checkEvent(r,'USER_ROLE_CHANGED',user.id)).metadata,{fromRole:'user',toRole:'admin'});
     r=await h.request('PUT','/admin/user/'+user.id,{name:'PRIVATE_NAME_SENTINEL',email:'PRIVATE_EMAIL_SENTINEL@example.test'},admin,200);assert.deepEqual((await checkEvent(r,'USER_UPDATED',user.id)).metadata,{changedFields:['email','name']});
-    r=await h.request('DELETE','/admin/user/'+user.id,null,admin,200);const row=await checkEvent(r,'USER_DELETED',user.id);assert.deepEqual(row.metadata,{});assert.equal(await h.User.findById(user.id),null);
+    r=await h.request('PATCH','/admin/user/'+user.id+'/deactivate',null,admin,200);const row=await checkEvent(r,'USER_DEACTIVATED',user.id);assert.deepEqual(row.metadata,{fromStatus:'ACTIVE',toStatus:'DEACTIVATED'});assert.equal((await h.User.findById(user.id)).accountStatus,'DEACTIVATED');
     assert.doesNotMatch(JSON.stringify(await Audit.find().lean()),/PRIVATE_NAME_SENTINEL|PRIVATE_EMAIL_SENTINEL/);
 });
 test('AUD-07 Product CRUD audita campos de centavos e Stock sem valores',async()=>{
@@ -72,15 +72,15 @@ test('AUD-10 CSRF, 403, 404 e DELETE Order 405 não criam eventos',async()=>{
     await h.request('DELETE','/admin/category/'+new mongoose.Types.ObjectId(),null,admin,404);
     const id=await order();await h.request('DELETE','/admin/order/'+id,null,admin,405);assert.equal(await Audit.countDocuments(),0);assert.ok(await Order.findById(id));
 });
-for(const operation of ['archive','status','user-update','user-delete','product-create','product-update','product-delete','category-create','category-update','category-delete','review-delete'])test('AUD audit insert falha: rollback '+operation,async()=>{
+for(const operation of ['archive','status','user-update','user-deactivate','product-create','product-update','product-delete','category-create','category-update','category-delete','review-delete'])test('AUD audit insert falha: rollback '+operation,async()=>{
     let request,verify;
     if(operation==='archive'||operation==='status'){
         const id=await order();if(operation==='status')await require('./helpers/orderPaymentFixture').markOrderPaidFixture(id);
         request=()=>h.request(operation==='archive'?'PATCH':'PUT','/admin/order/'+id+(operation==='archive'?'/archive':''),operation==='archive'?{}:{status:'Shipped'},admin,500);
         verify=async()=>{const row=await Order.findById(id).select('+administrativeArchivedAt');assert.equal(row.orderStatus,'Processing');assert.equal(row.administrativeArchivedAt,null);};
     }else if(operation.startsWith('user-')){
-        const user=await h.createUser();request=()=>h.request(operation==='user-delete'?'DELETE':'PUT','/admin/user/'+user.id,operation==='user-delete'?null:{role:'admin',name:'Changed'},admin,500);
-        verify=async()=>{const row=await h.User.findById(user.id);assert.ok(row);assert.equal(row.role,'user');assert.equal(row.name,user.name);};
+        const user=await h.createUser();request=()=>h.request(operation==='user-deactivate'?'PATCH':'PUT','/admin/user/'+user.id+(operation==='user-deactivate'?'/deactivate':''),operation==='user-deactivate'?null:{role:'admin',name:'Changed'},admin,500);
+        verify=async()=>{const row=await h.User.findById(user.id);assert.ok(row);assert.equal(row.role,'user');assert.equal(row.name,user.name);assert.equal(row.accountStatus,'ACTIVE');};
     }else if(operation==='product-create'){
         const name='Rollback product '+(++sequence);request=()=>h.request('POST','/product/new',require('./fixtures').productData({name,category_id:data.products[0].category_id}),admin,500);verify=async()=>assert.equal(await Product.countDocuments({name}),0);
     }else if(operation==='product-update'||operation==='product-delete'){

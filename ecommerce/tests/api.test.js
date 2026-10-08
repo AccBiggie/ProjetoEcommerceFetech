@@ -154,7 +154,7 @@ test('produtos e usuários: operações administrativas, validação e permissõ
     await request('PUT', '/admin/user/' + data.users.other.id, { role: 'admin' }, 'admin');
     assert.equal((await User.findById(data.users.other.id)).role, 'admin');
     await request('PUT', '/admin/user/' + data.users.other.id, { role: 'user' }, 'admin');
-    await request('DELETE', '/admin/user/' + missing, null, 'admin', 404);
+    await request('DELETE', '/admin/user/' + missing, null, 'admin', 405);
 });
 
 test('avaliações: criar, atualizar, listar, remover e recalcular média', async () => {
@@ -216,7 +216,7 @@ test('logout e conta removida não deixam sessões utilizáveis', async () => {
     const login = await request('POST', '/login', { email: data.users.user.email, password: 'NovaSenha123!' }, 'anonymous');
     cookies.user = login.response.headers.get('set-cookie').split(';')[0];
     const id = data.users.other.id;
-    await request('DELETE', '/admin/user/' + id, null, 'admin');
+    await request('PATCH', '/admin/user/' + id + '/deactivate', null, 'admin');
     await request('GET', '/me', null, 'other', 401);
 });
 

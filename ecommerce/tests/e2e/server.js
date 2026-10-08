@@ -20,7 +20,7 @@ const app = require('../../backend/app');
     await mongoose.connect(testUri(database));
     await fixtures();
     await require('../../backend/config/mongoTransactions').requireTransactions();
-    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com']) {
+    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com', 'lifecycle@routes.example.com']) {
         await require('../../backend/models/userModel').create({ name: 'Cliente Idempotência', email, password, role: 'user',
             avatar: { public_id: 'fixture-avatar', url: '/Profile.png' } });
     }

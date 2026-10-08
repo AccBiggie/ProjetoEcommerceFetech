@@ -1,5 +1,9 @@
 # Autenticação e revogação JWT
 
+## Lifecycle atual — FET-DATA-003 / F016
+
+Somente contas ACTIVE (incluindo legados sem status) autenticam. Desativação revoga sessões e reset tokens, bloqueia login com erro genérico e mantém forgot uniforme sem email/token. Reativação exige novo login com a senha atual; JWT antigo permanece inválido. Metadata administrativa não aparece no serializer público. [Contrato completo](LIFECYCLE_USUARIOS.md).
+
 FET-OPS-002: logs e eventos de audit não contêm credenciais, JWT/cookies, e-mails, IP bruto ou token de reset. Auth acrescenta somente userId/role ao contexto de observabilidade; autorização permanece baseada em req.user/banco. [Contrato de observabilidade](OBSERVABILIDADE.md).
 
 Atualização FET-SEC-001 a FET-SEC-007 em 08/10/2026. A autenticação continua usando JWT
@@ -223,13 +227,14 @@ implementado no código pela FET-SEC-007.
 
 Role autorizada é sempre a persistida no User. Mutação administrativa recarrega
 o executor sob lock compartilhado e rejeita quem perdeu permissão enquanto
-aguardava. Rebaixamento mantém JWT como sessão comum (rotas admin 403); exclusão
-faz JWT antigo retornar 401. Body continua incapaz de alterar tokenVersion.
+aguardava. Rebaixamento mantém JWT como sessão comum (rotas admin 403); desativação
+faz JWT antigo retornar 401. DELETE físico retorna 405 sem alterar a conta.
+Body continua incapaz de alterar tokenVersion ou campos de lifecycle.
 Geração interna do lock é ocultada nas respostas e não participa do JWT.
 
-Autoexclusão/autorrebaixamento retornam 403; último administrador e concorrência
+Autodesativação/autorrebaixamento retornam 403; último administrador ativo e concorrência
 são protegidos no backend. Primeiro admin pode ser criado por CLI interativo
-somente quando zero admins, com confirmação da database e senha oculta. Bootstrap
+somente quando zero admins ACTIVE, com confirmação da database e senha oculta. Bootstrap
 não emite JWT/cookie; o login normal permanece protegido por F008. Recuperação
 de admin mantém exatamente o contrato genérico F009. Política e operação estão
 em [ADMINISTRACAO.md](ADMINISTRACAO.md).
@@ -314,7 +319,8 @@ Inventário das 30 combinações método/rota protegidas (prefixo `/api/v1`):
 | GET | /orders/me, /order/:id |
 | POST | /order/new |
 | GET | /admin/users, /admin/user/:id, /admin/orders, /admin/products |
-| PUT, DELETE | /admin/user/:id, /admin/order/:id |
+| PUT, DELETE | /admin/user/:id, /admin/order/:id (DELETE: 405) |
+| PATCH | /admin/user/:id/deactivate, /admin/user/:id/reactivate |
 | POST | /product/new |
 | PUT, DELETE | /product/:id |
 | PUT | /review |
