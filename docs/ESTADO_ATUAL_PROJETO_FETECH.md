@@ -1,6 +1,6 @@
 # Estado atual — ProjetoEcommerceFetech
 
-Referência em 07/10/2026 para continuidade do projeto. O código e os lockfiles
+Referência em 08/10/2026 para continuidade do projeto. O código e os lockfiles
 são as fontes de verdade; atualizar este documento ao mudar os contratos.
 
 ## Arquitetura
@@ -99,7 +99,7 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 101 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 142 testes da
 API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
@@ -148,3 +148,38 @@ reiniciar a API; processos antigos não foram reiniciados nesta task.
 
 Próxima task recomendada: F010 / FET-P1-002, proteção do último administrador,
 autoexclusão/autorrebaixamento e bootstrap seguro; não iniciada automaticamente.
+
+## Segurança administrativa — FET-SEC-004
+
+F010 / FET-P1-002 corrigido em 08/10/2026. Backend bloqueia autoexclusão e
+autorrebaixamento administrativos (403), protege último admin (409), recarrega
+executor sob lock e preserva operações legítimas sobre outros usuários/admins.
+Mutações serializadas pelo singleton `adminmutationlocks`, com owner aleatório,
+lease de 10 s pelo relógio MongoDB, liberação condicionada e geração crescente.
+`User.adminMutationFence` oculta condiciona escritas e rejeita operações antigas
+após aquisição nova. Bootstrap reserva um ID para impedir criação duplicada
+inclusive após expiração de lease. Sem replica set obrigatório ou mutex local.
+
+CLI `npm.cmd run admin:bootstrap --prefix ecommerce`: terminal interativo,
+zero admins, confirmação exata da database, nome/e-mail novo e senha oculta.
+Sem senha padrão, argumentos de senha, endpoint HTTP ou promoção automática.
+Criação reutiliza validações/hook bcrypt e avatar default, sem SMTP/Cloudinary.
+Login normal após criação; F006/F008/F009 preservados. Seed de produtos locais
+usa admin existente sem e-mail fixo. Dashboard exibe erros 403/409 e mantém
+ações próprias desabilitadas. Detalhes em [ADMINISTRACAO.md](ADMINISTRACAO.md).
+
+Baseline factual: branch main, HEAD `101f61be501d266dcf7ae609181498fee5440803`,
+worktree inicialmente limpo. F008/F009 já estavam commitados; referência do
+anexo ao HEAD anterior/worktree pendente foi substituída por essa verificação.
+FET-SEC-004 permanece sem commit. Validação: 41/41 testes focados, 142/142 API,
+build aprovado e 19/19 E2E. Probes: autoações 403, contagem preservada em 1,
+concorrência 403/200 com um admin restante, bootstrap 0→1 e login 200,
+repetição recusada 409.
+Banco real não alterado; configuração e auditoria histórica preservadas.
+Reiniciar todas as instâncias para carregar o código; não manter APIs antigas
+processando mutações administrativas. Nenhum processo real reiniciado na task.
+
+F016 (lifecycle/relações órfãs), F025 (trilha administrativa), MFA e RBAC granular
+permanecem pendentes. Próxima task recomendada: F007 / FET-P0-007, hardening
+do cookie para produção, TLS/reverse proxy e configuração por ambiente.
+Não iniciada automaticamente.

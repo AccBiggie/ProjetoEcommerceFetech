@@ -284,6 +284,22 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   await expect(row).toHaveCount(0);
   await page.getByRole("tab", { name: "Usuários", exact: true }).click();
   const role = page.getByLabel("Perfil de other@routes.example.com");
+  await expect(page.getByLabel("Perfil de admin@routes.example.com")).toBeDisabled();
+  await expect(page.getByRole("row").filter({ hasText: "admin@routes.example.com" })
+    .getByRole("button", { name: "Excluir", exact: true })).toBeDisabled();
+  for (const [status, message] of [
+    [403, "Não é permitido remover sua própria permissão administrativa."],
+    [409, "Outra alteração administrativa está em andamento. Tente novamente."],
+  ]) {
+    const handler = route => route.fulfill({ status, contentType: "application/json",
+      body: JSON.stringify({ success: false, message }) });
+    await page.route("**/api/v1/admin/user/*", handler);
+    await role.selectOption("admin");
+    await expect(page.getByRole("alert")).toContainText(message);
+    await expect(role).toBeEnabled();
+    await expect(role).toHaveValue("user");
+    await page.unroute("**/api/v1/admin/user/*", handler);
+  }
   await role.selectOption("admin");
   await expect(role).toBeEnabled();
   await expect(role).toHaveValue("admin");

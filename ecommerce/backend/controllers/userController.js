@@ -9,6 +9,7 @@ const { waitForMinimumDuration } = require('../utils/waitForMinimumDuration');
 const { minimumResponseMs } = require('../config/passwordRecovery');
 const uploadAvatar = require("../utils/avatar");
 const { decodeSession, versionFilter, saveWithRevokedSessions, invalidSession } = require("../utils/authSession");
+const adminSafety = require('../services/adminSafetyService').createAdminSafetyService();
 //Register a User
 exports.registerUser = catchAsyncErrors( async (req,res,next) => {
     const avatar = await uploadAvatar(req.body.avatar);
@@ -175,19 +176,7 @@ exports.getSingleUser = catchAsyncErrors (async (req, res, next) => {
 });
 //UPDATE USER ROLE --ADMIN
 exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
-    if (req.body.role !== undefined && !["admin", "user"].includes(req.body.role)) {
-        return next(new ErrorHander("Perfil inválido.", 400));
-    }
-    const newUserData = {
-        name: req.body.name,
-        email: req.body.email,
-        role: req.body.role,
-    }
-    const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
-        returnDocument: "after",
-        runValidators: true,
-    });
-    if (!user) return next(new ErrorHander("Usuário não encontrado.", 404));
+    const user = await adminSafety.updateUser(req.user.id, req.params.id, req.body);
     res.status(200).json({
         success: true,
         user,
@@ -195,13 +184,7 @@ exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
 });
 //DELETE USER --ADMIN
 exports.deleteUser = catchAsyncErrors(async(req, res, next) => {
-    const user = await User.findById(req.params.id);
-    //We will remove ordinary later
-    if(!user) {
-        return next(new ErrorHander("Usuário não encontrado.", 404));
-    }
-
-    await user.deleteOne();
+    await adminSafety.deleteUser(req.user.id, req.params.id);
 
     res.status(200).json({
         success: true,

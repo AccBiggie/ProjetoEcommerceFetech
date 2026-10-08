@@ -45,6 +45,8 @@ const userSchema = new mongoose.Schema ( {
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    // Geração interna do lock administrativo; nunca aceita pelo body público.
+    adminMutationFence: { type: Number, default: 0, select: false },
     tokenVersion: {
         type: Number,
         default: 0,
@@ -60,6 +62,7 @@ userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.password;
     delete result.resetPasswordToken;
     delete result.resetPasswordExpire;
+    delete result.adminMutationFence;
     return result;
 } });
 userSchema.pre("save", async function() {

@@ -214,3 +214,18 @@ Forgots concorrentes ainda podem substituir tokens (último save prevalece),
 inclusive tornando um link enviado anteriormente inválido. Não foi redesenhado
 esse fluxo; limpeza condicionada evita apagar uma recuperação mais recente.
 Observabilidade completa, MFA e hardening HTTP/cookies continuam pendentes.
+
+## Administração — FET-SEC-004
+
+Role autorizada é sempre a persistida no User. Mutação administrativa recarrega
+o executor sob lock compartilhado e rejeita quem perdeu permissão enquanto
+aguardava. Rebaixamento mantém JWT como sessão comum (rotas admin 403); exclusão
+faz JWT antigo retornar 401. Body continua incapaz de alterar tokenVersion.
+Geração interna do lock é ocultada nas respostas e não participa do JWT.
+
+Autoexclusão/autorrebaixamento retornam 403; último administrador e concorrência
+são protegidos no backend. Primeiro admin pode ser criado por CLI interativo
+somente quando zero admins, com confirmação da database e senha oculta. Bootstrap
+não emite JWT/cookie; o login normal permanece protegido por F008. Recuperação
+de admin mantém exatamente o contrato genérico F009. Política e operação estão
+em [ADMINISTRACAO.md](ADMINISTRACAO.md).

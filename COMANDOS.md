@@ -29,7 +29,7 @@ Detalhes: [docs/ENDERECOS.md](docs/ENDERECOS.md).
 
 ## Cadastrar produtos de exemplo
 
-Depois de criar o administrador `admin@fetech.local`, na raiz do projeto:
+Depois de criar o administrador com o bootstrap abaixo, na raiz do projeto:
 
 ```powershell
 cd ecommerce
@@ -43,6 +43,31 @@ executado novamente: exemplos existentes sao preservados, sem duplicacao.
 So permite o banco local `fetech` na porta 27017. Nesta sessao, os 11
 produtos, seus detalhes, imagens e filtros de categoria da API foram
 verificados pelo proxy do frontend.
+
+## Primeiro administrador — bootstrap seguro
+
+Após configurar o banco e iniciar MongoDB, execute em terminal interativo:
+
+```powershell
+npm.cmd run admin:bootstrap --prefix ecommerce
+```
+
+Somente quando não existe administrador. O comando exibe host, database e
+ambiente sem credenciais; digite exatamente o nome do banco para confirmar.
+Informe nome, e-mail novo, senha e confirmação com entrada oculta. Não fornece
+senha padrão, não aceita argumentos e não grava credenciais em arquivos.
+E-mail já existente ou admin existente causa recusa; não promove conta comum.
+Exit code 0: sucesso; 1: cancelamento, recusa, validação ou erro operacional.
+Após criar, use `/login` normalmente. Provisionamento não interativo não é
+suportado. Leia [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).
+
+```powershell
+node --test ecommerce/tests/adminSafety.test.js
+```
+
+Essa suíte usa exclusivamente bancos temporários com teardown; não executa
+bootstrap no banco real. O seed local aceita qualquer admin já criado, sem
+exigir e-mail fixo. Reinicie todas as instâncias da API para carregar as regras.
 
 ## Dependencias atualizadas
 

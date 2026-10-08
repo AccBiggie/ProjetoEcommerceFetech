@@ -463,3 +463,163 @@ npm audit não foi necessário nesta task.
 Próxima recomendação: **F010 / FET-P1-002 — impedir autoexclusão,
 autorrebaixamento e perda do último administrador; bootstrap administrativo
 seguro.** Não iniciada automaticamente.
+
+## F010 / FET-P1-002 — Segurança administrativa
+
+**Status: CORRIGIDO — FET-SEC-004, 08/10/2026.**
+
+Branch main; HEAD inicial/final `101f61be501d266dcf7ae609181498fee5440803`.
+Worktree inicialmente limpo: F008/F009 já estavam commitados. Referência do
+anexo ao HEAD 92e8349 não representava o estado atual. Correções F006/8/9
+preservadas. Alterações FET-SEC-004 permanecem sem commit.
+
+### Finding e reprodução anterior
+
+Baseline repetido: 101/101 API em 19,161 s. Build/E2E anteriores confiáveis:
+build aprovado e 19/19 E2E. Probe anterior em fixture temporária:
+
+| Caso | Resultado anterior |
+| --- | --- |
+| Autoexclusão | 200; conta removida; adminCount 1→0 |
+| Autorrebaixamento | 200; role passou a user; adminCount 1→0 |
+| A rebaixa B / B exclui A simultaneamente | 200/200; adminCount 2→0 |
+
+Causa raiz: controllers confiavam na autorização anterior à mutação e não
+aplicavam autoação/contagem/serialização; UI desabilitada não protegia API.
+Não havia bootstrap seguro. Suíte criada antes da correção: 30 testes,
+20 falhas e 10 passes; depois ampliada para 41 cenários.
+
+### Correção
+
+Autoexclusão/autorrebaixamento administrativos: 403 no backend. Manter admin
+ou atualizar campos sem mudar role continua permitido. Outro admin pode ser
+rebaixado/excluído se resta um admin. User pode ser promovido e exclusão comum
+permanece. Último admin: 409. Executor/alvo/contagem recarregados no lock.
+
+Lock compartilhado `adminmutationlocks`, `_id` único `admin-user-mutation`:
+owner UUID, lockedUntil, fence crescente, bootstrapUserId reservado, timestamps.
+Lease 10 s com relógio MongoDB, retry a cada 40 ms por até 1,5 s, maxTimeMS 2 s
+nas queries do lock. Finalmente libera somente owner/geração corretos. Sem TTL,
+pois documento mantém a geração; sem transação/replica set obrigatório.
+Conflito 409, falha do storage 503, mensagens seguras sem detalhes internos.
+
+`User.adminMutationFence` interno select:false, oculto no JSON. Aquisição nova
+marca admins antes das leituras; update/delete exigem geração e role originais.
+Isso protege escritas pausadas após expiração. Bootstrap reserva mesmo ID para
+operações concorrentes/atrasadas e reutiliza User/validação/hook bcrypt. Não há
+incremento ou alteração de tokenVersion nas mutações administrativas.
+
+Bootstrap oficial: `npm.cmd run admin:bootstrap --prefix ecommerce`.
+Zero admins, terminal interativo, confirmação exata da database, senha oculta,
+sem credenciais padrão/args/arquivos/endpoint HTTP. Contagem revalidada dentro
+do mesmo lock. E-mail existente aborta sem promoção/senha alterada. Admin já
+existente aborta. Conexão inicial desativa autoCreate/autoIndex; preparação
+dos índices de User acontece somente após confirmar a database. Exit codes
+0 sucesso, 1 recusa/cancelamento/erro. Login normal após criar, com F008 e JWT.
+Avatar default; nenhum SMTP/Cloudinary. Seed passa a aceitar o primeiro admin
+por `_id`, eliminando dependência de e-mail fixo na instalação documentada.
+
+### Testes permanentes
+
+Arquivo `ecommerce/tests/adminSafety.test.js`:
+
+| Teste | Cobertura |
+| --- | --- |
+| AS-01 | Autoexclusão 403, admin preservado |
+| AS-02 | Autorrebaixamento 403, role preservada |
+| AS-03 | Invariante do último admin em rebaixamento, service 409 |
+| AS-04 | Invariante do último admin em exclusão, service 409 |
+| AS-05 | Rebaixar outro admin legitimamente |
+| AS-06 | Excluir outro admin legitimamente |
+| AS-07 | Promover user |
+| AS-08 | User não altera role |
+| AS-09 | User não exclui conta |
+| AS-10 | Rebaixamentos concorrentes mantêm admin |
+| AS-11 | Delete/rebaixamento concorrentes mantêm admin |
+| AS-12 | Exclusões concorrentes mantêm admin |
+| AS-13 | Lock compartilhado por conexões independentes |
+| AS-14 | Recuperação lógica de lease vencido |
+| AS-15 | Owner incorreto não libera lock |
+| AS-16 | Exception libera lock em finally |
+| AS-17 | Bootstrap zero admins cria um |
+| AS-18 | Bootstrap com admin existente recusa |
+| AS-19 | Bootstraps concorrentes criam somente um |
+| AS-20 | Hash pelo hook e login normal |
+| AS-21 | Senha obrigatória, sem default |
+| AS-22 | Cadastro público preserva role user |
+| AS-23 | Body não altera tokenVersion/fence; fence oculto |
+| AS-24 | Role atual retira acesso admin imediatamente |
+| AS-25 | Admin removido/JWT antigo 401 |
+| AS-26 | Exclusão de user comum preservada |
+| AS-27 | Confirmação errada impede criação e preparação de índices |
+| AS-28 | Nome/email/senha/confirmação inválidos recusados |
+| AS-29 | CLI sem senha na saída; preparação só após confirmação |
+| AS-30 | Sem default/secret de bootstrap; argumentos recusados sem eco |
+| AS-31 | Atualização própria sem rebaixamento permitida |
+| AS-32 | Conta existente não é promovida ou tem senha alterada |
+| AS-33 | Executor revalidado dentro do lock |
+| AS-34 | Escrita atrasada após lease não remove último admin |
+| AS-35 | Serviços/conexões Mongo independentes preservam admin |
+| AS-36 | Bootstrap atrasado após lease não duplica criação |
+| AS-37 | Prompt real de readline oculta eco da senha |
+| AS-38 | Owner antigo não libera lease novo |
+| AS-39 | Nenhum endpoint HTTP de bootstrap |
+| AS-40 | Admin/user preservam resposta genérica F009 |
+| AS-41 | Admin criado pelo bootstrap usa quota normal F008 |
+
+E2E do dashboard ampliado para confirmar controles próprios desabilitados,
+apresentação de mensagens 403/409 e manutenção da role após erro. Promoção/
+rebaixamento seguintes continuam funcionando. Frontend não exigiu alteração.
+
+### Validação final
+
+| Comando | Resultado |
+| --- | --- |
+| `node --test ecommerce/tests/adminSafety.test.js` | 41/41, 11,947 s |
+| `npm.cmd test --prefix ecommerce` | 142/142, 21,684 s |
+| `npm.cmd run build --prefix ecommerce/frontend` | Aprovado, 679 ms |
+| `npm.cmd run test:e2e --prefix ecommerce` | 19/19, 1,8 min |
+
+Nenhum teste anterior removido ou enfraquecido. API completa inclui 28 testes
+JWT, 35 de rate limiting e 25 de recuperação, além de CRUDs e novos gates admin.
+
+### Probes após correção
+
+| Probe | Resultado |
+| --- | --- |
+| Autoexclusão | 403, conta preservada, adminCount 1 |
+| Autorrebaixamento | 403, role admin preservada, adminCount 1 |
+| Último admin, invariante direta do service | 409, adminCount 1 |
+| A rebaixa B / B exclui A, simultâneos | 403/200 no probe final, adminCount 1 |
+| Bootstrap | adminCount 0→1, login normal 200 |
+| Bootstrap repetido | 409, adminCount 1 |
+
+Consulta role avaliada com explain: COLLSCAN examinou um documento na fixture
+final. Não se adicionou índice role sem evidência de ganho nesse volume;
+avaliar capacidade/seletividade em tarefa operacional. Índice `_id_` do lock
+é automático e único; User mantém índices `_id_` e e-mail único.
+
+### Isolamento e continuidade
+
+Somente `fetech_routes_auth_*`, `fetech_routes_*`, `fetech_e2e_*`, com teardown.
+**BANCO REAL NÃO ALTERADO.** Nenhum e-mail real enviado ou bootstrap executado
+contra base real. Config.env e auditoria histórica não alterados. Sem nova
+dependência/lockfile; package.json alterado somente para script, audit não
+reexecutado por não haver mudança de dependências.
+
+Documentos vivos: ADMINISTRACAO, AUTENTICACAO, README, COMANDOS, ROTAS,
+ESTADO_ATUAL e este plano. Reiniciar todas as instâncias da API para carregar
+as garantias; não manter versões antigas atendendo mutações administrativas.
+Singleton/gerações não devem ser apagados manualmente. Nenhum processo real
+reiniciado nesta task. Ajuste do seed limitado à compatibilidade do bootstrap;
+produtos/pagamento/estoque/frete não tiveram contratos alterados.
+
+F006 continua corrigido (AS-23/24/25); F008 continua corrigido (AS-41);
+F009 continua corrigido (AS-40). Suítes anteriores completas permanecem como
+gate. F016 (relações órfãs/lifecycle), F025 (trilha administrativa completa),
+MFA administrativo e RBAC granular continuam pendentes. Disponibilidade do
+MongoDB e atualização coordenada das instâncias exigem cuidado operacional.
+
+Próxima recomendação: **F007 / FET-P0-007 — hardening do cookie de autenticação
+para produção, Secure, TLS/reverse proxy e configuração segura por ambiente.**
+Não iniciada automaticamente.

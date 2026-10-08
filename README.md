@@ -56,7 +56,13 @@ mesma pasta e configure uma chave JWT aleatoria. O arquivo real fica fora
 do Git. O backend so abre a porta depois de conectar ao MongoDB.
 
 Abra http://localhost:3000. O banco de uma instalacao nova inicia vazio.
-Depois de criar o administrador `admin@fetech.local`, execute
+Crie o primeiro administrador com `npm.cmd run admin:bootstrap --prefix ecommerce`
+em terminal interativo: confirme o nome do banco e informe dados próprios,
+com senha oculta e sem credenciais padrão. O comando funciona somente com
+zero admins e recusa e-mail já cadastrado. Depois faça login normalmente.
+Proteções de autoexclusão, autorrebaixamento e último admin estão no backend,
+com lock compartilhado e geração de escrita. Veja [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).
+Depois de criar o administrador, execute
 `npm.cmd run seed:products` na pasta `ecommerce` para cadastrar um produto
 de exemplo em cada uma das 11 categorias do menu. O comando pode ser
 repetido sem duplicar ou alterar os exemplos existentes. As imagens ficam

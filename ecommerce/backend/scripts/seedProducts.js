@@ -40,8 +40,8 @@ async function seed() {
 
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
     try {
-        const admin = await User.findOne({ email: "admin@fetech.local", role: "admin" });
-        if (!admin) throw new Error("Crie primeiro o administrador admin@fetech.local.");
+        const admin = await User.findOne({ role: "admin" }).sort({ _id: 1 });
+        if (!admin) throw new Error("Crie primeiro o administrador usando admin:bootstrap.");
         await migrateLegacyCategories();
         const countDown = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         let created = 0;

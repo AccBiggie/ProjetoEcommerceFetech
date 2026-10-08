@@ -188,3 +188,24 @@ Piso assíncrono opcional `AUTH_FORGOT_MIN_RESPONSE_MS=300` aplicado após o gat
 testes usam 20 ms. SMTP lento pode ultrapassar o piso; outbox permanece em F040.
 Validação atual: 25 testes focados de recuperação, 101 testes API,
 build aprovado e 19 fluxos E2E aprovados.
+
+## Segurança administrativa — FET-SEC-004
+
+`PUT /api/v1/admin/user/:id`: autorrebaixamento retorna 403; manter a própria
+role admin ou atualizar campos sem alterar role continua permitido. Promoção
+de user e rebaixamento de outro admin funcionam com executor atualmente admin.
+`DELETE /api/v1/admin/user/:id`: autoexclusão administrativa retorna 403.
+Reduções que deixariam zero admins retornam 409. Conflito/lease perdido: 409;
+indisponibilidade do lock: 503. Formato de erro existente preservado, sem stack.
+
+Executor/alvo/contagem são recarregados dentro do lock MongoDB compartilhado;
+gerações condicionam escritas atrasadas. Queda/crash é tratada pelo lease.
+Body não altera tokenVersion ou geração interna. Rebaixamento retira acesso
+admin imediatamente; exclusão invalida autenticação do usuário removido.
+Exclusão comum permanece; relações órfãs continuam em F016.
+
+Bootstrap é CLI: `npm.cmd run admin:bootstrap --prefix ecommerce`.
+Somente zero admins, confirmação explícita da database, senha oculta, sem
+e-mail/senha fixos, sem promoção automática e sem emissão de sessão. Não é
+rota HTTP. Dashboard preserva controles próprios desabilitados e exibe 403/409.
+Contrato, lock e procedimento: [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).

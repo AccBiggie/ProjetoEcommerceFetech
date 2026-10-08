@@ -22,6 +22,7 @@ let server;
 connectDataBase().then(async () => {
     await require("./models/addressModel").init();
     await require("./models/authRateLimitModel").init();
+    await require("./models/adminMutationLockModel").init();
     await require("./utils/categories").migrateLegacyCategories();
     const port = process.env.PORT || 4000;
     server = app.listen(port, "127.0.0.1", () => {

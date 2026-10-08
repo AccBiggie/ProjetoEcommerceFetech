@@ -27,6 +27,7 @@ async function start() {
     await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
     await User.init();
     if (mongoose.models.AuthRateLimit) await mongoose.models.AuthRateLimit.init();
+    if (mongoose.models.AdminMutationLock) await mongoose.models.AdminMutationLock.init();
     server = http.createServer(app);
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     base = `http://127.0.0.1:${server.address().port}/api/v1`;
