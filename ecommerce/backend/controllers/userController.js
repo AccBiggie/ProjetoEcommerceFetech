@@ -2,6 +2,7 @@ const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const User = require("../models/userModel");
 const sendToken = require("../utils/jwtToken");
+const { clearAuthCookie } = require('../config/authCookie');
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const { performance } = require('node:perf_hooks');
@@ -45,10 +46,7 @@ exports.logout = catchAsyncErrors (async (req, res, next) => {
         await User.updateOne({ _id: session.id, ...versionFilter(session.tokenVersion) },
             { $inc: { tokenVersion: 1 } });
     }
-    res.cookie("token", null, {
-        expires: new Date( Date.now()),
-        httpOnly: true,
-    });
+    clearAuthCookie(res);
 
     res.status(200).json ({
         success: true,

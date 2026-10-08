@@ -17,7 +17,8 @@ troca/reset salvam senha e versão juntas e emitem novo JWT. Replay de logout
 antigo e logouts simultâneos não derrubam sessões posteriores. Usuários antigos
 sem campo persistido usam default zero, sem backfill obrigatório; tokens antigos
 sem claim são rejeitados e exigem novo login após deploy. Sessões por dispositivo,
-Secure cookie, MFA e hardening HTTP/CSRF continuam pendentes.
+Cookie Secure em produção foi corrigido na FET-SEC-005; implantação HTTPS,
+MFA e hardening HTTP/CSRF continuam pendentes.
 Detalhes em [AUTENTICACAO.md](AUTENTICACAO.md) e
 [PLANO_MELHORIAS_FETECH.md](PLANO_MELHORIAS_FETECH.md).
 
@@ -99,7 +100,7 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 142 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 175 testes da
 API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
@@ -171,7 +172,8 @@ ações próprias desabilitadas. Detalhes em [ADMINISTRACAO.md](ADMINISTRACAO.md
 Baseline factual: branch main, HEAD `101f61be501d266dcf7ae609181498fee5440803`,
 worktree inicialmente limpo. F008/F009 já estavam commitados; referência do
 anexo ao HEAD anterior/worktree pendente foi substituída por essa verificação.
-FET-SEC-004 permanece sem commit. Validação: 41/41 testes focados, 142/142 API,
+FET-SEC-004 foi posteriormente commitada em `069e589`. Validação daquela task:
+41/41 testes focados, 142/142 API,
 build aprovado e 19/19 E2E. Probes: autoações 403, contagem preservada em 1,
 concorrência 403/200 com um admin restante, bootstrap 0→1 e login 200,
 repetição recusada 409.
@@ -180,6 +182,36 @@ Reiniciar todas as instâncias para carregar o código; não manter APIs antigas
 processando mutações administrativas. Nenhum processo real reiniciado na task.
 
 F016 (lifecycle/relações órfãs), F025 (trilha administrativa), MFA e RBAC granular
-permanecem pendentes. Próxima task recomendada: F007 / FET-P0-007, hardening
-do cookie para produção, TLS/reverse proxy e configuração por ambiente.
-Não iniciada automaticamente.
+permanecem pendentes. A recomendação daquele encerramento era F007, agora
+implementada pela FET-SEC-005 abaixo; deployment TLS permanece em F023.
+
+## Cookie de autenticação — FET-SEC-005
+
+F007 / FET-P0-007 corrigido em 08/10/2026. Início: main, HEAD
+`069e589d00572ec79af33159d1b2c218d13ef5e0`, worktree limpo e F010 commitada.
+Alterações SEC-005 permanecem sem commit; HEAD não mudou.
+
+Política centralizada em authCookie: token host-only, HttpOnly, SameSite=Lax,
+Path=/ e Secure obrigatório em NODE_ENV=production. Development/test mantêm
+HTTP; ambiente desconhecido não é produção e precisa ser configurado exatamente.
+COOKIE_EXPIRE positivo/finito/data futura é validado no startup e emissão;
+7 dias preservados. Logout limpa atributos iguais via clearCookie e mantém
+revogação F006. Todos os emissores usam sendToken; JWT no JSON permanece.
+
+TRUST_PROXY_HOPS ausente/0 mantém false; 1..5 exige topologia conhecida e
+headers saneados. Inválido impede startup. Default segue resistente a spoof;
+probe da sexta falha retorna 429 e Retry-After=900. App isolado com hops=1
+confirma configuração 1; teste confirma resolução direita→esquerda da cadeia.
+
+Validação: 33/33 testes focados, 175/175 API, build aprovado e 19/19 E2E.
+Browser verifica cookie e remoção real após
+logout; produção simulada verifica atributos, sem TLS implantado. Probes:
+Secure false em development/true em production, HttpOnly/Lax/Path consistentes,
+logout expirado e replay 401. F006/F008/F009/F010 continuam corrigidos.
+
+Sem novas dependências/coleções/schema. Config.env, auditoria histórica e banco
+real preservados; testes somente em bancos temporários com teardown. Reiniciar
+todas as APIs para carregar a política; nenhum processo real reiniciado.
+F020/F021/F023/F036 continuam abertos. HTTPS/TLS/proxy real, HSTS/Helmet/CSP,
+CSRF explícito e validação completa de env não foram implementados.
+Próxima task: F021, remover JWT do JSON e no-store privado; não iniciada.

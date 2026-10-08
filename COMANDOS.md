@@ -207,6 +207,27 @@ usuarios temporarios foram excluidos ao final de cada verificacao.
 Na configuracao inicial, build e proxy `/api/v1/products` foram validados.
 A validacao das dependencias atualizadas esta em DEPENDENCIAS.md.
 
+## Cookie e proxy por ambiente — FET-SEC-005
+
+Desenvolvimento: mantenha `NODE_ENV=development`, `COOKIE_EXPIRE=7` e
+`TRUST_PROXY_HOPS` ausente ou 0. Testes isolam `NODE_ENV=test` e proxy 0.
+Produção: configure exatamente `NODE_ENV=production`; Secure é obrigatório e
+exige HTTPS real. Cookie não cria TLS/certificados/proxy automaticamente.
+Não existe override COOKIE_SECURE. Não houve alteração do config.env real.
+
+`TRUST_PROXY_HOPS=1..5` somente após validar topologia conhecida, impedir bypass
+direto do proxy e sanear headers encaminhados. Valores fora de 0..5 impedem
+startup; ausente mantém false. Nunca habilite trust proxy=true genericamente.
+COOKIE_EXPIRE ausente/inválido também impede startup. Reinicie todas as APIs
+após aplicar alterações. Política: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
+
+```powershell
+node --test ecommerce/tests/authCookieSecurity.test.js
+npm.cmd test --prefix ecommerce
+npm.cmd run build --prefix ecommerce/frontend
+npm.cmd run test:e2e --prefix ecommerce
+```
+
 Na revisao posterior das rotas, a compilacao passou sem avisos de lint.
 Foram executados `npm.cmd test` (API) e `npm.cmd run test:e2e`
 (navegador) na pasta `ecommerce`, com bancos temporarios separados.

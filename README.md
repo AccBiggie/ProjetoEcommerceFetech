@@ -19,6 +19,14 @@ para conta existente, inexistente e falha SMTP; falha de envio limpa o token.
 `AUTH_FORGOT_MIN_RESPONSE_MS` é opcional (300 ms por padrão), reduz diferenças
 triviais de tempo; latência SMTP externa permanece um risco residual para F040.
 
+F007 foi corrigido na FET-SEC-005: cookie `token` centralizado, HttpOnly,
+SameSite=Lax, Path=/ e sem Domain. `NODE_ENV=production` impõe Secure;
+desenvolvimento/teste continuam por HTTP. Produção exige HTTPS real, ainda
+não implantado. `TRUST_PROXY_HOPS` ausente/0 mantém confiança desativada;
+1..5 exigem topologia conhecida e proxy que saneie headers encaminhados.
+Configuração inválida de proxy ou duração do cookie impede iniciar a API.
+Detalhes e limitações: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
+
 O layout responsivo e os componentes Material UI estao documentados em
 [FRONTEND.md](FRONTEND.md).
 

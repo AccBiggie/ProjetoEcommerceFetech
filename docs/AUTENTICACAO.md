@@ -1,6 +1,6 @@
 # Autenticação e revogação JWT
 
-Atualização FET-SEC-001, FET-SEC-002 e FET-SEC-003 em 07/10/2026. A autenticação continua usando JWT
+Atualização FET-SEC-001 a FET-SEC-005 em 08/10/2026. A autenticação continua usando JWT
 assinado no cookie `token` HttpOnly; o frontend não armazena o JWT em Redux,
 localStorage ou sessionStorage. A resposta JSON continua contendo o token.
 
@@ -169,7 +169,7 @@ sem aguardar exclusão física. Referência: [TTL do MongoDB](https://www.mongod
 
 F009 foi corrigido quanto a status, corpo e headers públicos. Latência SMTP
 externa ainda pode introduzir variação temporal além do piso configurado.
-MFA, cookie Secure, hardening HTTP/CSRF, CAPTCHA e remoção do JWT do JSON
+MFA, implantação de HTTPS, hardening HTTP/CSRF, CAPTCHA e remoção do JWT do JSON
 dependem de tarefas próprias. Proxy definitivo, capacidade/disponibilidade do
 MongoDB, alertas e observabilidade completa também exigem validação operacional.
 `GET /logout` permanece GET. Estas remediações não alteram pedidos, estoque
@@ -213,7 +213,7 @@ absoluta a timing attacks. F040 tratará processamento assíncrono/outbox.
 Forgots concorrentes ainda podem substituir tokens (último save prevalece),
 inclusive tornando um link enviado anteriormente inválido. Não foi redesenhado
 esse fluxo; limpeza condicionada evita apagar uma recuperação mais recente.
-Observabilidade completa, MFA e hardening HTTP/cookies continuam pendentes.
+Observabilidade completa, MFA e hardening HTTP/CSRF continuam pendentes.
 
 ## Administração — FET-SEC-004
 
@@ -229,3 +229,55 @@ somente quando zero admins, com confirmação da database e senha oculta. Bootst
 não emite JWT/cookie; o login normal permanece protegido por F008. Recuperação
 de admin mantém exatamente o contrato genérico F009. Política e operação estão
 em [ADMINISTRACAO.md](ADMINISTRACAO.md).
+
+## Cookie e reverse proxy — FET-SEC-005 / F007
+
+`backend/config/authCookie.js` é a única política para emissão e limpeza do
+cookie `token`. Cadastro, login, troca e reset de senha passam pelo `sendToken`;
+logout usa `clearAuthCookie`. Todos usam HttpOnly, SameSite=Lax, Path=/ e não
+definem Domain: cookie host-only. Nome, resposta JSON e revogação F006 permanecem.
+
+| NODE_ENV | Secure | Transporte previsto |
+| --- | --- | --- |
+| development | false | HTTP local |
+| test | false | HTTP isolado |
+| production | true | HTTPS real obrigatório |
+| ausente/outro | false | Não identifica produção; configurar production exatamente |
+
+Secure depende exclusivamente de `NODE_ENV === 'production'`, avaliado na
+emissão/limpeza. `COOKIE_SECURE=false`, `req.secure` e X-Forwarded-Proto não
+desativam essa proteção. Cookie Secure não implanta TLS: os probes de produção
+simulam o ambiente e inspecionam headers por HTTP, sem afirmar deployment HTTPS.
+
+`COOKIE_EXPIRE` continua em dias (exemplo existente: 7). Deve resultar em número
+finito positivo e data futura válida; frações positivas são aceitas. Ausência,
+zero, negativos, NaN, infinito ou data inválida impedem startup, antes de abrir
+porta/conectar banco. A emissão também valida. Não é validação completa de env.
+Logout usa `res.clearCookie`, com os mesmos atributos base e sem passar
+expires/maxAge; Express 5 define expiração passada. Revogação server-side
+continua necessária mesmo após remoção no navegador.
+
+`backend/config/trustProxy.js` aceita `TRUST_PROXY_HOPS` ausente ou string `0`
+como false; strings `1` a `5` configuram número de hops no Express. Demais valores
+impedem startup (inclusive vazio, true, *, all, -1, abc, 999, frações ou espaços).
+O exemplo usa 0; o config.env real não foi alterado. Nunca usar trust proxy=true.
+
+O rate limiter continua usando req.ip: com default false, spoof de
+X-Forwarded-For não muda a identidade. Com hops=1, o endereço confiável é
+resolvido a partir do socket e da cadeia da direita para a esquerda: no teste
+`203.0.113.5, 198.51.100.7`, req.ip é `198.51.100.7`. Só habilitar hops após
+validar infraestrutura: proxy deve sanear/substituir X-Forwarded-For e
+X-Forwarded-Proto, bloquear acesso direto ao backend e evitar caminhos com
+menos proxies que a contagem configurada. Isso prepara configuração; nenhum
+proxy/TLS real foi implantado. Referência: [Express atrás de proxies](https://expressjs.com/en/5x/guide/behind-proxies/).
+
+Testes dedicados: `node --test tests/authCookieSecurity.test.js` dentro de
+ecommerce (33 casos). Incluem emissores, expiração, startup inválido, logout,
+replay, default anti-spoof, hops e regressões F006/F008/F009/F010. E2E confere
+HttpOnly/SameSite/Path e remoção efetiva no navegador em HTTP de teste.
+Reiniciar todas as instâncias da API para carregar a política nova.
+
+F020 (headers/CSRF), F021 (JWT no JSON/no-store privado), F023 (deployment/TLS)
+e F036 (validação completa de env) permanecem abertos. HSTS/Helmet/CSP, CSRF
+explícito e MFA não foram implementados. Próxima recomendação: F021, sem início
+automático. Config.env, banco real e auditoria histórica foram preservados.

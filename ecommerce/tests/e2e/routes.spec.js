@@ -99,11 +99,16 @@ test("rotas privadas, login incorreto, retorno ao destino e restrição do dashb
   await page.locator(".updateProfileBtn").click();
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByText("Cliente E2E", { exact: true })).toBeVisible();
+  const authCookies = (await page.context().cookies()).filter(cookie => cookie.name === "token");
+  expect(authCookies.length).toBe(1);
+  expect(authCookies.every(cookie => cookie.httpOnly && !cookie.secure &&
+    cookie.sameSite === "Lax" && cookie.path === "/")).toBe(true);
   await page.getByRole("button", { name: "Minha conta" }).click();
   await page.getByRole("menuitem", { name: "Sair", exact: true }).click();
   await expect(page.getByRole("button", { name: "Minha conta" })).toHaveCount(
     0,
   );
+  await expect.poll(async () => (await page.context().cookies()).some(cookie => cookie.name === "token")).toBe(false);
   await page.goto("/account");
   await expect(page).toHaveURL(/\/login/);
 });

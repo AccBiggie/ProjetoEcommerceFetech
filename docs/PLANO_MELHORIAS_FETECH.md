@@ -623,3 +623,98 @@ MongoDB e atualização coordenada das instâncias exigem cuidado operacional.
 Próxima recomendação: **F007 / FET-P0-007 — hardening do cookie de autenticação
 para produção, Secure, TLS/reverse proxy e configuração segura por ambiente.**
 Não iniciada automaticamente.
+
+## F007 / FET-P0-007 — cookie de autenticação e proxy
+
+**Status: CORRIGIDO — FET-SEC-005, 08/10/2026.**
+
+Baseline factual: branch main, HEAD inicial/final
+`069e589d00572ec79af33159d1b2c218d13ef5e0`, worktree inicialmente limpo.
+F010 já commitada/preservada. SEC-005 sem commit. Baseline API: 142/142,
+20,532 s. Reprodução isolada antes: development e production emitiam cookie
+sem Secure; ambos com HttpOnly/Lax/Path=/, host-only. Logout não incluía
+SameSite e tampouco Secure em produção, embora revogação/replay já fosse 401.
+Primeiros 30 testes: 16 falhas/14 passes, confirmando ausência das garantias.
+
+Correção: authCookie centraliza opções para sendToken e logout; Secure imposto
+somente por NODE_ENV=production, sem override inseguro nem influência de
+headers/req.secure. ClearCookie recebe só atributos base, Express expira cookie.
+COOKIE_EXPIRE continua em dias (7), com validação mínima no startup/emissão.
+trustProxy aceita strings 0..5, ausência/0 false; demais valores falham startup.
+Config.env.example documenta 0; config.env real não foi modificado. Test fixtures
+fixam test/proxy0; E2E verifica atributos e desaparecimento do cookie no browser.
+Nenhuma dependência, coleção ou schema novo; contratos de API preservados.
+
+### Testes permanentes adicionados
+
+Arquivo: `ecommerce/tests/authCookieSecurity.test.js`.
+
+| ID | Garantia |
+| --- | --- |
+| CC-01 | Desenvolvimento HTTP utilizável |
+| CC-02 | Produção Secure |
+| CC-03 | Override COOKIE_SECURE=false não enfraquece produção |
+| CC-04 | Cadastro com política de produção |
+| CC-05 | Login com política de produção |
+| CC-06 | Troca de senha, política e revogação anterior |
+| CC-07 | Reset, política e revogação anterior |
+| CC-08 | Logout development expira cookie |
+| CC-09 | Logout production expira cookie Secure |
+| CC-10 | Path igual na emissão/limpeza |
+| CC-11 | SameSite igual na emissão/limpeza |
+| CC-12 | Secure igual na emissão/limpeza |
+| CC-13 | HttpOnly nos três ambientes |
+| CC-14 | Host-only, sem Domain |
+| CC-15 | COOKIE_EXPIRE sete dias |
+| CC-16 | Replay após logout production retorna 401 |
+| CC-17 | Logout antigo não revoga login novo |
+| CC-18 | App default trust proxy=false |
+| CC-19 | XFF variável não burla default |
+| CC-20 | Hops=1 resolve cadeia direita→esquerda |
+| CC-21 | Hops inválidos rejeitados |
+| CC-22 | F008 sexta falha 429 + Retry-After |
+| CC-23 | F009 recuperação uniforme |
+| CC-24 | F010 autoações 403 |
+| CC-25 | Todos os emissores equivalentes |
+| CC-26 | Login/logout/login com único cookie Path=/ |
+| CC-27 | Duração inválida recusada, fração positiva aceita |
+| CC-28 | Proxy inválido impede startup |
+| CC-29 | Headers de protocolo não controlam Secure |
+| CC-30 | Limpeza sem expires/maxAge fornecidos |
+| CC-31 | COOKIE_EXPIRE ausente/inválido impede startup |
+| CC-32 | Ausência e hops 0..5 exatos |
+| CC-33 | Ambiente desconhecido documentado como não produtivo |
+
+### Validação e probes
+
+| Comando | Resultado |
+| --- | --- |
+| `node --test ecommerce/tests/authCookieSecurity.test.js` | 33/33, 9,514 s |
+| `npm.cmd test --prefix ecommerce` | 175/175, 22,713 s |
+| `npm.cmd run build --prefix ecommerce/frontend` | Aprovado, Vite 714 ms |
+| `npm.cmd run test:e2e --prefix ecommerce` | 19/19, 1,8 min |
+
+Audit não reexecutado: nenhuma dependência/lockfile mudou. Testes F006/F008/
+F009/F010 completos permaneceram verdes. Probes exibiram somente atributos
+e status, sem JWT, senha ou segredo: development Secure=false; production
+Secure=true; ambos HttpOnly/Lax/Path=/ e sem Domain; logout com mesmos atributos,
+expiração passada e replay 401. Default trust=false: XFF variável, sexta falha
+429, Retry-After=900. App em processo isolado com TRUST_PROXY_HOPS=1 mostrou
+trust=1; CC-20 resolveu `203.0.113.5, 198.51.100.7` para req.ip=198.51.100.7.
+Nenhum proxy/deployment HTTPS real foi criado. Hops exige topologia conhecida,
+headers saneados e nenhum acesso direto/caminho menor que o esperado; referência:
+[Express atrás de proxies](https://expressjs.com/en/5x/guide/behind-proxies/).
+
+Somente bancos `fetech_routes_auth_*`, `fetech_routes_*`, `fetech_e2e_*`, removidos
+no teardown. **BANCO REAL NÃO ALTERADO. CONFIG.ENV NÃO SOBRESCRITO E NENHUM
+SEGREDO EXPOSTO. AUDITORIA HISTÓRICA NÃO ALTERADA.** Nenhum processo real
+reiniciado; reiniciar todas as APIs para carregar a política nova.
+
+Documentação viva: README, COMANDOS, ROTAS, AUTENTICACAO, ESTADO_ATUAL e este
+plano. Fora de escopo: nenhuma alteração. F020 (headers/CSRF), F021 (JWT JSON /
+cache privado), F023 (deployment TLS) e F036 (env completo) continuam abertos.
+HTTPS real necessário em produção; TLS/proxy ainda não implantados. Topologia
+de proxy deve corresponder à infraestrutura; HSTS/Helmet/CSP e CSRF explícito
+continuam pendentes. JWT JSON permanece até F021. Próxima task recomendada:
+**F021 / FET-P1-010 — remover JWT do JSON e aplicar Cache-Control: no-store às
+respostas privadas de autenticação, conta, endereços e pedidos.** Não iniciada.

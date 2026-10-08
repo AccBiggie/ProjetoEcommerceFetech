@@ -8,6 +8,7 @@ const { password } = require('./fixtures');
 const User = require('../backend/models/userModel');
 
 Object.assign(process.env, {
+    NODE_ENV: 'test', TRUST_PROXY_HOPS: '0',
     JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7',
     FRONTEND_URL: 'http://127.0.0.1:3300', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test',
     PORTEMAIL: '587', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '',

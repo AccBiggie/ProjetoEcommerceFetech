@@ -1,6 +1,9 @@
 const express = require("express");
 const app = express();
 app.set("query parser", "extended");
+app.set('trust proxy', require('./config/trustProxy').getTrustProxySetting());
+// Validar somente a configuração necessária para emitir cookies válidos.
+require('./config/authCookie').getAuthCookieOptions();
 const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const errorMiddleware = require("./middleware/erros");

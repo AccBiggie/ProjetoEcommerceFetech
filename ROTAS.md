@@ -209,3 +209,14 @@ Somente zero admins, confirmação explícita da database, senha oculta, sem
 e-mail/senha fixos, sem promoção automática e sem emissão de sessão. Não é
 rota HTTP. Dashboard preserva controles próprios desabilitados e exibe 403/409.
 Contrato, lock e procedimento: [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).
+
+## Cookie de autenticação — FET-SEC-005
+
+Cadastro, login, atualização e reset de senha emitem `token` pela mesma política:
+HttpOnly, SameSite=Lax, Path=/, sem Domain e duração COOKIE_EXPIRE em dias.
+Secure obrigatório em NODE_ENV=production; falso em development/test.
+GET `/api/v1/logout` mantém revogação F006 e limpa cookie com mesmos atributos,
+expiração passada e valor vazio. Métodos, payloads e JWT no JSON foram mantidos.
+TRUST_PROXY_HOPS ausente/0 mantém req.ip imune a spoof de X-Forwarded-For;
+1..5 exige infraestrutura validada. Configuração inválida impede startup.
+Detalhes: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).

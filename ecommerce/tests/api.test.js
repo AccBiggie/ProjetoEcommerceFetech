@@ -13,6 +13,7 @@ const Order = require('../backend/models/orderModel');
 const Category = require('../backend/models/categoryModel');
 const Address = require('../backend/models/addressModel');
 const { migrateLegacyCategories } = require('../backend/utils/categories');
+Object.assign(process.env, { NODE_ENV: 'test', TRUST_PROXY_HOPS: '0' });
 
 Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 const database = `fetech_routes_${process.pid}_${Date.now()}`;

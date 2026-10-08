@@ -7,6 +7,7 @@ const { fixtures, productData } = require('../fixtures');
 const Product = require('../../backend/models/productModel');
 const nodemailer = require('nodemailer');
 const database = `fetech_e2e_${process.pid}_${Date.now()}`;
+Object.assign(process.env, { NODE_ENV: 'test', TRUST_PROXY_HOPS: '0' });
 Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 // O envio externo é substituído somente neste servidor isolado de testes.
 const resetLinks = {};
