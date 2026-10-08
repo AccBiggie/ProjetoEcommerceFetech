@@ -1056,3 +1056,37 @@ Detalhes: [VALIDACAO_CHECKOUT.md](VALIDACAO_CHECKOUT.md) e
 
 Próxima recomendação: **F005 — idempotência persistente na criação de pedidos**.
 Não iniciada automaticamente.
+
+## F005 / FET-P0-005 — Idempotência de criação de Order — FET-ORDER-001
+
+**Status: CORRIGIDO.** FET-DATA-002 já commitado em `22012da`; worktree inicial limpo.
+
+Idempotency-Key obrigatória, hash sem key bruta e fingerprint canônico versionado.
+Claim PROCESSING persistente Mongo, unique user/operation/keyHash, sem TTL/lease.
+Same key/user/request retorna mesmo Order; payload diferente retorna 409; nova
+key é outra intenção. Order possui hashes internos e índice unique parcial,
+compatível com legados. Concorrência em conexões e processos distintos não duplica.
+Raw key/PII não entram no claim; hashes não aparecem na API.
+
+PROCESSING com Order é reconciliado automaticamente; falha ao marcar COMPLETED
+é recuperável. PROCESSING sem Order e FAILED permanecem fail-closed, sem retomada
+automática por tempo. Registro concluído continua bloqueando recriação após
+exclusão física do Order. Frontend usa UUID seguro/sessionStorage, mantém key
+após rede/5xx/409/reload, limpa no sucesso e muda key apenas para draft diferente
+no próximo submit explícito.
+
+F006/F007/F008/F009/F010/F012/F013/F014/F020/F021/F036 continuam corrigidos.
+F003 concorrência entre intents, F004 atomicidade, F001 pagamento, F011 exclusão
+física, F024 backup/restore e F027 frete permanecem abertos. PROCESSING órfão
+sem Order exige futura reconciliação; retenção comercial indefinida, sem TTL;
+pagamento terá idempotência/webhooks próprios e observabilidade será ampliada.
+
+Sem dependências/lockfiles/config.env/secrets alterados; banco real não alterado;
+auditoria histórica intacta. Contrato: [IDEMPOTENCIA_PEDIDOS.md](IDEMPOTENCIA_PEDIDOS.md).
+Relatório: [RELATORIO_FET_ORDER_001.md](RELATORIO_FET_ORDER_001.md).
+Validação final: 39/39 backend, 9/9 frontend, 545/545 API, build aprovado,
+27/27 E2E e git diff --check aprovado. Implementação permanece sem commit.
+
+Próxima recomendação: **F003 + F004 — reserva/ledger de estoque e atomicidade
+durável entre pedido e estoque**, para overselling/estados parciais.
+Não iniciadas automaticamente.

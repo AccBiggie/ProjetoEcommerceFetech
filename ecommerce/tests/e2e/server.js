@@ -3,7 +3,7 @@ const path = require('path');
 const crypto = require('crypto');
 const mongoose = require('mongoose');
 const express = require('express');
-const { fixtures, productData } = require('../fixtures');
+const { fixtures, productData, password } = require('../fixtures');
 const Product = require('../../backend/models/productModel');
 const nodemailer = require('nodemailer');
 const database = `fetech_e2e_${process.pid}_${Date.now()}`;
@@ -18,6 +18,10 @@ const app = require('../../backend/app');
 (async () => {
     await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
     await fixtures();
+    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com']) {
+        await require('../../backend/models/userModel').create({ name: 'Cliente Idempotência', email, password, role: 'user',
+            avatar: { public_id: 'fixture-avatar', url: '/Profile.png' } });
+    }
     await Product.create(productData({ name: 'Teste & / Pesquisa' }));
     await Product.create(productData({ name: 'Produto extra para paginação' }));
     await require('../../backend/utils/categories').migrateLegacyCategories();

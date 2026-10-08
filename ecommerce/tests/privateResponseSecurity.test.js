@@ -34,7 +34,7 @@ async function reset() {
 }
 const addressBody = () => ({ label: 'Teste', recipientName: 'Cliente temporário', address: 'Rua Teste', number: '1', neighborhood: 'Centro', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' });
 const address = () => Address.create({ ...addressBody(), user: user.id });
-const order = () => h.request('POST', '/order/new', { shippingInfo: addressBody(), orderItems: [{ product: data.products[0].id, quantity: 1 }] }, cookie, 201);
+const order = () => h.request('POST', '/order/new', { shippingInfo: addressBody(), orderItems: [{ product: data.products[0].id, quantity: 1 }] }, cookie, 201, { 'Idempotency-Key': require('node:crypto').randomUUID() });
 async function getPrivate(route, currentCookie = cookie) { const reply = await h.request('GET', route, null, currentCookie, 200); noStore(reply); return reply; }
 
 test('PRV-01 login não devolve JWT JSON', async () => noSessionFields((await login()).result));

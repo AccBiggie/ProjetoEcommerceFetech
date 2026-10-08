@@ -21,6 +21,7 @@ import { CLEAR_CART } from "../../constants/cartConstants";
 import { getErrorMessage } from "../../utils/api";
 import { money } from "../../utils/format";
 import SavedAddressPicker from "./SavedAddressPicker";
+import { getOrderAttempt, clearOrderAttempt } from '../../utils/orderAttempt.mjs';
 
 export default function Shipping() {
   const { cartItems, shippingInfo } = useSelector((state) => state.cart);
@@ -33,6 +34,7 @@ export default function Shipping() {
   const [error, setError] = useState("");
   const dispatch = useDispatch();
   const completedOrder = useRef(null);
+  const submitting = useRef(false);
   const selectAddress = address => {
     setSelectedAddressId(address?._id || "");
     if (!address) return;
@@ -40,24 +42,31 @@ export default function Shipping() {
   };
   const submit = async (event) => {
     event.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setPending(true);
     setError("");
     try {
       const normalized = normalizeShippingAddress(shipping);
       await dispatch(saveShippingInfo(normalized));
-      const { data } = await axios.post("/api/v1/order/new", {
+      const payload = {
         shippingInfo: normalized,
         orderItems: cartItems.map((item) => ({
           product: item.product,
           quantity: item.quantity,
         })),
-      });
+      };
+      const attempt = await getOrderAttempt(payload);
+      const { data } = await axios.post("/api/v1/order/new", payload, { headers: { 'Idempotency-Key': attempt.key } });
+      if (!data.success || !/^[0-9a-f]{24}$/.test(data.order?._id || '')) throw new Error('Não foi possível confirmar o pedido. Repita a mesma solicitação.');
       completedOrder.current = data.order._id;
       dispatch({ type: CLEAR_CART });
       localStorage.removeItem("cartItems");
+      clearOrderAttempt(attempt.key);
     } catch (error) {
       setError(getErrorMessage(error));
     } finally {
+      submitting.current = false;
       setPending(false);
     }
   };

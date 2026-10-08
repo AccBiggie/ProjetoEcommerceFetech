@@ -15,7 +15,7 @@ before(async () => { await h.start(); data = await fixtures(); cookie = await h.
 after(h.stop);
 beforeEach(h.clearRateLimits);
 const payload = (extra = {}) => ({ shippingInfo: shipping(), orderItems: [{ product: data.products[0].id, quantity: 1 }], ...extra });
-const post = (body, status) => h.request('POST', '/order/new', body, cookie, status);
+const post = (body, status) => h.request('POST', '/order/new', body, cookie, status, { 'Idempotency-Key': require('node:crypto').randomUUID() });
 async function invalid(body) {
     const orders = await Order.countDocuments(), addresses = await Address.find().lean(), mails = h.mailCount();
     const stocks = await Product.find().select('_id Stock').lean();

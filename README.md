@@ -59,6 +59,10 @@ validação estrita de quantidade, preservando zeros iniciais. Há auditoria
 histórica somente leitura; ela não foi executada no banco comercial.
 Contrato e operação: [docs/VALIDACAO_CHECKOUT.md](docs/VALIDACAO_CHECKOUT.md).
 
+Criação de pedidos exige `Idempotency-Key`, com proteção persistente MongoDB
+contra duplicação em retries e concorrência entre instâncias. O frontend mantém
+a mesma chave após falhas e recarga. Veja [docs/IDEMPOTENCIA_PEDIDOS.md](docs/IDEMPOTENCIA_PEDIDOS.md).
+
 Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
 No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
 criação/edição; a aba **Categorias** permite gerenciar os vínculos.

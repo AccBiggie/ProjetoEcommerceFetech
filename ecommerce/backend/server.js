@@ -11,6 +11,8 @@ async function startServer(env, dependencies = {}) {
     await (dependencies.connect || require('./config/database'))(config);
     await (dependencies.prepare || (async () => {
         await require('./models/addressModel').init();
+        await require('./models/orderModel').init();
+        await require('./models/orderIdempotencyModel').init();
         await require('./models/authRateLimitModel').init();
         await require('./models/adminMutationLockModel').init();
         await require('./utils/categories').migrateLegacyCategories();

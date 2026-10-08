@@ -1,5 +1,14 @@
 # Estado atual — ProjetoEcommerceFetech
 
+FET-ORDER-001: criação de pedidos com Idempotency-Key obrigatória e persistência
+MongoDB, hashes canônicos, índices únicos, replay e reconciliação de Order salvo.
+Frontend preserva tentativa entre retries/reload. PROCESSING sem Order falha
+fechado; estoque concorrente e atomicidade entre intents continuam F003/F004.
+Contrato: [IDEMPOTENCIA_PEDIDOS.md](IDEMPOTENCIA_PEDIDOS.md).
+Validação: 39/39 backend, 9/9 frontend, 545/545 API, build aprovado e 27/27 E2E.
+Banco real não alterado; sem commit nesta entrega. Relatório:
+[RELATORIO_FET_ORDER_001.md](RELATORIO_FET_ORDER_001.md).
+
 FET-DATA-002: entrega versionada completa, CEP/telefone strings, quantities
 estritas e diagnóstico histórico READ ONLY. Novos pedidos preservam zeros;
 pedidos antigos continuam legíveis e atualizáveis sem inventar dados perdidos.
@@ -109,8 +118,8 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 497 testes da
-API e 25 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 545 testes da
+API e 27 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
 Resultado após integrar a seleção de endereços na entrega (antes de FET-SEC-001): **13 testes da API

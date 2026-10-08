@@ -28,8 +28,8 @@ cloudinary.v2.uploader.upload = async () => ({ public_id: 'uploaded-test', secur
 const app = require('../backend/app');
 let server, base, data, cookies = {};
 const missing = '000000000000000000000001';
-async function request(method, route, body, role = 'user', expected = 200) {
-    const headers = withCsrf(method);
+async function request(method, route, body, role = 'user', expected = 200, extraHeaders = {}) {
+    const headers = withCsrf(method, extraHeaders);
     if (cookies[role]) headers.Cookie = cookies[role];
     if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
     const response = await fetch(base + route, { method, headers, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
@@ -180,11 +180,11 @@ test('avaliações: criar, atualizar, listar, remover e recalcular média', asyn
 test('pedidos: checkout, preços do servidor, propriedade, status e estoque', async () => {
     const product = data.products[1];
     const payload = { shippingInfo: { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste, 1', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' }, orderItems: [{ product: product.id, quantity: 2, price: 1 }], totalPrice: 1, paymentInfo: { id: 'forged', status: 'succeeded' } };
-    await request('POST', '/order/new', payload, 'anonymous', 401);
-    await request('POST', '/order/new', { ...payload, orderItems: [] }, 'user', 400);
-    await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 400);
-    await request('POST', '/order/new', { ...payload, orderItems: [{ product: missing, quantity: 1 }] }, 'user', 404);
-    const order = (await request('POST', '/order/new', payload, 'user', 201)).result.order;
+    await request('POST', '/order/new', payload, 'anonymous', 401, { 'Idempotency-Key': crypto.randomUUID() });
+    await request('POST', '/order/new', { ...payload, orderItems: [] }, 'user', 400, { 'Idempotency-Key': crypto.randomUUID() });
+    await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 400, { 'Idempotency-Key': crypto.randomUUID() });
+    await request('POST', '/order/new', { ...payload, orderItems: [{ product: missing, quantity: 1 }] }, 'user', 404, { 'Idempotency-Key': crypto.randomUUID() });
+    const order = (await request('POST', '/order/new', payload, 'user', 201, { 'Idempotency-Key': crypto.randomUUID() })).result.order;
     assert.equal(order.totalPriceCents, 20000); assert.equal(order.totalPrice, "200.00"); assert.equal(order.paymentInfo.status, 'Pending'); assert.equal(order.paidAt, undefined);
     const route = '/order/' + order._id;
     await request('GET', route); await request('GET', route, null, 'admin'); await request('GET', route, null, 'other', 403);
@@ -219,7 +219,7 @@ test('logout e conta removida não deixam sessões utilizáveis', async () => {
 test('envio com falha de estoque restaura os itens anteriores e mantém o pedido', async () => {
     const [first, second] = data.products.slice(3, 5);
     const shippingInfo = { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' };
-    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: first.id, quantity: 2 }, { product: second.id, quantity: 1 }] }, 'user', 201)).result.order;
+    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: first.id, quantity: 2 }, { product: second.id, quantity: 1 }] }, 'user', 201, { 'Idempotency-Key': crypto.randomUUID() })).result.order;
     await Product.updateOne({ _id: second.id }, { Stock: 0 });
     await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 400);
     assert.equal((await Product.findById(first.id)).Stock, 20);
@@ -378,7 +378,7 @@ test('endereços: validação não remove favorito e índice protege alteraçõe
 
 test('endereços: editar e excluir cadastro não altera snapshot de pedidos', async () => {
     const shippingInfo = { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Histórica, 100', city: 'São Paulo', state: 'SP', country: 'Brasil', pinCode: '01234567', phoneNo: '011999999999' };
-    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: data.products[0].id, quantity: 1 }] }, 'addressOwner', 201)).result.order;
+    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: data.products[0].id, quantity: 1 }] }, 'addressOwner', 201, { 'Idempotency-Key': crypto.randomUUID() })).result.order;
     const address = (await request('POST', '/address/new', addressData(), 'addressOwner', 201)).result.address;
     await request('PUT', '/address/' + address._id, { address: 'Rua alterada', pinCode: '00000001' }, 'addressOwner');
     await request('DELETE', '/address/' + address._id, null, 'addressOwner');

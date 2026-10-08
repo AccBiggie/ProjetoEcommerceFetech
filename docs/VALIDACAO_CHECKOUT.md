@@ -32,7 +32,8 @@ Payload inválido não cria pedidos, altera estoque/endereços/favoritos ou envi
 O produto ilustrativo precisa existir. Preços, totais, usuário, pagamento e versão
 do cliente não controlam o resultado. Servidor cria `shippingInfoVersion: 2`,
 pagamento `Pending`, frete/impostos zero e dinheiro conforme [DINHEIRO.md](DINHEIRO.md).
-Repetir o POST ainda pode gerar outro pedido (F005).
+Desde FET-ORDER-001, o POST também exige Idempotency-Key; repetir a mesma intenção
+com a mesma key/user retorna o mesmo Order, conforme [IDEMPOTENCIA_PEDIDOS.md](IDEMPOTENCIA_PEDIDOS.md).
 
 ## Contrato final de shippingInfo
 
@@ -140,8 +141,9 @@ git diff --check
 
 Testes em bancos temporários, SMTP substituído. F006/F007/F008/F009/F010/F014/
 F020/F021/F036 preservados. Abertos: F001 pagamento, F003 estoque concorrente,
-F004 atomicidade, F005 idempotência, F024 backup/restore, F027 frete, F031 storage,
+F004 atomicidade, F024 backup/restore, F027 frete, F031 storage,
 F037 Product. Sem dependências/lockfiles/secrets/config.env alterados. Auditoria
 histórica original intacta. Clientes externos precisam do snapshot completo,
-CEP/telefone strings e quantity Number inteiro. Próxima recomendação: F005,
-idempotência persistente; não iniciada automaticamente.
+CEP/telefone strings e quantity Number inteiro, além da chave obrigatória de
+idempotência. F005 corrigido na FET-ORDER-001. Próxima recomendação: F003/F004,
+reserva de estoque e atomicidade durável; não iniciadas automaticamente.

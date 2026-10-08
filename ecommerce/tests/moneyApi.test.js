@@ -2,7 +2,7 @@ const {test,before,after,beforeEach}=require('node:test');const assert=require('
 let cookie,data,last;before(async()=>{await h.start();data=await fixtures();cookie=await h.login(data.users.admin);});after(h.stop);beforeEach(h.clearRateLimits);
 const shippingInfo={recipientName:'Cliente Fixture',address:'Fixture',number:'1',complement:'',neighborhood:'Centro',city:'Fixture',state:'PR',country:'Brasil',pinCode:'87000000',phoneNo:'44999999999'};
 async function create(overrides={},status=201){return h.request('POST','/product/new',productData(overrides),cookie,status);}
-async function order(product,quantity=3,extra={},status=201){return h.request('POST','/order/new',{shippingInfo,orderItems:[{product,quantity,price:1,priceCents:1}],totalPriceCents:1,...extra},cookie,status);}
+async function order(product,quantity=3,extra={},status=201){return h.request('POST','/order/new',{shippingInfo,orderItems:[{product,quantity,price:1,priceCents:1}],totalPriceCents:1,...extra},cookie,status,{'Idempotency-Key':require('node:crypto').randomUUID()});}
 test('API-MONEY-01 create persiste somente centavos',async()=>{const r=await create({price:'199.90'});last=r.result.product._id;const raw=await Product.collection.findOne({_id:new mongoose.Types.ObjectId(last)});assert.equal(raw.priceCents,19990);for(const key of m.productFields)assert.equal(Object.hasOwn(raw,key),false);});
 test('API-MONEY-02 precisão inválida não cria produto',async()=>{const count=await Product.countDocuments();await create({price:'0.105'},400);assert.equal(await Product.countDocuments(),count);});
 test('API-MONEY-03 update exato',async()=>{const r=await h.request('PUT','/product/'+last,{price:'249.99'},cookie,200);assert.equal(r.result.product.priceCents,24999);});

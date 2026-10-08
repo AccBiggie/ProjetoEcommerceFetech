@@ -365,6 +365,7 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   const products = await (await page.request.get("/api/v1/products")).json();
   const createdOrder = await (
     await mutation(page, "post", "/api/v1/order/new", {
+      headers: { "Idempotency-Key": require("node:crypto").randomUUID() },
       data: {
         shippingInfo: {
           recipientName: "Cliente Fixture",

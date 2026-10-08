@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+  idempotencyKeyHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
+  idempotencyRequestHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
   shippingInfoVersion: { type: Number, enum: [1, 2] },
   shippingInfo: require('../utils/shippingSchema')(true),
   orderItems: [
@@ -65,6 +67,8 @@ const orderSchema = new mongoose.Schema({
   },
 }, { optimisticConcurrency: true });
 
+orderSchema.index({ user: 1, idempotencyKeyHash: 1 }, { unique: true, name: 'one_order_per_key', partialFilterExpression: { idempotencyKeyHash: { $type: 'string' } } });
+
 orderSchema.pre('validate', function () {
   if (this.shippingInfoVersion === 2) {
     this.shippingInfo = require('../../shared/shippingAddress.mjs').normalizeShippingAddress(this.shippingInfo);
@@ -75,5 +79,8 @@ orderSchema.pre('validate', function () {
   for (const field of orderFields) { this[field+'Cents'] = normalized[field+'Cents']; this[field] = undefined; }
   this.orderItems.forEach((item, index) => { item.priceCents = normalized.orderItems[index].priceCents; item.price = undefined; });
 });
-orderSchema.set('toJSON', { transform: (_doc, ret) => require('../utils/money').presentOrder(ret) });
+orderSchema.set('toJSON', { transform: (_doc, ret) => {
+  delete ret.idempotencyKeyHash; delete ret.idempotencyRequestHash;
+  return require('../utils/money').presentOrder(ret);
+} });
 module.exports = mongoose.model("Order", orderSchema);

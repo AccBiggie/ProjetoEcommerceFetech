@@ -83,6 +83,12 @@ Não aceita coerção de quantity. Input inválido retorna 400 antes de consulta
 comerciais; produto válido inexistente retorna 404. Preços/totais/versão do
 cliente são ignorados. Sessão, CSRF e `Cache-Control: no-store` permanecem ativos.
 
+Também exige `Idempotency-Key` (16–128 caracteres ASCII: letras, números, `-`,
+`_`, `.`, `:`). Mesma key/user/intenção retorna 201 com mesmo Order e header
+`Idempotency-Replayed: true`; reutilização com payload diferente retorna 409.
+Nova key representa nova intenção. PROCESSING espera até 3 s e depois retorna
+409/Retry-After 2, sem repetir criação. Confira [docs/IDEMPOTENCIA_PEDIDOS.md](docs/IDEMPOTENCIA_PEDIDOS.md).
+
 IDs invalidos e formularios invalidos retornam 400; recursos inexistentes
 e rotas desconhecidas retornam 404. Sessoes ausentes, invalidas, expiradas
 ou de usuarios removidos retornam 401. Acesso sem permissao retorna 403.
