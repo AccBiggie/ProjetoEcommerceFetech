@@ -9,10 +9,12 @@ async function startServer(env, dependencies = {}) {
         configureCloudinary(config.cloudinary);
     }
     await (dependencies.connect || require('./config/database'))(config);
+    await (dependencies.requireTransactions || require('./config/mongoTransactions').requireTransactions)();
     await (dependencies.prepare || (async () => {
         await require('./models/addressModel').init();
         await require('./models/orderModel').init();
         await require('./models/orderIdempotencyModel').init();
+        await require('./models/stockMovementModel').init();
         await require('./models/authRateLimitModel').init();
         await require('./models/adminMutationLockModel').init();
         await require('./utils/categories').migrateLegacyCategories();
@@ -32,7 +34,7 @@ async function main() {
     process.on('unhandledRejection', shutdown);
     try { server = await startServer(process.env); }
     catch (error) {
-        console.error(error instanceof ConfigurationError ? error.message : 'Falha ao iniciar o servidor. Verifique configuração e conectividade do MongoDB.');
+        console.error(error instanceof ConfigurationError || error instanceof require('./config/mongoTransactions').TransactionTopologyError ? error.message : 'Falha ao iniciar o servidor. Verifique configuração e conectividade do MongoDB.');
         process.exitCode = 1;
         await require('mongoose').disconnect();
     }

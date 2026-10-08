@@ -1,12 +1,14 @@
+const { testUri } = require('../replicaSetHarness');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
 module.exports = async () => {
     const state = path.join(__dirname, '../../.test-state.json');
     if (!fs.existsSync(state)) return;
-    const { database } = JSON.parse(fs.readFileSync(state, 'utf8'));
+    const { database, uri } = JSON.parse(fs.readFileSync(state, 'utf8'));
     if (!/^fetech_e2e_\d+_\d+$/.test(database)) throw new Error('Nome de banco de teste inválido.');
-    await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
+    if (uri !== testUri(database)) throw new Error("URI fora do replica set de teste.");
+    await mongoose.connect(uri);
     try { await mongoose.connection.dropDatabase(); fs.unlinkSync(state); }
     finally {
         await mongoose.disconnect();

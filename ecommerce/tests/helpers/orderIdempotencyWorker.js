@@ -8,6 +8,8 @@ async function main() {
     const app = require('../../backend/app');
     await require('../../backend/models/orderModel').init();
     await require('../../backend/models/orderIdempotencyModel').init();
+    await require('../../backend/models/stockMovementModel').init();
+    await require('../../backend/config/mongoTransactions').requireTransactions();
     const server = http.createServer(app);
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     process.send({ port: server.address().port });

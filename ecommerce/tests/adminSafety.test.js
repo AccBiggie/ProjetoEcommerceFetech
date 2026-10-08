@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
@@ -32,7 +33,7 @@ for(const [id,deleteA,deleteB] of [['10',false,false],['11',true,false],['12',tr
  assert.equal(replies.filter(r=>r.status===200).length,1);assert.ok(replies.every(r=>[200,403,409,401].includes(r.status)));assert.equal(await count(),1);
 });
 test('AS-13 lock compartilhado entre conexões independentes',async()=>{
- const connection=await mongoose.createConnection('mongodb://127.0.0.1:27017/'+h.database).asPromise();
+ const connection=await mongoose.createConnection(testUri(h.database)).asPromise();
  const a=locks({acquireTimeoutMs:40}),other=connection.model('AdminMutationLock',model().schema),b=locks({Model:other,acquireTimeoutMs:40});
  try{const lease=await a.acquire();try{await assert.rejects(b.acquire(),e=>e.statusCode===409);}finally{await a.release(lease);}const next=await b.acquire();await b.release(next);}finally{await connection.close();}
 });
@@ -90,7 +91,7 @@ test('AS-34 escrita pausada após expiração não remove último admin',async()
  finally{release();h.User.findOneAndUpdate=original;await pending;}
 });
 test('AS-35 serviços em conexões independentes mantêm admin',async()=>{
- const b=await h.createUser('admin'),connection=await mongoose.createConnection('mongodb://127.0.0.1:27017/'+h.database).asPromise();
+ const b=await h.createUser('admin'),connection=await mongoose.createConnection(testUri(h.database)).asPromise();
  try{const User=connection.model('User',h.User.schema),Model=connection.model('AdminMutationLock',model().schema),other=factory({User,lock:locks({Model})});
  const results=await Promise.allSettled([factory().deleteUser(admin.id,b.id),other.updateUser(b.id,admin.id,{role:'user'})]);assert.equal(results.filter(r=>r.status==='fulfilled').length,1);assert.equal(await count(),1);}
  finally{await connection.close();}

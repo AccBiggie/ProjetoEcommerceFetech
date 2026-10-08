@@ -58,6 +58,11 @@ const productSchema = mongoose.Schema( {
     },
     Stock: {
         type: Number,
+        // $inc precisa aceitar deltas negativos; min valida valores do documento.
+        cast: value => {
+            if (typeof value !== 'number' || !Number.isSafeInteger(value)) throw new Error('Estoque deve ser inteiro seguro.');
+            return value;
+        },
         validate: { validator: Number.isSafeInteger, message: "Estoque deve ser inteiro." },
         min: [0, "Estoque não pode ser negativo."],
         required: [true, "Please enter product stock"],

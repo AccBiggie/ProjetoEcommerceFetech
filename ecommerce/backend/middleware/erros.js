@@ -30,6 +30,7 @@ module.exports = (err,req,res,next) => {
     if (err.name === "VersionError") err = new ErrorHander("O pedido foi alterado. Atualize a página e tente novamente.", 409);
     res.status(err.statusCode).json({
         success: false,
+        ...(typeof err.code === "string" && /^ORDER_[A-Z_]+$/.test(err.code) ? { code: err.code } : {}),
         message: err.message,
     });
 };

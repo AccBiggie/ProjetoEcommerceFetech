@@ -16,6 +16,8 @@ const attempt = page => page.evaluate(key => JSON.parse(sessionStorage.getItem(k
 
 test('idempotência: duplo submit, resposta perdida e reload recuperam um único pedido', async ({ page }) => {
     await checkout(page, 'idempotency-loss@routes.example.com');
+    const cart = await page.evaluate(() => JSON.parse(localStorage.getItem('cartItems')));
+    const initialStock = (await (await page.request.get('/api/v1/product/' + cart[0].product)).json()).product.Stock;
     let release, persisted, originalKey, requests = 0;
     const gate = new Promise(resolve => { release = resolve; });
     await page.route('**/api/v1/order/new', async route => {
@@ -51,6 +53,8 @@ test('idempotência: duplo submit, resposta perdida e reload recuperam um único
     expect(orders).toHaveLength(1);
     expect(orders[0].shippingInfo.pinCode).toBe('01234567');
     expect(orders[0].shippingInfo.phoneNo).toBe('04123456789');
+    const finalStock = (await (await page.request.get('/api/v1/product/' + cart[0].product)).json()).product.Stock;
+    expect(finalStock).toBe(initialStock - cart[0].quantity);
 });
 
 test('idempotência: 5xx/PROCESSING/conflito mantêm key; carrinho alterado cria outra intenção', async ({ page }) => {

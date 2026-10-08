@@ -63,13 +63,20 @@ Criação de pedidos exige `Idempotency-Key`, com proteção persistente MongoDB
 contra duplicação em retries e concorrência entre instâncias. O frontend mantém
 a mesma chave após falhas e recarga. Veja [docs/IDEMPOTENCIA_PEDIDOS.md](docs/IDEMPOTENCIA_PEDIDOS.md).
 
+Novos pedidos reservam estoque com Mongo transaction: disponibilidade,
+movimentos RESERVE, Order RESERVED e conclusão da idempotência commitam juntos.
+A API comercial exige replica set/mongos; standalone impede startup. Reservas
+Pending não expiram automaticamente e o envio não desconta novamente.
+Operação, Mongo dedicado e testes: [docs/ESTOQUE_TRANSACIONAL.md](docs/ESTOQUE_TRANSACIONAL.md).
+
 Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
 No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
 criação/edição; a aba **Categorias** permite gerenciar os vínculos.
 Veja [docs/CATEGORIAS.md](docs/CATEGORIAS.md) para API, migração e uso.
 
 O projeto usa React (porta 3000), Node/Express (porta 4000) e MongoDB
-(porta 27017). WSL e Docker nao sao obrigatorios. Foi validado com Node
+transacional (desenvolvimento dedicado na porta 27018; testes em porta dinâmica).
+O Mongo antigo na porta 27017 não foi reconfigurado. WSL e Docker não são obrigatórios. Foi validado com Node
 24.19.0, npm 11.17.0 e MongoDB Community 8.0.26 nativo no Windows.
 
 Os comandos de instalacao, configuracao, inicializacao e verificacao estao
@@ -78,8 +85,8 @@ restricao de execucao de `npm.ps1`.
 
 O comando de MongoDB documentado resolve o executável e os dados por caminhos
 absolutos da raiz do projeto; pode ser usado mesmo com o terminal aberto em
-`ecommerce` ou `frontend`. Reutilize `.local/mongo-data` da raiz para manter
-os dados existentes.
+`ecommerce` ou `frontend`. O dbpath antigo permanece intacto. A API exige ambiente transacional dedicado,
+conforme o guia de estoque; standalone não inicia o servidor comercial.
 
 Copie `ecommerce/backend/config/config.env.example` para `config.env` na
 mesma pasta e configure uma chave JWT aleatoria. O arquivo real fica fora

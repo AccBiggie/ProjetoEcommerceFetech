@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const http = require('node:http');
@@ -22,7 +23,7 @@ nodemailer.createTransport = () => ({ sendMail: async mail => {
     mails.push(mail);
 } });
 const database = `fetech_routes_auth_${process.pid}_${Date.now()}`;
-process.env.DB_URI = `mongodb://127.0.0.1:27017/${database}`;
+process.env.DB_URI = testUri(database);
 const runtime = require('../backend/config/runtimeConfig');
 const fixtureEnv = { ...process.env };
 runtime.initializeConfig(fixtureEnv);
@@ -31,7 +32,7 @@ const app = require('../backend/app');
 let server, base, sequence = 0;
 
 async function start() {
-    await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
+    await mongoose.connect(testUri(database));
     await User.init();
     if (mongoose.models.AuthRateLimit) await mongoose.models.AuthRateLimit.init();
     if (mongoose.models.AdminMutationLock) await mongoose.models.AdminMutationLock.init();

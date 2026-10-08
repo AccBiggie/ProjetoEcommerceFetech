@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
@@ -15,7 +16,7 @@ const path = require('node:path');
 let data, cookie;
 before(async () => { await h.start(); data = await fixtures(); cookie = await h.login(data.users.admin); });
 after(h.stop);
-beforeEach(h.clearRateLimits);
+beforeEach(async () => { await h.clearRateLimits(); await Product.updateMany({}, { Stock: 100 }); });
 const shipping = () => ({ recipientName: 'Cliente Fixture', address: 'Rua Fixture', number: '10A', complement: '',
     neighborhood: 'Centro', city: 'Curitiba', state: 'PR', country: 'Brasil', pinCode: '01234567', phoneNo: '04123456789' });
 const payload = () => ({ shippingInfo: shipping(), orderItems: [{ product: data.products[0].id, quantity: 1 }] });
@@ -109,7 +110,7 @@ for (const size of [2, 10]) test(`IDEM concorrência ${size} requests: uma cria�
     assert.equal(writes.mock.callCount(), 1);
     const ids = new Set(responses.filter(r => r.status === 201).map(r => r.result.order._id));
     assert.equal(ids.size, 1);
-    assert.equal((await Product.findById(data.products[0].id)).Stock, stock);
+    assert.equal((await Product.findById(data.products[0].id)).Stock, stock - 1);
     console.log(JSON.stringify({ probe: 'concorrência', requests: size, ordersCreated: 1,
         createdResponses: responses.filter(r => r.status === 201 && !r.response.headers.get('idempotency-replayed')).length,
         replays: responses.filter(r => r.response.headers.get('idempotency-replayed') === 'true').length,
@@ -171,23 +172,17 @@ test('IDEM PROCESSING antigo sem Order não expira nem reexecuta', async (t) => 
     assert.equal(response.response.headers.get('retry-after'), '2'); assert.equal(writes.mock.callCount(), 0);
     assert.equal((await Claim.findOne({ keyHash: id.keyHash })).status, 'PROCESSING');
 });
-test('IDEM falha em COMPLETED mantém PROCESSING e retry reconcilia Order salvo', async (t) => {
-    const key = crypto.randomUUID(), count = await Order.countDocuments();
-    const original = Claim.updateOne.bind(Claim);
-    const update = t.mock.method(Claim, 'updateOne', (filter, write) => {
-        if (write.$set?.status === 'COMPLETED') throw new Error('Fixture de confirmação perdida');
-        return original(filter, write);
-    });
-    await post(payload(), key, 503);
-    update.mock.restore();
-    const id = identity(data.users.admin._id, key, serializeOrderIntent(payload()));
-    assert.equal((await Claim.findOne({ keyHash: id.keyHash })).status, 'PROCESSING');
-    const saved = await Order.findOne({ user: id.user, idempotencyKeyHash: id.keyHash });
-    const replay = await post(payload(), key, 201);
-    assert.equal(replay.result.order._id, saved.id);
-    assert.equal(await Order.countDocuments(), count + 1);
-    assert.equal((await Claim.findOne({ keyHash: id.keyHash })).status, 'COMPLETED');
+test('IDEM reconcilia PROCESSING + Order legado já salvo', async () => {
+    const key=crypto.randomUUID(), count=await Order.countDocuments();
+    const id=identity(data.users.admin._id,key,serializeOrderIntent(payload()));
+    const saved=await Order.create({idempotencyKeyHash:id.keyHash,idempotencyRequestHash:id.requestHash,
+        user:id.user,shippingInfo:shipping(),shippingInfoVersion:2,orderItems:[{name:'Fixture',image:'/Profile.png',product:data.products[0]._id,quantity:1,priceCents:10000}],
+        itemsPriceCents:10000,taxPriceCents:0,shippingPriceCents:0,totalPriceCents:10000,paymentInfo:{id:'fixture',status:'Pending'}});
+    await Claim.create({...id,status:'PROCESSING'});
+    const replay=await post(payload(),key,201);assert.equal(replay.result.order._id,saved.id);
+    assert.equal(await Order.countDocuments(),count+1);assert.equal((await Claim.findOne({keyHash:id.keyHash})).status,'COMPLETED');
 });
+
 test('IDEM erro owner gera FAILED seguro; replay nunca cria novamente', async (t) => {
     const key = crypto.randomUUID();
     const writes = t.mock.method(Order, 'create', () => { throw Object.assign(new Error('PII_INTERNAL_SENTINEL'), { code: 11000, keyPattern: { anotherIndex: 1 } }); });
@@ -195,7 +190,7 @@ test('IDEM erro owner gera FAILED seguro; replay nunca cria novamente', async (t
     assert.equal(writes.mock.callCount(), 1);
     const id = identity(data.users.admin._id, key, serializeOrderIntent(payload()));
     const record = await Claim.findOne({ keyHash: id.keyHash }).lean();
-    assert.equal(record.status, 'FAILED'); assert.equal(record.failureCode, 'ORDER_CREATE_FAILED');
+    assert.equal(record.status, 'PROCESSING'); assert.equal(record.failureCode, undefined);
     assert.equal(JSON.stringify(record).includes('PII_INTERNAL_SENTINEL'), false);
     assert.equal(JSON.stringify(failed.result).includes('PII_INTERNAL_SENTINEL'), false);
 });
@@ -211,7 +206,8 @@ test('IDEM resposta perdida, snapshot e estado posterior preservados; exclusão 
     assert.equal(replay.result.order._id, a.result.order._id); assert.equal(replay.result.order.orderStatus, 'Shipped');
     assert.deepEqual(replay.result.order.shippingInfo, shipping());
     assert.equal((await Product.findById(data.products[0].id)).Stock, stock);
-    await h.request('DELETE', '/admin/order/' + a.result.order._id, null, cookie, 200);
+    await h.request('DELETE', '/admin/order/' + a.result.order._id, null, cookie, 409);
+    await Order.collection.deleteOne({ _id: new mongoose.Types.ObjectId(a.result.order._id) }); // Fixture de exclusao historica.
     const count = await Order.countDocuments(); await post(body, key, 409); assert.equal(await Order.countDocuments(), count);
 });
 test('IDEM PROCESSING conclui durante espera sem executar nova criação', async (t) => {
@@ -249,19 +245,19 @@ test('IDEM erro antes da claim permite corrigir payload e repetir a mesma key', 
     assert.equal(await Claim.countDocuments({ user: id.user, keyHash: id.keyHash }), 1);
 });
 async function independentConnection() {
-    const connection = await mongoose.createConnection('mongodb://127.0.0.1:27017/' + h.database).asPromise();
+    const connection = await mongoose.createConnection(testUri(h.database)).asPromise();
     const orders = connection.model('Order', Order.schema), claims = connection.model('OrderIdempotency', Claim.schema);
     await Promise.all([orders.init(), claims.init()]);
     return { connection, orders, service: createOrderIdempotencyService({ Claim: claims, Order: orders }) };
 }
 function independentCall(instance, key) {
-    return instance.service.execute({ user: data.users.admin._id, key, canonical: serializeOrderIntent(payload()),
-        prepare: async () => ({ shippingInfo: shipping(), shippingInfoVersion: 2, user: data.users.admin._id,
-            orderItems: [{ name: 'Fixture', image: '/Profile.png', product: data.products[0]._id, quantity: 1, priceCents: 10000 }],
-            itemsPriceCents: 10000, taxPriceCents: 0, shippingPriceCents: 0, totalPriceCents: 10000, paymentInfo: { id: 'fixture', status: 'Pending' } }),
-        create: (prepared, hashes) => instance.orders.create({ ...prepared, ...hashes }),
-    });
+    const inventory=require('../backend/services/orderInventoryService').createOrderInventoryService({
+        Order:instance.orders,Product:instance.connection.model('Product',Product.schema),
+        Movement:instance.connection.model('StockMovement',require('../backend/models/stockMovementModel').schema),connection:instance.connection});
+    return instance.service.execute({user:data.users.admin._id,key,canonical:serializeOrderIntent(payload()),prepare:()=>inventory.prepare(payload()),
+        create:(_prepared,hashes,complete)=>inventory.create({intent:payload(),user:data.users.admin._id,hashes,complete})});
 }
+
 test('IDEM duas conexões independentes e restart lógico usam mesma garantia persistente', async () => {
     const a = await independentConnection(), b = await independentConnection(), key = crypto.randomUUID(), count = await Order.countDocuments();
     let id;

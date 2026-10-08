@@ -7,6 +7,7 @@ const { categoryKey, resolveProductCategory } = require("../utils/categories");
 const productFields = ["name", "description", "category", "price", "oldPrice", "installmmentPrice", "off", "countDown", "Stock", "images"];
 const { productMoney, productFields: moneyFields, parseMoneyToCents } = require('../utils/money');
 const productInput = body => {
+    if (body.Stock !== undefined) require('../utils/inventory').validateStock(body.Stock);
     const result = Object.fromEntries(productFields.filter(key => body[key] !== undefined && !moneyFields.includes(key)).map(key => [key, body[key]]));
     for (const field of moneyFields) if (body[field] !== undefined) result[field+'Cents'] = parseMoneyToCents(body[field]);
     return result;

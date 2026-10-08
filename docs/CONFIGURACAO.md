@@ -52,6 +52,13 @@ NODE_ENV aceita apenas development, test e production. Ausência assume developm
 
 DB_URI é obrigatória em todos os perfis. O parser do MongoClient já instalado via Mongoose valida a sintaxe sem conectar; database explícita é exigida, inclusive local. Aceita mongodb://, mongodb+srv://, replica sets e IPv6. Production recusa database test. Credenciais não são exibidas. Formato válido não prova conectividade.
 
+FET-ORDER-002: o perfil server exige replica set ou mongos com suporte a
+transações. Depois de conectar, hello é verificado antes de prepare/listen.
+Standalone falha com mensagem segura; não há fallback. Scripts operacionais
+mantêm seus requisitos próprios. `inventory-audit` exige somente NODE_ENV/DB_URI
+e não exige SMTP/Cloudinary/frontend. Não há secret/env artificial de runtime.
+Para desenvolvimento dedicado e testes, veja [ESTOQUE_TRANSACIONAL.md](ESTOQUE_TRANSACIONAL.md).
+
 JWT_SECRET é obrigatório em todos os ambientes. Em production exige no mínimo 32 bytes, sem espaços nas extremidades nem placeholders conhecidos. Isso impede erros grosseiros, sem prometer medir entropia. Não há secret default. JWT_EXPIRE é obrigatório e validado pelo próprio jsonwebtoken com uma chave exclusivamente interna de validação, que nunca autentica usuários. Preserva durações como 7d, 1h, 60 seconds e a semântica de string numérica em milissegundos. Deve gerar expiração positiva de pelo menos um segundo, sem overflow.
 
 COOKIE_EXPIRE preserva dias, aceita fração positiva e precisa gerar data futura representável. Cookie permanece HttpOnly, Secure em production, SameSite=Lax, Path=/, host-only. Proxy continua restrito a 0..5, sem true, wildcard ou inferência de Host.

@@ -46,6 +46,7 @@ export default function Shipping() {
     submitting.current = true;
     setPending(true);
     setError("");
+    let attempt;
     try {
       const normalized = normalizeShippingAddress(shipping);
       await dispatch(saveShippingInfo(normalized));
@@ -56,7 +57,7 @@ export default function Shipping() {
           quantity: item.quantity,
         })),
       };
-      const attempt = await getOrderAttempt(payload);
+      attempt = await getOrderAttempt(payload);
       const { data } = await axios.post("/api/v1/order/new", payload, { headers: { 'Idempotency-Key': attempt.key } });
       if (!data.success || !/^[0-9a-f]{24}$/.test(data.order?._id || '')) throw new Error('Não foi possível confirmar o pedido. Repita a mesma solicitação.');
       completedOrder.current = data.order._id;
@@ -64,6 +65,7 @@ export default function Shipping() {
       localStorage.removeItem("cartItems");
       clearOrderAttempt(attempt.key);
     } catch (error) {
+      if (error.response?.data?.code === 'ORDER_INSUFFICIENT_STOCK' && attempt) clearOrderAttempt(attempt.key);
       setError(getErrorMessage(error));
     } finally {
       submitting.current = false;

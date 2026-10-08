@@ -62,7 +62,7 @@ test('CHECKOUT shippingInfo estrutura ausente/array/escalar', async () => {
 });
 test('CHECKOUT corpo ausente/array e agrupamento de IDs equivalentes', async () => {
     for (const body of [undefined, {}, []]) await invalid(body);
-    await invalid(payload({ orderItems: [{ product: data.products[0].id, quantity: 11 }, { product: data.products[0].id.toUpperCase(), quantity: 10 }] }));
+    await post(payload({ orderItems: [{ product: data.products[0].id, quantity: 11 }, { product: data.products[0].id.toUpperCase(), quantity: 10 }] }), 409);
 });
 test('CHECKOUT todos os itens validados antes de consultar produtos', async (t) => {
     const spy = t.mock.method(Product, 'findById', () => { throw new Error('Consulta não deveria ocorrer'); });
@@ -83,7 +83,7 @@ test('CHECKOUT NaN e Infinity reais são rejeitados antes de consultas/criação
 });
 test('CHECKOUT produto inexistente mantém 404; estoque insuficiente mantém 400', async () => {
     await post(payload({ orderItems: [{ product: new mongoose.Types.ObjectId().toString(), quantity: 1 }] }), 404);
-    await invalid(payload({ orderItems: [{ product: data.products[0].id, quantity: 21 }] }));
+    await post(payload({ orderItems: [{ product: data.products[0].id, quantity: 21 }] }), 409);
 });
 test('CHECKOUT trims, complemento opcional, número textual e limites', async () => {
     for (const number of ['10A', 'S/N', 'KM 12']) {

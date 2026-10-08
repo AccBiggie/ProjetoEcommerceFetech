@@ -118,31 +118,24 @@ Referencia: [instalacao oficial do MongoDB por ZIP no Windows](https://www.mongo
 
 ## Iniciar novamente em tres terminais
 
-Se os processos desta sessao ainda estiverem ativos, use a loja diretamente.
-Para reiniciar, encerre primeiro os processos existentes, evitando duplicar
+Para reiniciar, encerre primeiro os processos de desenvolvimento existentes, evitando duplicar
 as portas. Os comandos abaixo identificam a pasta do projeto explicitamente;
 cada terminal pode começar em uma pasta diferente.
 
-Terminal 1: MongoDB (dados persistidos em `.local/mongo-data`). No PowerShell,
-use o operador `&` para executar o binário e caminhos absolutos para o
-executável e o banco. O comando anterior com `.local/...` dependia de estar
-na raiz; não localizava esses arquivos a partir de `ecommerce` ou `frontend`.
-
-```powershell
-$projectRoot = 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech'
-$mongoExecutable = Join-Path $projectRoot '.local\mongod.exe'
-$mongoDataPath = Join-Path $projectRoot '.local\mongo-data'
-if (-not (Test-Path -LiteralPath $mongoExecutable -PathType Leaf)) {
-    throw "MongoDB não encontrado em $mongoExecutable. Prepare o binário conforme a seção de instalação."
-}
-New-Item -ItemType Directory -Force -Path $mongoDataPath | Out-Null
-& $mongoExecutable --dbpath $mongoDataPath --bind_ip 127.0.0.1 --port 27017
-```
+Terminal 1: a API comercial agora exige replica set/mongos. O Mongo antigo
+standalone em .local/mongo-data permanece intacto e não atende à criação
+transacional. Para desenvolvimento, prepare um ambiente dedicado vazio,
+em .local/mongo-dev-rs-data e porta 27018, conforme
+[docs/ESTOQUE_TRANSACIONAL.md](docs/ESTOQUE_TRANSACIONAL.md#desenvolvimento-local-dedicado).
+Esse guia inclui inicialização única do replica set e URI da API. Não reutilize
+dbpath real nem execute replSetInitiate no banco existente. A mudança de
+topologia não foi executada no banco real nesta task.
 
 Terminal 2: API.
 
 ```powershell
 Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech\ecommerce'
+$env:DB_URI='mongodb://127.0.0.1:27018/fetech_dev_store?replicaSet=fetech_dev_rs'
 npm.cmd start
 ```
 
@@ -156,28 +149,10 @@ npm.cmd start
 Acesse http://localhost:3000. Para encerrar processos iniciados nesses
 terminais, use Ctrl+C em cada um.
 
-Para iniciar MongoDB e API em segundo plano e guardar os processos:
-
-```powershell
-$projectRoot = 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech'
-$mongoExecutable = Join-Path $projectRoot '.local\mongod.exe'
-$mongoDataPath = Join-Path $projectRoot '.local\mongo-data'
-if (-not (Test-Path -LiteralPath $mongoExecutable -PathType Leaf)) {
-    throw "MongoDB não encontrado em $mongoExecutable. Prepare o binário conforme a seção de instalação."
-}
-New-Item -ItemType Directory -Force -Path $mongoDataPath | Out-Null
-$mongoProcess = Start-Process -FilePath $mongoExecutable -ArgumentList @('--dbpath', ('"' + $mongoDataPath + '"'), '--bind_ip', '127.0.0.1', '--port', '27017', '--logpath', ('"' + (Join-Path $projectRoot '.local\mongo-start.log') + '"'), '--logappend') -WindowStyle Hidden -PassThru
-$apiProcess = Start-Process -FilePath (Get-Command node.exe).Source -ArgumentList 'backend/server.js' -WorkingDirectory (Join-Path $projectRoot 'ecommerce') -RedirectStandardOutput (Join-Path $projectRoot '.local\api-start.log') -RedirectStandardError (Join-Path $projectRoot '.local\api-start-error.log') -WindowStyle Hidden -PassThru
-```
-
-Os comandos `Start-Process ... -PassThru` guardam os processos nas variaveis.
-Use essas variaveis para encerrar o MongoDB e a API antes de reiniciar.
-O React iniciado no terminal pode ser encerrado com Ctrl+C. Os PIDs mudam
-a cada inicializacao; execute no mesmo terminal que criou as variaveis:
-
-```powershell
-Stop-Process -Id $mongoProcess.Id,$apiProcess.Id
-```
+Para processos em segundo plano, use somente o Mongo dedicado transacional
+já inicializado, com os mesmos argumentos de dbpath/porta/replSet e
+Start-Process -WindowStyle Hidden. Não iniciar a API contra standalone.
+O procedimento completo e a verificação de topology estão no guia de estoque.
 
 ## Verificacao (executados)
 

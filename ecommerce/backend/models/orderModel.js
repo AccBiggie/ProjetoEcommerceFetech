@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema({
   idempotencyKeyHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
   idempotencyRequestHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
+  inventoryStatus: { type: String, enum: ['RESERVED'], immutable: true },
+  inventoryVersion: { type: Number, enum: [1], immutable: true },
+  inventoryReservedAt: { type: Date, immutable: true },
   shippingInfoVersion: { type: Number, enum: [1, 2] },
   shippingInfo: require('../utils/shippingSchema')(true),
   orderItems: [

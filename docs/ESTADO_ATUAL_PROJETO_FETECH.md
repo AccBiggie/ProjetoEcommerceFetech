@@ -1,12 +1,18 @@
 # Estado atual — ProjetoEcommerceFetech
 
+FET-ORDER-002: F003/F004 corrigidos para novos pedidos. Reserva condicional e
+trilha StockMovement, pedido RESERVED e idempotência COMPLETED são atômicos.
+API exige Mongo transacional, testes usam replica set isolado e banco real
+permanece intacto. Validação atual: 51/51 focados, 596/596 API, build aprovado,
+28/28 E2E. Mudanças sem commit. [Relatório](RELATORIO_FET_ORDER_002.md).
+
 FET-ORDER-001: criação de pedidos com Idempotency-Key obrigatória e persistência
 MongoDB, hashes canônicos, índices únicos, replay e reconciliação de Order salvo.
 Frontend preserva tentativa entre retries/reload. PROCESSING sem Order falha
-fechado; estoque concorrente e atomicidade entre intents continuam F003/F004.
+fechado. F003/F004 foram tratados pela FET-ORDER-002 com reserva transacional.
 Contrato: [IDEMPOTENCIA_PEDIDOS.md](IDEMPOTENCIA_PEDIDOS.md).
 Validação: 39/39 backend, 9/9 frontend, 545/545 API, build aprovado e 27/27 E2E.
-Banco real não alterado; sem commit nesta entrega. Relatório:
+Banco real não alterado; F005 commitada em `c87c840`. Relatório da entrega anterior:
 [RELATORIO_FET_ORDER_001.md](RELATORIO_FET_ORDER_001.md).
 
 FET-DATA-002: entrega versionada completa, CEP/telefone strings, quantities
@@ -102,9 +108,12 @@ editar/excluir o cadastro não altera snapshots existentes. Falha ao consultar
 os cards permite continuar com preenchimento manual.
 
 Pedidos são criados com pagamento `Pending`, sem cobrança, frete ou impostos
-integrados. Preços são calculados pelo backend. Estoque é descontado na
-transição `Processing -> Shipped`, com compensação em falha, e entrega usa
-`Shipped -> Delivered`. Não reescrever esses contratos sem uma tarefa específica.
+integrados. Novos pedidos reservam disponibilidade em Mongo transaction:
+Product.Stock + StockMovement RESERVE + Order RESERVED + claim COMPLETED.
+O servidor exige replica set/mongos, sem fallback standalone. Shipping não
+desconta novamente; DELETE RESERVED retorna 409. Legados sem inventário
+mantêm o fluxo anterior. Reservas Pending não expiram e aguardam futuro
+pagamento/cancelamento. [Contrato de estoque](ESTOQUE_TRANSACIONAL.md).
 
 SMTP e Cloudinary dependem de credenciais reais; os testes usam substituições
 isoladas. Não há gateway de pagamento, transportadora, frete, rastreamento

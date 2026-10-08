@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
@@ -18,7 +19,7 @@ Object.assign(process.env, { NODE_ENV: 'test', PORT: '4000', TRUST_PROXY_HOPS: '
 
 Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', PORTEMAIL: '', EMAIL_SECURE: '', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 const database = `fetech_routes_${process.pid}_${Date.now()}`;
-process.env.DB_URI = `mongodb://127.0.0.1:27017/${database}`;
+process.env.DB_URI = testUri(database);
 const runtime = require('../backend/config/runtimeConfig');
 runtime.initializeConfig(process.env);
 const mails = [];
@@ -38,7 +39,7 @@ async function request(method, route, body, role = 'user', expected = 200, extra
     return { result, response };
 }
 before(async () => {
-    await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
+    await mongoose.connect(testUri(database));
     data = await fixtures();
     server = http.createServer(app);
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -182,7 +183,7 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
     const payload = { shippingInfo: { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste, 1', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' }, orderItems: [{ product: product.id, quantity: 2, price: 1 }], totalPrice: 1, paymentInfo: { id: 'forged', status: 'succeeded' } };
     await request('POST', '/order/new', payload, 'anonymous', 401, { 'Idempotency-Key': crypto.randomUUID() });
     await request('POST', '/order/new', { ...payload, orderItems: [] }, 'user', 400, { 'Idempotency-Key': crypto.randomUUID() });
-    await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 400, { 'Idempotency-Key': crypto.randomUUID() });
+    await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 409, { 'Idempotency-Key': crypto.randomUUID() });
     await request('POST', '/order/new', { ...payload, orderItems: [{ product: missing, quantity: 1 }] }, 'user', 404, { 'Idempotency-Key': crypto.randomUUID() });
     const order = (await request('POST', '/order/new', payload, 'user', 201, { 'Idempotency-Key': crypto.randomUUID() })).result.order;
     assert.equal(order.totalPriceCents, 20000); assert.equal(order.totalPrice, "200.00"); assert.equal(order.paymentInfo.status, 'Pending'); assert.equal(order.paidAt, undefined);
@@ -201,8 +202,8 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
     assert.equal((await Product.findById(product.id)).Stock, 18);
     assert.ok((await Order.findById(order._id)).deliveredAt);
     await request('PUT', '/admin/order/' + missing, { status: 'Shipped' }, 'admin', 404);
-    await request('DELETE', '/admin/order/' + order._id, null, 'admin');
-    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 404);
+    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 409);
+    await request('DELETE', '/admin/order/' + missing, null, 'admin', 404);
 });
 
 test('logout e conta removida não deixam sessões utilizáveis', async () => {
@@ -216,18 +217,14 @@ test('logout e conta removida não deixam sessões utilizáveis', async () => {
     await request('GET', '/me', null, 'other', 401);
 });
 
-test('envio com falha de estoque restaura os itens anteriores e mantém o pedido', async () => {
-    const [first, second] = data.products.slice(3, 5);
-    const shippingInfo = { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' };
-    const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: first.id, quantity: 2 }, { product: second.id, quantity: 1 }] }, 'user', 201, { 'Idempotency-Key': crypto.randomUUID() })).result.order;
-    await Product.updateOne({ _id: second.id }, { Stock: 0 });
-    await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 400);
-    assert.equal((await Product.findById(first.id)).Stock, 20);
-    assert.equal((await Order.findById(order._id)).orderStatus, 'Processing');
-    await Product.updateOne({ _id: second.id }, { Stock: 20 });
-    await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin');
-    assert.equal((await Product.findById(first.id)).Stock, 18);
-    assert.equal((await Product.findById(second.id)).Stock, 19);
+test('envio de pedido reservado preserva disponibilidade atual, mesmo sem estoque livre', async () => {
+    const [first,second]=data.products.slice(3,5);
+    const shippingInfo={recipientName:'Fixture',number:'1',complement:'',neighborhood:'Centro',address:'Rua Teste',city:'Curitiba',state:'PR',country:'Brasil',pinCode:'01234567',phoneNo:'04123456789'};
+    const order=(await request('POST','/order/new',{shippingInfo,orderItems:[{product:first.id,quantity:2},{product:second.id,quantity:1}]},'user',201,{'Idempotency-Key':crypto.randomUUID()})).result.order;
+    assert.equal((await Product.findById(first.id)).Stock,18);assert.equal((await Product.findById(second.id)).Stock,19);
+    await Product.updateOne({_id:second.id},{Stock:0});
+    await request('PUT','/admin/order/'+order._id,{status:'Shipped'},'admin');
+    assert.equal((await Product.findById(first.id)).Stock,18);assert.equal((await Product.findById(second.id)).Stock,0);
 });
 
 test('categorias: CRUD separado, permissões, parent_id, ciclos e produtos vinculados', async () => {
@@ -383,5 +380,5 @@ test('endereços: editar e excluir cadastro não altera snapshot de pedidos', as
     await request('PUT', '/address/' + address._id, { address: 'Rua alterada', pinCode: '00000001' }, 'addressOwner');
     await request('DELETE', '/address/' + address._id, null, 'addressOwner');
     assert.deepEqual((await request('GET', '/order/' + order._id, null, 'addressOwner')).result.order.shippingInfo, shippingInfo);
-    await request('DELETE', '/admin/order/' + order._id, null, 'admin');
+    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 409);
 });

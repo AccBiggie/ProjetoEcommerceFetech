@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
@@ -6,7 +7,7 @@ const path = require('node:path');
 const { inspectShippingSnapshot, auditShippingSnapshots } = require('../backend/utils/shippingSnapshotAudit');
 const { loadConfig } = require('../backend/config/runtimeConfig');
 const database = `fetech_shipping_audit_${process.pid}_${Date.now()}`;
-const uri = 'mongodb://127.0.0.1:27017/' + database;
+const uri = testUri(database);
 const snapshot = () => ({ recipientName: 'PII_NAME_SENTINEL', address: 'PII_ADDRESS_SENTINEL', number: '10A', complement: '',
     neighborhood: 'Centro', city: 'Curitiba', state: 'PR', country: 'Brasil', pinCode: '01234567', phoneNo: '04123456789' });
 const document = (extra = {}) => ({ _id: new mongoose.Types.ObjectId(), shippingInfo: snapshot(), shippingInfoVersion: 2,

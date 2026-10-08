@@ -102,12 +102,15 @@ nova versão juntos e emitem a sessão atualizada. Login e alteração de role
 não incrementam a versão. JWTs anteriores ao deploy sem versão exigem novo
 login. Consulte [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
 
-O total do pedido e calculado no servidor pelos precos cadastrados, sem
-aceitar o total ou o status de pagamento enviado pelo navegador. O estoque
-e reduzido na transicao `Processing -> Shipped`, com as operacoes aguardadas
-e compensacao se um item falhar. `Shipped -> Delivered` registra a entrega
-sem descontar estoque novamente. Alteracoes concorrentes do mesmo pedido
-usam a verificacao de versao do Mongoose.
+O total do pedido é calculado no servidor em centavos, sem aceitar preços,
+totais ou estado de pagamento/inventário enviados pelo navegador. Novos
+pedidos reservam disponibilidade na criação: Product.Stock, StockMovement
+RESERVE, Order RESERVED e conclusão da idempotência commitam juntos. Estoque
+insuficiente retorna 409 `ORDER_INSUFFICIENT_STOCK`; falha operacional retorna
+503 `ORDER_TRANSACTION_UNAVAILABLE`. PROCESSING/conflito preservam a key.
+O envio desses pedidos não reduz Stock novamente e DELETE físico retorna 409.
+Pedidos legados mantêm o envio anterior. A API exige Mongo transacional;
+detalhes em [docs/ESTOQUE_TRANSACIONAL.md](docs/ESTOQUE_TRANSACIONAL.md).
 
 ## Integracoes externas
 

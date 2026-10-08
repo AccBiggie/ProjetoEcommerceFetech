@@ -1,3 +1,4 @@
+const { testUri } = require('./replicaSetHarness');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
@@ -115,7 +116,7 @@ test('RL-16 cadastro bloqueado não cria conta adicional', async () => {
 test('RL-17 conexões e serviços independentes compartilham storage', async () => {
     const Model = require('../backend/models/authRateLimitModel');
     const { createMongoRateLimitStore } = require('../backend/services/mongoAuthRateLimitStore');
-    const connection = await mongoose.createConnection(`mongodb://127.0.0.1:27017/${h.database}`).asPromise();
+    const connection = await mongoose.createConnection(testUri(h.database)).asPromise();
     try {
         const otherModel = connection.model('AuthRateLimit', Model.schema);
         await otherModel.init();

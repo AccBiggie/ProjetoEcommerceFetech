@@ -1090,3 +1090,28 @@ Validação final: 39/39 backend, 9/9 frontend, 545/545 API, build aprovado,
 Próxima recomendação: **F003 + F004 — reserva/ledger de estoque e atomicidade
 durável entre pedido e estoque**, para overselling/estados parciais.
 Não iniciadas automaticamente.
+
+
+## F003 / FET-P0-003 — Overselling de estoque
+
+**Status: CORRIGIDO.** FET-ORDER-002, 08/10/2026, branch main,
+HEAD base c87c840d99deb8b3220e9a0bd3b831a7e79d75d9. Implementação sem commit nesta entrega.
+Stock representa disponibilidade; reserva usa condição Stock >= quantity e
+$inc dentro de Mongo transaction. Inteiros seguros não negativos, revalidação
+no snapshot e produtos ordenados. Stock=1/duas intents cria um pedido;
+Stock=5/dez intents cria cinco. Replay não reserva novamente.
+
+## F004 / FET-P0-004 — Atomicidade Order/Stock
+
+**Status: CORRIGIDO para novos pedidos transacionais.** Product.Stock,
+StockMovement RESERVE, Order RESERVED e claim COMPLETED commitam/abortam juntos.
+Servidor exige replica set/mongos antes de listen; sem fallback. Testes usam
+Mongo real isolado, falhas em cada etapa, write conflict, commit desconhecido
+e crash de processo. Legados mantêm o fluxo anterior, sem migrar histórico.
+
+Riscos: reservas Pending sem release/commit comercial; F001/F002/F028 abertos;
+guarda DELETE RESERVED não fecha F011. Product legacy inválido exige revisão,
+catalog lifecycle permanece e backup/restore F024 não está validado.
+Referências: [estoque transacional](ESTOQUE_TRANSACIONAL.md) e
+[relatório FET-ORDER-002](RELATORIO_FET_ORDER_002.md).
+Próxima recomendação: F011; não iniciar automaticamente.

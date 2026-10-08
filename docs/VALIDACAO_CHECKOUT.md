@@ -8,7 +8,8 @@ F013 / FET-P1-004 **CORRIGIDO**. Banco comercial não auditado nem alterado.
 Exige sessão válida e CSRF existentes. Valida corpo, array de produtos, entrega
 e todos os itens antes de consultar produtos, calcular centavos ou criar Order.
 Input inválido retorna `400` com `{ "success": false, "message": "..." }`.
-ObjectId válido inexistente continua retornando `404`; estoque insuficiente, `400`.
+ObjectId válido inexistente continua retornando `404`; estoque insuficiente retorna
+`409` com `ORDER_INSUFFICIENT_STOCK` desde a FET-ORDER-002.
 Payload inválido não cria pedidos, altera estoque/endereços/favoritos ou envia e-mail.
 
 ```json
@@ -131,8 +132,8 @@ validar backup/restore F024 e selecionar explicitamente o ambiente.
 ## Verificação e riscos
 
 ```powershell
-node --test ecommerce/tests/checkoutValidation.test.js
-node --test ecommerce/tests/shippingSnapshotAudit.test.js
+node ecommerce/tests/runWithReplicaSet.js --test tests/checkoutValidation.test.js
+node ecommerce/tests/runWithReplicaSet.js --test tests/shippingSnapshotAudit.test.js
 npm.cmd test --prefix ecommerce
 npm.cmd run build --prefix ecommerce/frontend
 npm.cmd run test:e2e --prefix ecommerce
@@ -140,10 +141,11 @@ git diff --check
 ```
 
 Testes em bancos temporários, SMTP substituído. F006/F007/F008/F009/F010/F014/
-F020/F021/F036 preservados. Abertos: F001 pagamento, F003 estoque concorrente,
-F004 atomicidade, F024 backup/restore, F027 frete, F031 storage,
+F020/F021/F036 preservados. F003/F004 agora tratados na FET-ORDER-002.
+Abertos: F001 pagamento, F024 backup/restore, F027 frete, F031 storage,
 F037 Product. Sem dependências/lockfiles/secrets/config.env alterados. Auditoria
 histórica original intacta. Clientes externos precisam do snapshot completo,
 CEP/telefone strings e quantity Number inteiro, além da chave obrigatória de
-idempotência. F005 corrigido na FET-ORDER-001. Próxima recomendação: F003/F004,
-reserva de estoque e atomicidade durável; não iniciadas automaticamente.
+idempotência. F005 corrigido na FET-ORDER-001. Estoque insuficiente agora
+retorna 409, sem pedido parcial. [Reserva transacional](ESTOQUE_TRANSACIONAL.md).
+Próxima recomendação: F011; não iniciada automaticamente.

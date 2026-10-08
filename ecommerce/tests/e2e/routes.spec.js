@@ -396,7 +396,8 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
     .getByRole("dialog")
     .getByRole("button", { name: "Confirmar exclusão" })
     .click();
-  await expect(orderRow).toHaveCount(0);
+  await expect(page.getByRole('alert')).toContainText('Pedido com estoque reservado não pode ser excluído fisicamente.');
+  await expect(orderRow).toHaveCount(1);
 });
 
 test("carrossel atualizado: imagens, controles e título do produto", async ({

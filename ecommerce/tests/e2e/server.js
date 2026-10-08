@@ -1,3 +1,4 @@
+const { testUri } = require('../replicaSetHarness');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -12,20 +13,21 @@ Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: cryp
 // O envio externo é substituído somente neste servidor isolado de testes.
 const resetLinks = {};
 nodemailer.createTransport = () => ({ sendMail: async mail => { resetLinks[mail.to] = mail.text.match(/http[^\s]+\/password\/reset\/[a-f0-9]+/)[0]; } });
-process.env.DB_URI = `mongodb://127.0.0.1:27017/${database}`;
+process.env.DB_URI = testUri(database);
 require('../../backend/config/runtimeConfig').initializeConfig(process.env);
 const app = require('../../backend/app');
 (async () => {
-    await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
+    await mongoose.connect(testUri(database));
     await fixtures();
-    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com']) {
+    await require('../../backend/config/mongoTransactions').requireTransactions();
+    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com']) {
         await require('../../backend/models/userModel').create({ name: 'Cliente Idempotência', email, password, role: 'user',
             avatar: { public_id: 'fixture-avatar', url: '/Profile.png' } });
     }
     await Product.create(productData({ name: 'Teste & / Pesquisa' }));
     await Product.create(productData({ name: 'Produto extra para paginação' }));
     await require('../../backend/utils/categories').migrateLegacyCategories();
-    fs.writeFileSync(path.join(__dirname, '../../.test-state.json'), JSON.stringify({ database }));
+    fs.writeFileSync(path.join(__dirname, '../../.test-state.json'), JSON.stringify({ database, uri: process.env.DB_URI }));
     const server = express();
     let listener;
     server.post('/__test/shutdown', (req, res) => {

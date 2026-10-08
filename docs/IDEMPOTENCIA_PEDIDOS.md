@@ -1,7 +1,7 @@
 # Idempotência persistente de pedidos — FET-ORDER-001
 
 Contrato vigente em 08/10/2026. F005 / FET-P0-005 corrigido para a mesma intenção,
-identificada pela chave e pelo usuário. F003/F004 continuam abertos para intents
+identificada pela chave e pelo usuário. F003/F004 agora têm reserva transacional para intents
 diferentes e atomicidade de estoque. Nenhuma operação desta tarefa usa o banco real.
 
 ## Contrato externo
@@ -92,22 +92,27 @@ futuro deve preparar os índices normalmente, com o procedimento operacional apr
 CSRF/auth precedem o controller. Validação F012/F013, canonicalização e formato
 da key ocorrem antes de writes. Busca técnica permite replay/reconciliação antes
 de consultar preços/estoque atuais. Nova intenção valida produtos, estoque e
-centavos em modo somente leitura; só então adquire claim antes do único write
-comercial atual, Order.create. Criação não desconta Stock nem envia e-mail;
-estoque continua sendo descontado no envio, conforme o fluxo anterior.
+centavos em modo somente leitura; só então adquire claim antes da transação.
+A FET-ORDER-002 reserva Stock e persiste movimentos, Order e COMPLETED na
+mesma Mongo transaction. Não há e-mail ou efeito externo nesse callback.
+Se a preparação falhar depois que outra requisição com a mesma key adquiriu
+a claim ou concluiu o pedido, o serviço consulta novamente a intenção
+persistida e recupera esse Order. Uma corrida de catálogo não encerra a
+tentativa já concluída como falta de estoque.
 
-Owner salva Order com hashes, marca COMPLETED e responde. Duplicatas jamais
+Owner reserva estoque, salva Order com hashes e marca COMPLETED no mesmo commit. Duplicatas jamais
 executam create de novo. PROCESSING usa polling Mongo de 75 ms, até 3 segundos;
 se o Order aparecer nesse período, reconcilia e retorna. Se não aparecer,
 retorna 409/Retry-After 2 mantendo a claim permanentemente bloqueada.
 
-Order salvo + PROCESSING permite reconciliação segura por user/keyHash/requestHash,
-sem repetir efeitos comerciais. Falha ao gravar COMPLETED retorna 503 e deixa
-PROCESSING recuperável pelo Order. Quando create falha, o serviço primeiro procura
-Order para verificar write de resultado ambíguo; se não existe e a verificação
-funciona, tenta marcar FAILED com código fixo ORDER_CREATE_FAILED. Se não consegue
-ler/persistir esse estado, a claim permanece fechada. FAILED nunca é retomado
-automaticamente. Sem Order e com PROCESSING órfão não há takeover por tempo.
+Order salvo + PROCESSING permite reconciliação por user/keyHash/requestHash
+para versões intermediárias, sem repetir efeitos comerciais. Em novos pedidos,
+falha de COMPLETED aborta também Order/Stock/movimentos. Erro operacional
+primeiro consulta persistência; se o resultado não estiver confirmado, mantém
+PROCESSING fechado. Falha de estoque conhecida pode marcar FAILED seguro.
+FAILED não é retomado automaticamente; erro terminal de estoque retorna o
+mesmo código para encerrar a tentativa no frontend. PROCESSING órfão não tem
+takeover por tempo. [Contrato transacional](ESTOQUE_TRANSACIONAL.md).
 
 Mesmo que o pedido seja excluído pelo endpoint administrativo atual, a claim
 concluída permanece e bloqueia recriação. F011 exclusão física continua pendente.
@@ -127,6 +132,9 @@ key. Erro aparece para o usuário, que pode conferir pedidos antes de outra inte
 Sucesso confirmado limpa carrinho e pending attempt. Botão desabilitado e ref
 impedem submit simultâneo local; a garantia de integridade permanece no MongoDB.
 
+`ORDER_INSUFFICIENT_STOCK` encerra somente a tentativa terminal. O carrinho
+permanece; próximo submit explícito gera nova key. Não é tratado como PROCESSING.
+
 Storage técnico não duplica PII nem JWT. Estado inválido/indisponível falha fechado
 sem enviar nova key silenciosamente. Isso não resolve integralmente F031 de
 storage geral. Axios mantém CSRF, cookies e política same-origin; CORS não mudou.
@@ -135,7 +143,7 @@ Respostas privadas, incluindo replay/erros, continuam no-store e sem JWT JSON.
 ## Verificação e limites
 
 ```powershell
-node --test ecommerce/tests/orderIdempotency.test.js
+node ecommerce/tests/runWithReplicaSet.js --test tests/orderIdempotency.test.js
 node --test ecommerce/tests/orderIdempotencyFrontend.test.js
 npm.cmd test --prefix ecommerce
 npm.cmd run build --prefix ecommerce/frontend
@@ -148,10 +156,9 @@ restart lógico, falha de confirmação, FAILED/PROCESSING, replay e privacidade
 E2E cobre duplo submit, perda de resposta após persistência, reload, 5xx/409 e
 mudança de carrinho. Sem dependências, locks ou configs de ambiente novas.
 
-Riscos: PROCESSING órfão sem Order exige futura reconciliação; F003 permite
-disputa de Stock entre intents diferentes; F004 não garante atomicidade durável;
+Riscos: PROCESSING órfão sem Order exige futura reconciliação;
 retenção comercial ainda indefinida (sem TTL nesta tarefa); pagamento terá
 idempotência/webhooks próprios; observabilidade operacional será ampliada.
 F001 pagamento, F011 exclusão física, F024 backup/restore e F027 frete continuam abertos.
-Nenhuma transação/reserva/ledger/gateway foi implementada. Próxima recomendação:
-F003 + F004, sem início automático.
+Transação/reserva/ledger implementados na FET-ORDER-002. Gateway permanece
+ausente. Próxima recomendação: F011, sem início automático.
