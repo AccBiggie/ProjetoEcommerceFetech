@@ -146,7 +146,7 @@ test("cadastro, alteração de senha, recuperação e redefinição pelo link", 
   await page.goto("/password/forgot");
   await page.getByRole("textbox", { name: "E-mail", exact: true }).fill(email);
   await page.locator(".forgotPasswordBtn").click();
-  await expect(page.getByRole("alert")).toContainText("Email send to");
+  await expect(page.getByRole("alert")).toContainText("Se existir uma conta associada a este e-mail, enviaremos as instruções para redefinição de senha.");
   const reset = await (
     await request.get("/__test/reset-link?email=" + encodeURIComponent(email))
   ).json();

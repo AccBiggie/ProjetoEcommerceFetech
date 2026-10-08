@@ -149,3 +149,42 @@ Validação de FET-SEC-001 em 07/10/2026: 28 testes focados de sessão,
 41 testes da API, build e 19 fluxos E2E aprovados. Os comandos anteriores
 permanecem válidos; `npm.cmd test` inclui `tests/auth.test.js` automaticamente.
 Registro da remediação: [docs/PLANO_MELHORIAS_FETECH.md](docs/PLANO_MELHORIAS_FETECH.md).
+
+## Rate limiting de autenticação — FET-SEC-002
+
+`POST /login`, `POST /password/forgot`, `PUT /password/reset/:token` e
+`POST /register` possuem quotas temporárias persistidas em MongoDB.
+Ao exceder um limite: **429**, mensagem genérica e header `Retry-After`.
+Indisponibilidade do limiter: **503**, sem fallback em memória.
+O gate precede consulta de senha/bcrypt, geração de recuperação/SMTP e cadastro.
+Login considera IP, conta e conta+IP; sucesso limpa falhas da conta/conta+IP,
+preservando o histórico de IP. Logout e rotas admin não recebem essas quotas.
+Políticas e índices: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
+F009 foi corrigido em FET-SEC-003: solicitações permitidas de recuperação
+retornam o contrato genérico abaixo, independentemente de existência da conta
+ou falha SMTP. Rate limit continua 429; falhas estruturais seguem o middleware.
+
+Validação final: 35 testes focados do limiter, 76 testes da API (incluindo
+28 testes JWT), build e 19 E2E aprovados. `node --test ecommerce/tests/rateLimit.test.js`
+executa os cenários distribuídos, concorrência, spoof, expiração e falhas de storage.
+
+## Recuperação sem enumeração — FET-SEC-003
+
+`POST /api/v1/password/forgot`, body `{ "email": "cliente@example.test" }`:
+
+```json
+{
+  "success": true,
+  "message": "Se existir uma conta associada a este e-mail, enviaremos as instruções para redefinição de senha."
+}
+```
+
+HTTP 200 não confirma existência ou envio. Conta inexistente não cria User/token
+nem chama SMTP. Sucesso mantém hash SHA-256 e validade de 15 minutos; falha SMTP
+remove hash/expiração condicionando a limpeza ao token daquela solicitação.
+Bloqueio 429 inclui `Retry-After` e impede geração/envio. Indisponibilidade do
+limiter continua 503; erros estruturais não são mascarados como sucesso.
+Piso assíncrono opcional `AUTH_FORGOT_MIN_RESPONSE_MS=300` aplicado após o gate;
+testes usam 20 ms. SMTP lento pode ultrapassar o piso; outbox permanece em F040.
+Validação atual: 25 testes focados de recuperação, 101 testes API,
+build aprovado e 19 fluxos E2E aprovados.

@@ -6,7 +6,7 @@ const newPassword = 'TemporarySession123!';
 let user, cookie;
 before(h.start);
 after(h.stop);
-beforeEach(async () => { user = await h.createUser(); cookie = await h.login(user); });
+beforeEach(async () => { await h.clearRateLimits(); user = await h.createUser(); cookie = await h.login(user); });
 const me = (session, expected = 200) => h.request('GET', '/me', null, session, expected);
 const logout = session => h.request('GET', '/logout', null, session, 200);
 const version = async () => (await h.User.findById(user.id)).tokenVersion;
@@ -172,7 +172,7 @@ test('TEST-26 recuperação preserva SHA-256, expiração e limpeza quando SMTP 
     await h.User.updateOne({ _id: user.id }, { resetPasswordExpire: new Date(Date.now() - 1000) });
     await h.request('PUT', '/password/reset/' + token, { password: newPassword, confirmPassword: newPassword }, null, 400);
     h.setTransportFailure(true);
-    try { await h.request('POST', '/password/forgot', { email: user.email }, null, 503); }
+    try { await h.request('POST', '/password/forgot', { email: user.email }, null, 200); }
     finally { h.setTransportFailure(false); }
     const cleared = await h.User.findById(user.id);
     assert.equal(cleared.resetPasswordToken, undefined); assert.equal(cleared.resetPasswordExpire, undefined);

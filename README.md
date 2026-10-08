@@ -11,6 +11,14 @@ JWTs antigos sem versão são rejeitados e exigem novo login após o deploy.
 Política, concorrência, compatibilidade e testes: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
 Remediações pós-auditoria: [docs/PLANO_MELHORIAS_FETECH.md](docs/PLANO_MELHORIAS_FETECH.md).
 
+Login, recuperação, reset e cadastro possuem rate limiting compartilhado no
+MongoDB, com limites temporários por IP/conta, HTTP 429 e `Retry-After`.
+As chaves são derivadas por HMAC; o backend não confia automaticamente em
+`X-Forwarded-For`. F009 foi corrigido: recuperação retorna 200 e mensagem genérica
+para conta existente, inexistente e falha SMTP; falha de envio limpa o token.
+`AUTH_FORGOT_MIN_RESPONSE_MS` é opcional (300 ms por padrão), reduz diferenças
+triviais de tempo; latência SMTP externa permanece um risco residual para F040.
+
 O layout responsivo e os componentes Material UI estao documentados em
 [FRONTEND.md](FRONTEND.md).
 

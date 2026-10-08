@@ -11,6 +11,7 @@ Object.assign(process.env, {
     JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7',
     FRONTEND_URL: 'http://127.0.0.1:3300', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test',
     PORTEMAIL: '587', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '',
+    AUTH_FORGOT_MIN_RESPONSE_MS: process.env.AUTH_FORGOT_MIN_RESPONSE_MS ?? '20',
 });
 const mails = [];
 let transportFailure = false;
@@ -25,6 +26,7 @@ let server, base, sequence = 0;
 async function start() {
     await mongoose.connect(`mongodb://127.0.0.1:27017/${database}`);
     await User.init();
+    if (mongoose.models.AuthRateLimit) await mongoose.models.AuthRateLimit.init();
     server = http.createServer(app);
     await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
     base = `http://127.0.0.1:${server.address().port}/api/v1`;
@@ -40,8 +42,8 @@ async function stop() {
         } finally { await mongoose.disconnect(); }
     }
 }
-async function request(method, route, body, cookie, expected) {
-    const headers = {};
+async function request(method, route, body, cookie, expected, extraHeaders = {}) {
+    const headers = { ...extraHeaders };
     if (cookie) headers.Cookie = cookie;
     if (body) headers['Content-Type'] = 'application/json';
     const response = await fetch(base + route, { method, headers, body: body ? JSON.stringify(body) : undefined,
@@ -72,4 +74,7 @@ async function recoveryToken(user) {
     return match[1];
 }
 module.exports = { start, stop, request, cookieOf, createUser, login, signedCookie, recoveryToken,
-    User, jwt, password, database, setTransportFailure: value => { transportFailure = value; } };
+    User, jwt, password, database, setTransportFailure: value => { transportFailure = value; },
+    mailCount: () => mails.length,
+    clearRateLimits: () => mongoose.connection.collection('authratelimits').deleteMany({}),
+};

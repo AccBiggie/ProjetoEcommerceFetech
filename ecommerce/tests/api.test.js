@@ -14,7 +14,7 @@ const Category = require('../backend/models/categoryModel');
 const Address = require('../backend/models/addressModel');
 const { migrateLegacyCategories } = require('../backend/utils/categories');
 
-Object.assign(process.env, { JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
+Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 const database = `fetech_routes_${process.pid}_${Date.now()}`;
 const mails = [];
 let transportFailure = false;
@@ -100,9 +100,9 @@ test('conta: cadastro sem foto, avatar opcional, login, perfil e alteração de 
     await request('POST', '/login', { email: data.users.user.email.toUpperCase(), password: 'NovaSenha123!' }, 'anonymous');
 });
 
-test('recuperação: envio, token, expiração e falha de integração sem falso sucesso', async () => {
-    await request('POST', '/password/forgot', { email: 'missing@routes.example.com' }, 'anonymous', 404);
-    await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous', 503);
+test('recuperação: contrato genérico, token, expiração e limpeza em falha SMTP', async () => {
+    await request('POST', '/password/forgot', { email: 'missing@routes.example.com' }, 'anonymous', 200);
+    await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous', 200);
     assert.equal((await User.findById(data.users.other._id)).resetPasswordToken, undefined);
     Object.assign(process.env, { HOST: 'smtp.test', USER: 'test', PASSWORD: 'test', PORTEMAIL: '587' });
     await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous');
@@ -118,7 +118,7 @@ test('recuperação: envio, token, expiração e falha de integração sem falso
     const user = await User.findById(data.users.other._id); const expiredToken = user.getResetPasswordToken(); user.resetPasswordExpire = Date.now() - 1000; await user.save();
     await request('PUT', '/password/reset/' + expiredToken, { password, confirmPassword: password }, 'anonymous', 400);
     transportFailure = true;
-    await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous', 503);
+    await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous', 200);
     assert.equal((await User.findById(data.users.other._id)).resetPasswordToken, undefined);
     transportFailure = false;
 });

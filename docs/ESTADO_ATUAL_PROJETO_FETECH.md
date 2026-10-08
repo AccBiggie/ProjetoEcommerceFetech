@@ -17,9 +17,19 @@ troca/reset salvam senha e versão juntas e emitem novo JWT. Replay de logout
 antigo e logouts simultâneos não derrubam sessões posteriores. Usuários antigos
 sem campo persistido usam default zero, sem backfill obrigatório; tokens antigos
 sem claim são rejeitados e exigem novo login após deploy. Sessões por dispositivo,
-rate limiting, Secure cookie, MFA e hardening HTTP/CSRF continuam pendentes.
+Secure cookie, MFA e hardening HTTP/CSRF continuam pendentes.
 Detalhes em [AUTENTICACAO.md](AUTENTICACAO.md) e
 [PLANO_MELHORIAS_FETECH.md](PLANO_MELHORIAS_FETECH.md).
+
+FET-SEC-002 adiciona rate limiting distribuído em `authratelimits`, MongoDB:
+login por IP/conta/conta+IP, recuperação por IP/conta, reset e cadastro por IP.
+Políticas centralizadas, HMAC para chaves, reservas atômicas antes de bcrypt,
+expiração lógica, TTL e 429 com `Retry-After`. Não há Redis, fallback em memória,
+lock permanente ou confiança automática em X-Forwarded-For. Falha do limiter
+retorna 503. F006 permanece protegido; F009 foi corrigido em FET-SEC-003.
+Recuperação responde 200 genérico para conta existente/inexistente e falha SMTP,
+limpa token não enviado e usa piso temporal assíncrono opcional de 300 ms.
+SMTP externo ainda pode variar o tempo; F040 tratará outbox/processamento assíncrono.
 
 Desenvolvimento local: frontend `http://localhost:3000`, API em
 `127.0.0.1:4000/api/v1` e MongoDB em `127.0.0.1:27017`, banco `fetech`.
@@ -89,7 +99,7 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 41 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 101 testes da
 API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
@@ -101,5 +111,40 @@ da API, build aprovado e 19/19 E2E**. Testes e probes executados exclusivamente
 em bancos temporários com teardown; banco real não alterado. JWTs antigos
 sem versão exigirão novo login quando a nova API for iniciada.
 
+Resultado final de FET-SEC-002 em 07/10/2026: **35/35 testes focados do
+limiter, 76/76 testes da API, build aprovado e 19/19 E2E**. F006 permanece
+corrigido e F008 foi remediado. Nesse registro, F009 ainda estava aberto. As alterações desta task
+permanecem no worktree; carregar a implementação exige reiniciar a API.
+
 Documentos complementares: `README.md`, `COMANDOS.md`, `ROTAS.md`, `FRONTEND.md`,
 `DEPENDENCIAS.md` e `docs/ENDERECOS.md`.
+
+## Recuperação sem enumeração — FET-SEC-003
+
+F009 / FET-P1-001 corrigido em 07/10/2026. Contrato de `POST /password/forgot`:
+HTTP 200, `{success:true,message:"Se existir uma conta associada a este e-mail,
+enviaremos as instruções para redefinição de senha."}` para existente,
+inexistente e SMTP ausente/falho. Não confirma envio ou existência. Inexistente
+não cria conta/recuperação nem envia e-mail. Falha de envio limpa hash/expiração
+com condição pelo hash gerado, registra apenas evento constante seguro e mantém
+resposta genérica. Falhas estruturais seguem middleware; limiter indisponível
+permanece 503. Quota excedida continua 429 com Retry-After antes do controller.
+
+Piso opcional `AUTH_FORGOT_MIN_RESPONSE_MS`, default 300 ms, 20 ms nos testes.
+Timer assíncrono com relógio monotônico, sem busy-wait. SMTP externo lento pode
+ultrapassar o piso; processamento assíncrono/outbox continua reservado a F040.
+Forgots concorrentes ainda podem substituir links anteriores; limpeza antiga
+não apaga token mais recente. A UI existente apresenta a mensagem genérica e
+mantém 429/erros globais. Revogação JWT e reset single-use permanecem protegidos.
+
+Validação: 25/25 testes focados, 101/101 API, build aprovado e 19/19 E2E. Probes finais
+retornaram corpos/status iguais; token limpo em falha; sexta tentativa 429.
+Timing local com cinco amostras por caso: medianas 325,94 ms (existente) e
+325,51 ms (inexistente). Isso não comprova resistência absoluta a timing attacks
+em produção. Banco real não alterado, nenhum e-mail real enviado, configuração
+real preservada e auditoria histórica não alterada. Mudanças de F008 preservadas;
+F008/F009 continuam no worktree sem novo commit. Carregar o novo código exige
+reiniciar a API; processos antigos não foram reiniciados nesta task.
+
+Próxima task recomendada: F010 / FET-P1-002, proteção do último administrador,
+autoexclusão/autorrebaixamento e bootstrap seguro; não iniciada automaticamente.
