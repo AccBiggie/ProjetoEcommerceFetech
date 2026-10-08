@@ -1,5 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { password, categories, productData } = require("../fixtures");
+const { installSecurityChecks, mutation } = require('./securityChecks');
+installSecurityChecks(test, expect);
 
 async function assertSessionResponse(response) {
   const body = await response.json();
@@ -135,7 +137,12 @@ test("rotas privadas, login incorreto, retorno ao destino e restrição do dashb
     cookie.sameSite === "Lax" && cookie.path === "/")).toBe(true);
   await assertBrowserSessionPrivacy(page);
   await page.getByRole("button", { name: "Minha conta" }).click();
+  const logoutResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/logout');
   await page.getByRole("menuitem", { name: "Sair", exact: true }).click();
+  const logoutReply = await logoutResponse;
+  expect(logoutReply.request().method()).toBe('POST');
+  expect(logoutReply.request().headers()['x-fetech-csrf']).toBe('1');
+  expect((logoutReply.headers()['cache-control'] || '').includes('no-store')).toBe(true);
   await expect(page.getByRole("button", { name: "Minha conta" })).toHaveCount(
     0,
   );
@@ -354,7 +361,7 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   await expect(role).toHaveValue("user");
   const products = await (await page.request.get("/api/v1/products")).json();
   const createdOrder = await (
-    await page.request.post("/api/v1/order/new", {
+    await mutation(page, "post", "/api/v1/order/new", {
       data: {
         shippingInfo: {
           address: "Rua Admin",
@@ -389,7 +396,7 @@ test("carrossel atualizado: imagens, controles e título do produto", async ({
   page,
 }) => {
   await login(page, "admin@routes.example.com");
-  const response = await page.request.post("/api/v1/product/new", {
+  const response = await mutation(page, "post", "/api/v1/product/new", {
     data: productData({
       name: "Produto com duas imagens",
       images: [
@@ -418,7 +425,7 @@ test("carrossel atualizado: imagens, controles e título do produto", async ({
     ).toBeDisabled();
   } finally {
     expect(
-      (await page.request.delete("/api/v1/product/" + product._id)).status(),
+      (await mutation(page, "delete", "/api/v1/product/" + product._id)).status(),
     ).toBe(200);
   }
 });
@@ -482,7 +489,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   await expect(page.locator(".productName")).toHaveText("Produto da subcategoria E2E");
   const products = await (await page.request.get(`/api/v1/products?category=${child._id}`)).json();
   expect(products.products[0].category).toBe("Subcategoria E2E editada");
-  expect((await page.request.delete(`/api/v1/product/${products.products[0]._id}`)).status()).toBe(200);
+  expect((await mutation(page, "delete", `/api/v1/product/${products.products[0]._id}`)).status()).toBe(200);
   await page.goto("/dashboard");
   await page.getByRole("tab", { name: "Categorias", exact: true }).click();
   await editedRow.getByRole("button", { name: "Excluir", exact: true }).click();

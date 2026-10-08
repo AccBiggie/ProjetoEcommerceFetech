@@ -59,7 +59,8 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | GET | `/products`, `/product/:id`, `/reviews?id=:productId` | Publico |
 | POST | `/register`, `/login`, `/password/forgot` | Publico |
 | PUT | `/password/reset/:token` | Token de recuperacao valido |
-| GET | `/logout` | Revoga a versão JWT corrente e expira cookie; idempotente para sessão inválida |
+| POST | `/logout` | Exige proteção CSRF; revoga versão JWT e expira cookie; idempotente para sessão inválida |
+| GET | `/logout` | 405, Allow: POST, sem alteração de sessão/cookie |
 | GET | `/me` | Autenticado |
 | PUT | `/me/update`, `/password/update` | Autenticado |
 | PUT | `/review` | Autenticado; uma avaliacao por usuario/produto |
@@ -215,7 +216,7 @@ Contrato, lock e procedimento: [docs/ADMINISTRACAO.md](docs/ADMINISTRACAO.md).
 Cadastro, login, atualização e reset de senha emitem `token` pela mesma política:
 HttpOnly, SameSite=Lax, Path=/, sem Domain e duração COOKIE_EXPIRE em dias.
 Secure obrigatório em NODE_ENV=production; falso em development/test.
-GET `/api/v1/logout` mantém revogação F006 e limpa cookie com mesmos atributos,
+POST `/api/v1/logout` mantém revogação F006 e limpa cookie com mesmos atributos,
 expiração passada e valor vazio. Métodos mantidos; JWT no JSON foi removido
 posteriormente pela FET-SEC-006 abaixo.
 TRUST_PROXY_HOPS ausente/0 mantém req.ip imune a spoof de X-Forwarded-For;
@@ -243,3 +244,22 @@ Catálogo público não recebe no-store por essa regra, mesmo com cookie; ETag
 preservado. Forgot mantém contrato F009. Frontend oficial funciona por cookie;
 clientes externos dependentes de body.token precisam atualizar. Sessões
 existentes não são revogadas apenas pela remoção do campo.
+
+## Hardening HTTP e CSRF — FET-SEC-007
+
+POST/PUT/PATCH/DELETE sob `/api/v1` exigem `X-Fetech-CSRF: 1`, inclusive
+login/register/forgot/reset e multipart. Origin presente precisa corresponder
+exatamente à allowlist; sem Origin usa origin do Referer. Sem ambos, cliente
+HTTP com header correto pode prosseguir. Sec-Fetch-Site presente aceita somente
+same-origin/none; cross-site/same-site/inválido retorna 403 genérico/no-store,
+sem controller, cookie, bcrypt ou consumo do limiter. GET/HEAD/OPTIONS não
+exigem CSRF. Rota desconhecida insegura sem proteção: 403 antes de 404.
+
+Logout POST preserva 200/message/no-store/revogação; GET retorna 405/Allow: POST,
+sem limpar cookie ou alterar banco. Frontend migrou para POST e interceptor
+Axios envia header nas mutações API same-origin. Clientes externos devem adaptar.
+
+Helmet na API fornece CSP restritiva, nosniff, framing DENY e Referrer Policy.
+Build funciona sob CSP própria no host E2E; hosting/TLS/HSTS reais não implantados.
+FRONTEND_URL em produção exige HTTPS explícito válido e falha startup se ausente/
+inválido. Configuração, headers/CSP exatos e limites: [SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md).

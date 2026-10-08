@@ -1,6 +1,6 @@
 # Autenticação e revogação JWT
 
-Atualização FET-SEC-001 a FET-SEC-006 em 08/10/2026. A autenticação continua usando JWT
+Atualização FET-SEC-001 a FET-SEC-007 em 08/10/2026. A autenticação continua usando JWT
 assinado no cookie `token` HttpOnly; o frontend não armazena o JWT em Redux,
 localStorage ou sessionStorage. A resposta JSON não contém JWT: o navegador
 transporta a sessão somente pelo cookie HttpOnly.
@@ -23,7 +23,7 @@ administrativo (403).
 
 | Evento | Persistência e sessão resultante |
 | --- | --- |
-| `GET /api/v1/logout` | Incremento atômico condicionado ao ID e à versão do JWT; expira cookie e mantém HTTP 200 para sessão ausente/inválida/revogada. |
+| `POST /api/v1/logout` | Exige CSRF; incremento condicionado ao ID e à versão JWT, limpa cookie; 200 idempotente para sessão ausente/inválida/revogada. GET retorna 405/Allow: POST sem mutar. |
 | `PUT /api/v1/password/update` | Valida senha atual/nova, salva senha e versão incrementada no mesmo documento e emite JWT atualizado. |
 | `PUT /api/v1/password/reset/:token` | Valida recuperação, salva senha/versão, remove hash e expiração e emite JWT atualizado. |
 
@@ -170,10 +170,10 @@ sem aguardar exclusão física. Referência: [TTL do MongoDB](https://www.mongod
 
 F009 foi corrigido quanto a status, corpo e headers públicos. Latência SMTP
 externa ainda pode introduzir variação temporal além do piso configurado.
-MFA, implantação de HTTPS, hardening HTTP/CSRF e CAPTCHA
+MFA, implantação de HTTPS e CAPTCHA
 dependem de tarefas próprias. Proxy definitivo, capacidade/disponibilidade do
 MongoDB, alertas e observabilidade completa também exigem validação operacional.
-`GET /logout` permanece GET. Estas remediações não alteram pedidos, estoque
+Logout usa POST protegido; GET retorna 405. Estas remediações não alteram pedidos, estoque
 ou pagamento. O relatório histórico da auditoria não foi editado.
 
 ## Recuperação sem enumeração — F009 / FET-P1-001
@@ -214,7 +214,8 @@ absoluta a timing attacks. F040 tratará processamento assíncrono/outbox.
 Forgots concorrentes ainda podem substituir tokens (último save prevalece),
 inclusive tornando um link enviado anteriormente inválido. Não foi redesenhado
 esse fluxo; limpeza condicionada evita apagar uma recuperação mais recente.
-Observabilidade completa, MFA e hardening HTTP/CSRF continuam pendentes.
+Observabilidade completa e MFA continuam pendentes; hardening HTTP/CSRF está
+implementado no código pela FET-SEC-007.
 
 ## Administração — FET-SEC-004
 
@@ -278,10 +279,9 @@ replay, default anti-spoof, hops e regressões F006/F008/F009/F010. E2E confere
 HttpOnly/SameSite/Path e remoção efetiva no navegador em HTTP de teste.
 Reiniciar todas as instâncias da API para carregar a política nova.
 
-F021 foi posteriormente corrigido pela FET-SEC-006 abaixo. F020 (headers/CSRF),
-F023 (deployment/TLS) e F036 (validação completa de env) permanecem abertos.
-HSTS/Helmet/CSP, CSRF explícito e MFA não foram implementados. Config.env,
-banco real e auditoria histórica foram preservados.
+F021 foi corrigido pela FET-SEC-006 e F020 no código pela FET-SEC-007.
+F023 (deployment/TLS), F036 (env completo), HSTS real e MFA permanecem pendentes.
+Config.env, banco real e auditoria histórica foram preservados.
 
 ## Respostas privadas — FET-SEC-006 / F021
 
@@ -342,7 +342,23 @@ precisam migrar para cookie. JWT/cookie/tokenVersion e sessões existentes não
 mudam apenas por esta task; não exige logout global. Reiniciar todas as APIs
 para carregar a política; nenhuma instância real foi reiniciada nesta execução.
 
-F020 (CSRF/Origin/Helmet/CSP/logout POST), F023 (TLS/proxy/CDN real), F025
-(observabilidade/redaction completa) e F036 (env completo) permanecem abertos.
+F020 foi posteriormente implementado no código pela FET-SEC-007. F023
+(TLS/proxy/CDN real), F025 (observabilidade/redaction) e F036 (env completo) permanecem abertos.
 Cache/headers precisam ser validados no proxy/CDN de staging quando implantados.
-Próxima task recomendada: F020; não iniciada automaticamente.
+Próxima task recomendada após FET-SEC-007: F036; não iniciada automaticamente.
+
+## Hardening HTTP e CSRF — FET-SEC-007
+
+Helmet/CSP protegem API; CSP própria protege documento/estático do host E2E.
+HSTS/hosting real dependem da F023. POST/PUT/PATCH/DELETE sob /api/v1 exigem
+X-Fetech-CSRF: 1 antes de parsers/limiter/controllers. Header público fixo,
+sem JWT/segredo. Origin exata, fallback Referer e Fetch Metadata reforçam o gate;
+origens hostis/null/malformadas e metadata cross-site/same-site são rejeitados.
+Sem Origin/Referer, clientes não-browser com header correto continuam suportados.
+
+Logout POST protegido preserva F006/F007/F021. GET/HEAD retornam 405 sem
+revogar/limpar cookie; POST inválido retorna 403 e mantém sessão. Frontend
+envia header pelo interceptor Axios e migrou logout para POST. Body.token
+continua ausente, no-store privado/cookie Secure/HttpOnly/Lax intactos.
+FRONTEND_URL deve ser HTTPS explícito válido em produção; erro falha startup.
+Políticas, configuração, compatibilidade e CSP exatas: [SEGURANCA_HTTP.md](SEGURANCA_HTTP.md).

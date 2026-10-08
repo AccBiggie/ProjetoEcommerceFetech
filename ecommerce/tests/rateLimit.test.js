@@ -137,7 +137,7 @@ test('RL-18 chave única, expiresAt e TTL estão presentes', async () => {
     assert.ok(doc.expiresAt instanceof Date); assert.ok(doc.windowStartedAt instanceof Date);
 });
 test('RL-19 bloqueio de login não interfere no logout nem na revogação F006', async () => {
-    await failures(); await h.request('GET', '/logout', null, cookie, 200);
+    await failures(); await h.request('POST', '/logout', null, cookie, 200);
     await h.request('GET', '/me', null, cookie, 401);
 });
 test('RL-20 troca de senha continua revogando JWT antigo', async () => {

@@ -847,3 +847,149 @@ no-store em staging. Nunca registrar JWT/cookie/senha/reset token em logs/traces
 Próxima task: **F020 / FET-P1-009 — hardening HTTP com Helmet/CSP, proteção
 explícita contra CSRF/Origin e migração segura do logout GET para POST.**
 Não iniciada automaticamente.
+
+## F020 / FET-P1-009 — Hardening HTTP e CSRF
+
+**Status: CORRIGIDO NO CÓDIGO — FET-SEC-007, 08/10/2026.**
+
+Baseline factual main, HEAD inicial/final
+`099e7766802248e617656b0f2fbdfc0849626cde`, worktree inicialmente limpo;
+F021 commitada, remediações anteriores preservadas. SEC-007 sem commit.
+API baseline 210/210, 24,988 s. Probe anterior: CSP/nosniff/frame/referrer ausentes;
+login sem proteção/com Origin hostil/metadata cross-site retornava 200 e emitia
+cookie. GET logout retornava 200, limpava cookie e JWT passava a retornar 401.
+Test-first: 50 casos, 38 falhas/12 passes antes da correção.
+
+Helmet 8.3.0 consultado no npm, Node >=18 compatível com Node 24/Express 5;
+única dependência nova, somente manifest/lockfile backend. Nenhum upgrade
+incidental; não executado audit fix. Headers/CSP centralizados em securityHeaders:
+API default-src/base-uri/form-action/frame-ancestors none, nosniff, DENY,
+Referrer Policy strict-origin-when-cross-origin, COOP/CORP same-origin.
+HSTS e upgrade HTTPS desabilitados nesta fase até F023; COEP não habilitado.
+
+Frontend build usa CSP distinta aplicada no host estático E2E; scripts self sem
+unsafe-inline/eval, estilos self/unsafe-inline para MUI/Emotion, imagens self/
+data/blob/https, connect self, object/frame none. Não é deployment produtivo.
+Referência e políticas exatas: [SEGURANCA_HTTP.md](SEGURANCA_HTTP.md) e
+[documentação oficial do Helmet](https://helmet.js.org/).
+
+CSRF antes de parsers/uploads/limiter/controllers em /api/v1: header público
+X-Fetech-CSRF: 1 em POST/PUT/PATCH/DELETE. Origin normalizada exata e fallback
+Referer; sem ambos cliente HTTP com header correto pode prosseguir. Fetch
+Metadata presente aceita same-origin/none; cross-site/same-site/inválido 403.
+Sem wildcard/Host confiado/CORS permissivo/bypass de teste/JWT no header.
+FRONTEND_URL production explícita HTTPS, válida/sem credenciais/wildcard;
+falha startup em erro, sem valor exposto. Dev/test permitem duas origins locais
+porta 3000 e origin explícita. Não é validação completa de env (F036).
+
+Frontend interceptor Axios padrão antes da renderização cobre actions/dashboard/
+categorias/reviews/endereços/checkout e demais consumidores atuais. Apenas
+mutações API same-origin recebem header; sem Bearer ou segredo. Logout migrou
+para POST. GET/HEAD 405/Allow POST sem DB/cookie/revogação; POST inválido 403
+preserva sessão, válido mantém 200/revogação/limpeza/no-store. Clientes externos
+precisam adaptar método/header; sessões não revogadas por deploy desta mudança.
+
+### Testes permanentes adicionados
+
+`ecommerce/tests/httpSecurity.test.js`:
+
+| ID | Garantia |
+| --- | --- |
+| HTTP-01 | Nosniff e remoção X-Powered-By |
+| HTTP-02 | CSP API restritiva |
+| HTTP-03 | Frame DENY |
+| HTTP-04 | Referrer Policy |
+| HTTP-05 | POST sem header 403 |
+| HTTP-06 | Header correto permite fluxo normal |
+| HTTP-07 | Valores incorretos 403 |
+| HTTP-08 | Origin cross-site 403 |
+| HTTP-09 | Origin configurada permitida |
+| HTTP-10 | Ataque prefixo rejeitado |
+| HTTP-11 | Ataque sufixo rejeitado |
+| HTTP-12 | Origin null rejeitada |
+| HTTP-13 | Origin malformada 403, sem 500 |
+| HTTP-14 | Referer permitido fallback |
+| HTTP-15 | Referer hostil 403 |
+| HTTP-16 | Sem Origin/Referer com header permitido |
+| HTTP-17 | Fetch Metadata cross-site 403 |
+| HTTP-18 | GET público sem CSRF/cache preservado |
+| HTTP-19 | GET privado sem CSRF/no-store |
+| HTTP-20 | Login browser same-origin/cookie/no-store |
+| HTTP-21 | Login cross-site não emite cookie |
+| HTTP-22 | Cadastro cross-site não cria User |
+| HTTP-23 | Forgot cross-site sem SMTP/token |
+| HTTP-24 | Reset cross-site não altera senha/versão/token |
+| HTTP-25 | Endereço cross-site não grava |
+| HTTP-26 | Pedido cross-site não grava |
+| HTTP-27 | Admin cross-site não altera role/categoria/produto |
+| HTTP-28 | GET logout 405 sem mutação |
+| HTTP-29 | POST logout sem header preserva sessão |
+| HTTP-30 | POST logout cross-site preserva sessão |
+| HTTP-31 | POST válido revoga, limpa, no-store/replay 401 |
+| HTTP-32 | POST logout sem cookie idempotente |
+| HTTP-33 | Logout antigo preserva sessão nova |
+| HTTP-34 | Cookie de produção F007 |
+| HTTP-35 | Limiter F008 429/Retry-After |
+| HTTP-36 | Rejeição antes de bcrypt |
+| HTTP-37 | Rejeição não consome limiter |
+| HTTP-38 | Recuperação uniforme F009 |
+| HTTP-39 | Autoações F010 sem mascarar regra |
+| HTTP-40 | Login sem JWT JSON/no-store F021 |
+| HTTP-41 | OPTIONS sem gate/CORS hostil não liberado |
+| HTTP-42 | Todos os métodos inseguros/multipart protegidos |
+| HTTP-43 | Path/credenciais/protocolo/porta distintos rejeitados |
+| HTTP-44 | Same-site/metadata inválido rejeitado, none permitido |
+| HTTP-45 | Produção inválida falha startup, sem secrets |
+| HTTP-46 | Allowlists explícitas por ambiente |
+| HTTP-47 | HEAD logout não muta |
+| HTTP-48 | API desconhecida passa pelo gate |
+| HTTP-49 | Host/headers encaminhados não definem allowlist |
+| HTTP-50 | Origin precede Referer, fallback inválido/HSTS local |
+
+E2E novo: headers/CSP do host build e estilos Emotion funcionais; produto com
+imagem HTTPS fixture e requests API same-origin. Suítes existentes ampliadas:
+logout POST/header/no-store e todas as mutações UI com header real, sem injeção
+Playwright de CSRF; captura violações CSP por directives/booleanos, sem blockedURI.
+Preparação HTTP de fixtures usa helper próprio, separado de requests da UI.
+
+### Validação e probes
+
+| Comando | Resultado |
+| --- | --- |
+| `node --test ecommerce/tests/httpSecurity.test.js` | 50/50, 14,134 s |
+| `npm.cmd test --prefix ecommerce` | 260/260, 26,068 s |
+| `npm.cmd run build --prefix ecommerce/frontend` | Aprovado, Vite 829 ms |
+| `npm.cmd run test:e2e --prefix ecommerce` | 21/21, 1,8 min, CSP ativa |
+| `npm.cmd audit --prefix ecommerce --cache .local/npm-cache` | 0 vulnerabilidades em todas as severidades |
+
+Primeiro E2E interrompido por sintaxe no teste novo; corrigida chave ausente,
+limpeza explícita do banco temporário e nova execução. Primeiro foco após
+implementação tinha falha do harness ao parsear OPTIONS textual como JSON;
+harness agora respeita Content-Type. Nenhuma garantia antiga enfraquecida.
+
+Probes finais omitindo JWT: headers API presentes; sem CSRF 403 sem cookie;
+Origin hostil 403; metadata cross-site 403; same-origin 200 sem JWT JSON/no-store.
+GET logout 405/Allow POST/cookie intacto, JWT continua 200. POST sem header 403,
+JWT continua 200. POST válido 200/cookie vazio/no-store, replay 401.
+Origem de teste explícita 127.0.0.1:3300; nenhum TLS/proxy real implantado.
+
+Probe estático adicional sem banco retirou unsafe-inline de style-src no mesmo
+build: bloqueios style-src-elem, três tags Emotion. Exceção necessária ao estilo
+atual, sem relaxar script-src. E2E final com política escolhida não teve violações.
+
+F006/F007/F008/F009/F010/F021 **CONTINUAM CORRIGIDOS**: suítes completas verdes,
+revogação/concorrência/cookie/limiter/forgot/admin/no-store preservados.
+Sem coleção/schema/negócio novo. Só databases fetech_routes_auth_*,
+fetech_routes_* e fetech_e2e_* com teardown. **BANCO REAL NÃO ALTERADO.
+CONFIG.ENV NÃO SOBRESCRITO E NENHUM SEGREDO EXPOSTO. AUDITORIA HISTÓRICA NÃO
+ALTERADA.** Nenhum processo real reiniciado; reiniciar APIs e atualizar frontend
+juntos após deploy. Fora de escopo: nenhuma alteração.
+
+Documentação viva: SEGURANCA_HTTP, AUTENTICACAO, README, ROTAS, COMANDOS,
+DEPENDENCIAS, ESTADO_ATUAL e este plano. Infraestrutura ainda pendente: reproduzir
+headers/CSP no hosting/proxy real, validar CSP/HSTS/TLS/origin em staging (F023).
+CORS futuro exige revisão CSRF; style unsafe-inline permanece por MUI/Emotion;
+novos provedores exigem revisão CSP; observabilidade/redaction completa F025 e
+env completo F036 seguem abertos. HSTS produtivo não declarado implantado.
+Próxima task: **F036 / FET-P1-019 — validação central e fail-fast das variáveis
+de ambiente, secrets e configuração por ambiente.** Não iniciada automaticamente.

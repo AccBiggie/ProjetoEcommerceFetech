@@ -8,6 +8,10 @@ const fileUpload = require("express-fileupload");
 const cookieParser = require("cookie-parser");
 const errorMiddleware = require("./middleware/erros");
 
+app.use(require('./config/securityHeaders').apiSecurityHeaders());
+// Gate antes de parsers, uploads, limiter e controllers; não consulta banco.
+app.use('/api/v1', require('./middleware/csrf')());
+
 app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(express.urlencoded({extended: true, limit: "5mb"}));

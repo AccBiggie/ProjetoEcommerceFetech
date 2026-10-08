@@ -31,6 +31,8 @@ const app = require('../../backend/app');
     });
     server.get('/__test/reset-link', (req, res) => res.json({ url: resetLinks[req.query.email] }));
     server.use((req, res, next) => req.path.startsWith('/api/') ? app(req, res, next) : next());
+    // Somente host estático de teste: não representa deployment produtivo.
+    server.use(require('../../backend/config/securityHeaders').frontendSecurityHeaders());
     server.use(express.static(path.join(__dirname, '../../frontend/build')));
     server.get('/{*path}', (req, res) => res.sendFile(path.join(__dirname, '../../frontend/build/index.html')));
     listener = server.listen(3300, '127.0.0.1', () => console.log('Servidor E2E pronto em 3300; banco temporário isolado.'));

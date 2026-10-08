@@ -8,7 +8,7 @@ before(h.start);
 after(h.stop);
 beforeEach(async () => { await h.clearRateLimits(); user = await h.createUser(); cookie = await h.login(user); });
 const me = (session, expected = 200) => h.request('GET', '/me', null, session, expected);
-const logout = session => h.request('GET', '/logout', null, session, 200);
+const logout = session => h.request('POST', '/logout', null, session, 200);
 const version = async () => (await h.User.findById(user.id)).tokenVersion;
 const changePassword = () => h.request('PUT', '/password/update', {
     oldPassword: h.password, newPassword, confirmPassword: newPassword,

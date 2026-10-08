@@ -224,6 +224,7 @@ após aplicar alterações. Política: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.
 ```powershell
 node --test ecommerce/tests/authCookieSecurity.test.js
 node --test ecommerce/tests/privateResponseSecurity.test.js
+node --test ecommerce/tests/httpSecurity.test.js
 npm.cmd test --prefix ecommerce
 npm.cmd run build --prefix ecommerce/frontend
 npm.cmd run test:e2e --prefix ecommerce
@@ -233,3 +234,21 @@ Na revisao posterior das rotas, a compilacao passou sem avisos de lint.
 Foram executados `npm.cmd test` (API) e `npm.cmd run test:e2e`
 (navegador) na pasta `ecommerce`, com bancos temporarios separados.
 Veja [ROTAS.md](ROTAS.md) para o mapa e os comandos completos dessa revisao.
+
+## Hardening HTTP — FET-SEC-007
+
+API mutável exige X-Fetech-CSRF: 1. Frontend envia por interceptor Axios;
+clientes CLI também devem enviar. Logout agora POST; GET retorna 405 sem mutar.
+Desenvolvimento permite localhost/127.0.0.1:3000 e origin da FRONTEND_URL;
+production exige FRONTEND_URL explícita HTTPS válida, sem credenciais/wildcard.
+Config.env real preservado. Reiniciar API/frontend após aplicar mudanças.
+
+Helmet instalado somente no backend. Audit desta task:
+
+```powershell
+npm.cmd audit --prefix ecommerce --cache .local/npm-cache
+```
+
+Cache local evita escrita no cache global restrito do ambiente. CSP do build
+validada no host E2E; não é deployment produtivo. HTTP/TLS/HSTS reais pertencem
+à F023. Política completa: [docs/SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md).

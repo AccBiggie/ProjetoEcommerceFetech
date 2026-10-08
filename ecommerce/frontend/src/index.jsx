@@ -1,4 +1,5 @@
 import ReactDOM from 'react-dom/client';
+import './utils/httpClient';
 import App from './App';
 import store from './store';
 import { Provider } from 'react-redux';

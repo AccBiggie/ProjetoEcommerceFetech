@@ -1,5 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const { password } = require("../fixtures");
+const { installSecurityChecks, mutation } = require('./securityChecks');
+installSecurityChecks(test, expect);
 
 async function fillAddress(dialog, label) {
   const values = {
@@ -14,16 +16,16 @@ async function fillAddress(dialog, label) {
 for (const width of [360, 768, 1440]) {
   test(`entrega: cards de endereços, seleção e snapshot editável em ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    const registration = await page.request.post("/api/v1/register", { data: {
+    const registration = await mutation(page, "post", "/api/v1/register", { data: {
       name: "Cliente Checkout", email: `checkout-address-${width}@routes.example.com`, password,
     } });
     expect(registration.status()).toBe(201);
-    const home = (await (await page.request.post("/api/v1/address/new", { data: {
+    const home = (await (await mutation(page, "post", "/api/v1/address/new", { data: {
       label: "Casa checkout", recipientName: "Cliente Checkout", address: "Rua das Flores",
       number: "100", complement: "Apartamento 2", neighborhood: "Centro", city: "São Paulo",
       state: "SP", country: "Brasil", pinCode: "01234-567", phoneNo: "(011) 99999-9999", favorite: true,
     } })).json()).address;
-    const work = (await (await page.request.post("/api/v1/address/new", { data: {
+    const work = (await (await mutation(page, "post", "/api/v1/address/new", { data: {
       label: "Trabalho checkout", recipientName: "Cliente Checkout", address: "Avenida Brasil",
       number: "200", neighborhood: "Jardim", city: "Curitiba", state: "PR", country: "Brasil",
       pinCode: "80000-001", phoneNo: "(41) 99999-9999",
@@ -64,14 +66,14 @@ for (const width of [360, 768, 1440]) {
     const snapshot = (await (await page.request.get(`/api/v1/order/${orderId}`)).json()).order.shippingInfo;
     expect(snapshot.address).toBe("Rua das Flores, 100, Apartamento 2, Centro");
     expect(snapshot.city).toBe("Campinas");
-    await page.request.put(`/api/v1/address/${home._id}`, { data: { city: "Santos" } });
-    await page.request.delete(`/api/v1/address/${home._id}`);
+    await mutation(page, "put", `/api/v1/address/${home._id}`, { data: { city: "Santos" } });
+    await mutation(page, "delete", `/api/v1/address/${home._id}`);
     expect((await (await page.request.get(`/api/v1/order/${orderId}`)).json()).order.shippingInfo).toEqual(snapshot);
   });
 }
 
 test("entrega: falha ao buscar endereços mantém preenchimento manual e criação de pedido", async ({ page }) => {
-  expect((await page.request.post("/api/v1/register", { data: { name: "Cliente Manual", email: "manual-checkout@routes.example.com", password } })).status()).toBe(201);
+  expect((await mutation(page, "post", "/api/v1/register", { data: { name: "Cliente Manual", email: "manual-checkout@routes.example.com", password } })).status()).toBe(201);
   await page.goto("/products");
   await page.getByRole("button", { name: "Adicionar ao Carrinho", exact: true }).first().click();
   await page.route("**/api/v1/addresses", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ success: false, message: "Serviço temporariamente indisponível." }) }));
@@ -90,7 +92,7 @@ for (const width of [360, 768, 1440]) {
     page.on("pageerror", error => errors.push(error.message));
     await page.setViewportSize({ width, height: 900 });
     const email = `addresses-${width}@routes.example.com`;
-    const registration = await page.request.post("/api/v1/register", { data: { name: "Cliente Endereços", email, password } });
+    const registration = await mutation(page, "post", "/api/v1/register", { data: { name: "Cliente Endereços", email, password } });
     expect(registration.status()).toBe(201);
     await context.clearCookies();
     await page.goto("/addresses");

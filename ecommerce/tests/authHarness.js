@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { password } = require('./fixtures');
+const { withCsrf } = require('./httpHeaders');
 const User = require('../backend/models/userModel');
 
 Object.assign(process.env, {
@@ -45,12 +46,13 @@ async function stop() {
     }
 }
 async function request(method, route, body, cookie, expected, extraHeaders = {}) {
-    const headers = { ...extraHeaders };
+    const headers = withCsrf(method, extraHeaders);
     if (cookie) headers.Cookie = cookie;
     if (body) headers['Content-Type'] = 'application/json';
     const response = await fetch(base + route, { method, headers, body: body ? JSON.stringify(body) : undefined,
         signal: AbortSignal.timeout(15000) });
-    const result = await response.json();
+    const result = (response.headers.get('content-type') || '').includes('application/json')
+        ? await response.json() : await response.text();
     // Nunca incluir corpo, cookie ou URL de recuperação em falhas de asserção.
     if (expected !== undefined) assert.equal(response.status, expected, `${method}: status HTTP inesperado`);
     return { response, result, status: response.status };

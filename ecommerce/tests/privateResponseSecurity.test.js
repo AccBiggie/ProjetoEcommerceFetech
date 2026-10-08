@@ -50,7 +50,7 @@ test('PRV-06 replay captura JWT somente do Set-Cookie', async () => {
     await getPrivate('/me', h.cookieOf(reply));
 });
 test('PRV-07 logout sem JWT, no-store, cookie expirado e replay 401', async () => {
-    const reply = await h.request('GET', '/logout', null, cookie, 200); noSessionFields(reply.result); noStore(reply);
+    const reply = await h.request('POST', '/logout', null, cookie, 200); noSessionFields(reply.result); noStore(reply);
     assert.ok(reply.response.headers.get('set-cookie').startsWith('token=;'), 'Cookie não limpo');
     await h.request('GET', '/me', null, cookie, 401);
 });

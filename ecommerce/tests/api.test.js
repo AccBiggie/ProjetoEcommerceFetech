@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const cloudinary = require('cloudinary');
 const { fixtures, password, productData, categories } = require('./fixtures');
+const { withCsrf } = require('./httpHeaders');
 const User = require('../backend/models/userModel');
 const Product = require('../backend/models/productModel');
 const Order = require('../backend/models/orderModel');
@@ -25,7 +26,7 @@ const app = require('../backend/app');
 let server, base, data, cookies = {};
 const missing = '000000000000000000000001';
 async function request(method, route, body, role = 'user', expected = 200) {
-    const headers = {};
+    const headers = withCsrf(method);
     if (cookies[role]) headers.Cookie = cookies[role];
     if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
     const response = await fetch(base + route, { method, headers, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
@@ -200,7 +201,7 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
 });
 
 test('logout e conta removida não deixam sessões utilizáveis', async () => {
-    const logout = await request('GET', '/logout'); assert.equal(logout.result.success, true);
+    const logout = await request('POST', '/logout'); assert.equal(logout.result.success, true);
     assert.match(logout.response.headers.get('set-cookie'), /Expires=/i);
     await request('GET', '/me', null, 'user', 401);
     const login = await request('POST', '/login', { email: data.users.user.email, password: 'NovaSenha123!' }, 'anonymous');

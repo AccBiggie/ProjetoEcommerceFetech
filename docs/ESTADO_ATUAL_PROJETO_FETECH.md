@@ -16,9 +16,9 @@ Logout revoga globalmente a versão atual com incremento atômico condicional;
 troca/reset salvam senha e versão juntas e emitem novo JWT. Replay de logout
 antigo e logouts simultâneos não derrubam sessões posteriores. Usuários antigos
 sem campo persistido usam default zero, sem backfill obrigatório; tokens antigos
-sem claim são rejeitados e exigem novo login após deploy. Sessões por dispositivo,
-Cookie Secure em produção foi corrigido na FET-SEC-005; implantação HTTPS,
-MFA e hardening HTTP/CSRF continuam pendentes.
+sem claim são rejeitados e exigem novo login após deploy. Sessões por dispositivo
+e MFA continuam pendentes. Cookie Secure em produção corrigido na FET-SEC-005;
+hardening HTTP/CSRF corrigido no código na FET-SEC-007. HTTPS/HSTS reais pendentes.
 Detalhes em [AUTENTICACAO.md](AUTENTICACAO.md) e
 [PLANO_MELHORIAS_FETECH.md](PLANO_MELHORIAS_FETECH.md).
 
@@ -100,8 +100,8 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 210 testes da
-API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 260 testes da
+API e 21 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
 Resultado após integrar a seleção de endereços na entrega (antes de FET-SEC-001): **13 testes da API
@@ -221,7 +221,7 @@ F021 foi a próxima recomendação e está implementada na seção abaixo.
 
 F021 / FET-P1-010 corrigido em 08/10/2026. Baseline main, HEAD
 `5a9e4ec41a10fe16630d41af355fac476f3bedb5`, worktree limpo, F007 commitada.
-Alterações SEC-006 sem commit e HEAD mantido. F006/F007/F008/F009/F010 preservados.
+SEC-006 foi posteriormente commitada em `099e776`. F006/F007/F008/F009/F010 preservados.
 
 JWT removido do JSON dos quatro emissores; sessão transportada pelo cookie
 HttpOnly. Frontend não depende de body.token/Bearer nem persiste JWT. No-store
@@ -238,5 +238,37 @@ simulada, no-store privado, replay 401 e sessão rotacionada 200. Catálogo púb
 sem no-store com/sem cookie. Browser verifica respostas e storage sem expor JWT.
 
 Sem nova dependência/coleção/schema, banco real não alterado, config.env e
-auditoria histórica preservados. Nenhum processo real reiniciado. F020/F023/
-F025/F036 seguem abertos; próxima recomendação F020, não iniciada automaticamente.
+auditoria histórica preservados. Nenhum processo real reiniciado. F020 era a
+próxima recomendação e está implementada no código na seção abaixo.
+
+## Hardening HTTP e CSRF — FET-SEC-007
+
+F020 / FET-P1-009 **CORRIGIDO NO CÓDIGO** em 08/10/2026. Início factual:
+main, HEAD `099e7766802248e617656b0f2fbdfc0849626cde`, worktree limpo, F021
+commitada. SEC-007 sem commit; HEAD mantido e remediações anteriores preservadas.
+
+Helmet 8.3.0 (única dependência nova) na API: CSP restritiva, nosniff, DENY,
+Referrer Policy e políticas COOP/CORP same-origin. CSP distinta do build aplicada
+ao host E2E; scripts somente self, estilos inline para MUI/Emotion, imagens HTTPS,
+connect self. Não confundir host E2E com deployment: HSTS/TLS/hosting real na F023.
+
+CSRF global ao prefixo API para métodos inseguros, antes dos parsers e limiter:
+header fixo X-Fetech-CSRF: 1, comparação exata de Origin/Referer, Fetch Metadata
+same-origin/none; hostil/null/inválido/same-site rejeitados 403. Sem origin,
+header permite cliente HTTP não-browser. Nenhum CORS permissivo/bypass de teste.
+FRONTEND_URL explícito HTTPS em production obrigatório, validado no startup.
+
+Frontend interceptor cobre todos os consumidores Axios atuais. Logout POST;
+GET/HEAD 405/Allow POST sem mutação; POST inválido preserva sessão, válido
+revoga/limpa/no-store. Clientes externos devem enviar header e migrar logout.
+F006/F007/F008/F009/F010/F021 continuam corrigidos. Políticas completas em
+[SEGURANCA_HTTP.md](SEGURANCA_HTTP.md); resultados no plano de melhorias.
+
+Validação final: 50/50 focados, 260/260 API, build aprovado, 21/21 E2E sob CSP
+e audit backend com zero vulnerabilidades. Browser confirma estilos Emotion,
+imagem HTTPS fixture, requests same-origin e header CSRF nas mutações reais.
+
+Banco real/config.env/auditoria histórica preservados. Testes temporários com
+teardown, sem novas coleções/schema ou mudanças comerciais. Reiniciar todas
+as APIs e atualizar frontend juntos após deploy; nenhum processo real reiniciado.
+F023/F025/F036 continuam abertos; próxima recomendação F036, não iniciada.

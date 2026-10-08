@@ -27,7 +27,7 @@ function policy(reply, secure) {
     return a;
 }
 const login = headers => h.request('POST', '/login', { email: user.email, password: h.password }, null, 200, headers);
-const logout = cookie => h.request('GET', '/logout', null, cookie, 200);
+const logout = cookie => h.request('POST', '/logout', null, cookie, 200);
 const config = () => require('../backend/config/authCookie');
 const proxy = () => require('../backend/config/trustProxy');
 test('CC-01 desenvolvimento HTTP mantém cookie utilizável', () => environment('development', async () => policy(await login(), false)));

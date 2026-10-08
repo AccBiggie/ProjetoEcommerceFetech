@@ -18,6 +18,12 @@ HttpOnly. Respostas autenticadas, emissão de sessão e logout usam
 Clientes externos que dependiam de `body.token` precisam ser atualizados;
 sessões existentes não são revogadas apenas por esta mudança.
 
+F020 foi corrigido no código pela FET-SEC-007: Helmet/CSP na API, política CSP
+do build validada no host E2E e defesa CSRF/Origin explícita. Mutações em
+`/api/v1` exigem `X-Fetech-CSRF: 1`; frontend envia automaticamente. Logout
+agora usa POST; GET retorna 405 sem encerrar sessão. HTTPS/HSTS e hosting real
+permanecem na F023. Veja [docs/SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md).
+
 Login, recuperação, reset e cadastro possuem rate limiting compartilhado no
 MongoDB, com limites temporários por IP/conta, HTTP 429 e `Retry-After`.
 As chaves são derivadas por HMAC; o backend não confia automaticamente em

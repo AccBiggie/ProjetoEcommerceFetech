@@ -1,5 +1,10 @@
 # Dependencias atualizadas
 
+FET-SEC-007, 08/10/2026: Helmet 8.3.0 adicionado somente ao backend, verificado
+no registro npm (Node >=18, compatível com Node 24/Express 5). Nenhum outro
+pacote atualizado; lockfile registra somente Helmet. Configuração e CSP:
+[docs/SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md). Resultado audit no plano.
+
 Atualização funcional de 07/10/2026: o cadastro de endereços utiliza apenas
 Express/Mongoose, React, Material UI e Axios já instalados. Não adiciona
 dependências, máscaras externas, novo estado global ou alterações nos
@@ -26,6 +31,7 @@ pacotes que as utilizam.
 | Embla Carousel React | 8.6.0 |
 | React Hot Toast | 2.6.1 |
 | Express | 5.2.1 |
+| Helmet | 8.3.0 |
 | Mongoose | 9.11.0 |
 | bcryptjs | 3.0.3 |
 | JSON Web Token | 9.0.3 |
