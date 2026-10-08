@@ -1,0 +1,130 @@
+# Testes permanentes — FET-OPS-002
+
+Executados individualmente nos comandos focados; fixtures em replica set temporário. Nenhum teste utiliza banco comercial.
+
+## Observabilidade (59 casos)
+
+- OBS-01 GET normal possui UUID server-side e IDs distintos
+- OBS-02 header cliente não controla requestId interno
+- OBS HTTP 400 possui request ID
+- OBS HTTP 401 possui request ID
+- OBS HTTP 403 possui request ID
+- OBS HTTP 404 possui request ID
+- OBS HTTP 405 possui request ID
+- OBS-08 erro 500 controlado correlaciona log/header e não vaza message/stack
+- OBS-09 ALS em async profundo e 50 requests simultâneas permanece isolado
+- OBS-10 JSON por linha, timestamp, rota template, método, duração e status
+- OBS-11 actor ID/role disponível sem PII após autenticação
+- OBS-12 paths reset/unmatched, query, body e headers não vazam sentinelas reais
+- OBS redaction recursiva password
+- OBS redaction recursiva passwordConfirm
+- OBS redaction recursiva token
+- OBS redaction recursiva jwt
+- OBS redaction recursiva Authorization
+- OBS redaction recursiva Cookie
+- OBS redaction recursiva Set-Cookie
+- OBS redaction recursiva secret
+- OBS redaction recursiva apiSecret
+- OBS redaction recursiva apiKey
+- OBS redaction recursiva idempotencyKey
+- OBS redaction recursiva resetToken
+- OBS redaction recursiva DB_URI
+- OBS redaction recursiva JWT_SECRET
+- OBS redaction recursiva PASSWORD
+- OBS redaction recursiva CLOUDINARY_API_SECRET
+- OBS redaction recursiva email
+- OBS redaction recursiva phoneNo
+- OBS redaction recursiva pinCode
+- OBS redaction recursiva recipientName
+- OBS redaction recursiva address
+- OBS redaction recursiva number
+- OBS redaction recursiva neighborhood
+- OBS redaction recursiva city
+- OBS redaction recursiva X-Fetech-CSRF
+- OBS redaction recursiva ip
+- OBS redaction recursiva User-Agent
+- OBS-40 logger não serializa erros/config/payload, getters, unknown fields ou stacks
+- OBS LOG_LEVEL válido debug
+- OBS LOG_LEVEL válido info
+- OBS LOG_LEVEL válido warn
+- OBS LOG_LEVEL válido error
+- OBS LOG_LEVEL inválido (vazio)
+- OBS LOG_LEVEL inválido DEBUG
+- OBS LOG_LEVEL inválido verbose
+- OBS LOG_LEVEL inválido PRIVATE_LOG_SENTINEL
+- OBS LOG_LEVEL inválido null
+- OBS LOG_LEVEL inválido 7
+- OBS defaults de logging e filtros/destinos funcionam
+- OBS liveness não consulta Mongo e health usa no-store/debug
+- OBS readiness replica set saudável retorna 200/body mínimo/requestId
+- OBS readiness sem Mongo retorna 503 sem reconectar/configuração
+- OBS readiness falha de comando é segura e limitada
+- OBS logger preserva requestId autoritativo do contexto
+- OBS errors SMTP e Cloudinary com secrets sentinelas nunca vazam
+- OBS Set-Cookie e JWT reais da resposta não entram nos logs
+- OBS readiness rejeita topology sem transações
+
+## Auditoria administrativa (57 casos)
+
+- AUD-01 archive correlaciona header/log/audit com ator e metadata segura
+- AUD-02 unarchive audita estado real
+- AUD-03 archive/unarchive repetidos não inventam mutações
+- AUD-04 status PAID possui metadata from/to e mesmo estado é no-op
+- AUD-05 PENDING não envia nem cria evento de sucesso
+- AUD-06 User role, update e delete preservam IDs sem PII
+- AUD-07 Product CRUD audita campos de centavos e Stock sem valores
+- AUD-08 Category CRUD e parent_id auditados sem nome
+- AUD-09 exclusão de review com privilégio admin também auditada
+- AUD-10 CSRF, 403, 404 e DELETE Order 405 não criam eventos
+- AUD audit insert falha: rollback archive
+- AUD audit insert falha: rollback status
+- AUD audit insert falha: rollback user-update
+- AUD audit insert falha: rollback user-delete
+- AUD audit insert falha: rollback product-create
+- AUD audit insert falha: rollback product-update
+- AUD audit insert falha: rollback product-delete
+- AUD audit insert falha: rollback category-create
+- AUD audit insert falha: rollback category-update
+- AUD audit insert falha: rollback category-delete
+- AUD audit insert falha: rollback review-delete
+- AUD append-only bloqueia updateOne
+- AUD append-only bloqueia updateMany
+- AUD append-only bloqueia findOneAndUpdate
+- AUD append-only bloqueia replaceOne
+- AUD append-only bloqueia deleteOne
+- AUD append-only bloqueia deleteMany
+- AUD append-only bloqueia findOneAndDelete
+- AUD append-only bloqueia findOneAndReplace
+- AUD append-only bloqueia save/delete documento, bulkWrite e aggregate output
+- AUD audit model sem TTL e índices de consultas definidos
+- AUD sem endpoints para criar ou remover eventos
+- AUD read API exige admin e usa no-store
+- AUD paginação real estável, default 25, máximo 100 e segunda página
+- AUD read rejeita query page=0
+- AUD read rejeita query page=-1
+- AUD read rejeita query page=abc
+- AUD read rejeita query page=1.5
+- AUD read rejeita query limit=0
+- AUD read rejeita query limit=101
+- AUD read rejeita query limit=1000
+- AUD read rejeita query page=1&page=2
+- AUD read rejeita query action[$ne]=x
+- AUD read rejeita query actorUserId[$gt]=x
+- AUD read rejeita query unknown=1
+- AUD read rejeita query action=FAKE
+- AUD read rejeita query targetType=FAKE
+- AUD read rejeita query targetId=bad
+- AUD read rejeita query requestId=bad
+- AUD read rejeita query from=bad
+- AUD read rejeita query from=2026-99-99T00:00:00.000Z
+- AUD read rejeita query from=2026-10-09T00:00:00.000Z&to=2026-10-08T00:00:00.000Z
+- AUD filtros action/target/actor/requestId/datas e DTO explícito sem populate
+- AUD metadata allowlist rejeita PII, secret, campos/valores arbitrários
+- AUD payload não forja ator, ação, timestamp, metadata ou requestId
+- AUD rollback inclui denormalização Product.category junto à categoria
+- AUD middleware de queries e bulk sem middleware não permitem bypass
+
+## Regressão atualizada e browser
+
+- PR-15: falha SMTP registra evento JSON constante com correlação, sem PII.
+- E2E: criação de categoria no browser correlaciona X-Request-Id, audit API e aba Auditoria com filtro/paginação.

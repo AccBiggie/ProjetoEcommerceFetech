@@ -1,4 +1,4 @@
-const { initializeConfig, loadEnvironment, ConfigurationError } = require('./config/runtimeConfig');
+const { initializeConfig, loadEnvironment } = require('./config/runtimeConfig');
 
 async function startServer(env, dependencies = {}) {
     // Validação completa antes de carregar app, configurar providers ou conectar.
@@ -17,24 +17,26 @@ async function startServer(env, dependencies = {}) {
         await require('./models/stockMovementModel').init();
         await require('./models/authRateLimitModel').init();
         await require('./models/adminMutationLockModel').init();
+        await require('./models/adminAuditEventModel').init();
         await require('./utils/categories').migrateLegacyCategories();
     }))();
-    return app.listen(config.port, '127.0.0.1', () => console.log(`Server is Working on http://localhost:${config.port}`));
+    return app.listen(config.port, '127.0.0.1', () => require('./observability/logger').info('app.started', { environment: config.environment, port: config.port, transactionCapable: true }));
 }
 async function main() {
     loadEnvironment();
     let server;
-    const shutdown = () => {
-        console.error('Falha operacional do servidor. Nenhuma configuração sensível será exibida.');
+    const emergency = require('./observability/logger').createLogger({ level: 'error' });
+    const shutdown = event => {
+        emergency.error(event);
         process.exitCode = 1;
         if (server) server.close(() => process.exit(1));
         else process.exit(1);
     };
-    process.on('uncaughtException', shutdown);
-    process.on('unhandledRejection', shutdown);
+    process.on('uncaughtException', () => shutdown('app.uncaught_exception'));
+    process.on('unhandledRejection', () => shutdown('app.unhandled_rejection'));
     try { server = await startServer(process.env); }
     catch (error) {
-        console.error(error instanceof ConfigurationError || error instanceof require('./config/mongoTransactions').TransactionTopologyError ? error.message : 'Falha ao iniciar o servidor. Verifique configuração e conectividade do MongoDB.');
+        emergency.error('app.startup.failed', { errorName: error.name, invalidVariables: error.issues?.map(issue => issue.variable) });
         process.exitCode = 1;
         await require('mongoose').disconnect();
     }

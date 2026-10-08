@@ -23,13 +23,15 @@ function loadConfig(env, { profile = 'server' } = {}) {
         }
         return Number(env[name]);
     };
-    for (const name of ['NODE_ENV','PORT','DB_URI','JWT_SECRET','JWT_EXPIRE','COOKIE_EXPIRE','FRONTEND_URL','TRUST_PROXY_HOPS','AUTH_FORGOT_MIN_RESPONSE_MS','HOST','PORTEMAIL','EMAIL_SECURE','USER','PASSWORD','CLOUDINARY_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET']) {
+    for (const name of ['NODE_ENV','PORT','DB_URI','JWT_SECRET','JWT_EXPIRE','COOKIE_EXPIRE','FRONTEND_URL','TRUST_PROXY_HOPS','AUTH_FORGOT_MIN_RESPONSE_MS','HOST','PORTEMAIL','EMAIL_SECURE','USER','PASSWORD','CLOUDINARY_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET','LOG_LEVEL']) {
         if (supplied(name) && typeof env[name] !== 'string') bad(name, 'deve ser string de ambiente');
     }
     const environment = supplied('NODE_ENV') ? text('NODE_ENV') : 'development';
     if (!['development','test','production'].includes(environment)) bad('NODE_ENV','use development, test ou production');
     if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
     const production = environment === 'production';
+    const logLevel = supplied('LOG_LEVEL') ? env.LOG_LEVEL : environment === 'test' ? 'error' : 'info';
+    if (!['debug','info','warn','error'].includes(logLevel)) bad('LOG_LEVEL','use debug, info, warn ou error');
     const uri = required('DB_URI');
     if (uri) {
         try {
@@ -43,7 +45,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
     }
     if (profile !== 'server') {
         if (issues.length) throw new ConfigurationError(issues);
-        return Object.freeze({ profile, environment, mongo: Object.freeze({ uri }) });
+        return Object.freeze({ profile, environment, logging: Object.freeze({ level: logLevel }), mongo: Object.freeze({ uri }) });
     }
     const port = integer('PORT', 4000, 1, 65535);
     let hops = 0;
@@ -87,7 +89,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
     const cloudinaryEnabled = group(['CLOUDINARY_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET'], false);
     for (const name of ['PASSWORD','CLOUDINARY_API_SECRET']) if (text(name) && production && env[name] !== text(name)) bad(name,'não use espaços nas extremidades');
     if (issues.length) throw new ConfigurationError(issues);
-    return Object.freeze({ profile, environment, port, mongo: Object.freeze({ uri }),
+    return Object.freeze({ profile, environment, port, logging: Object.freeze({ level: logLevel }), mongo: Object.freeze({ uri }),
         jwt: Object.freeze({ secret, expiresIn }), cookie: Object.freeze({ expireDays }),
         frontend: Object.freeze({ origin, allowedOrigins: Object.freeze(allowedOrigins) }), proxy: Object.freeze({ hops }),
         auth: Object.freeze({ minimumResponseMs, rateLimits: policies }),

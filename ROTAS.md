@@ -1,5 +1,17 @@
 # Revisao das rotas e dos fluxos
 
+## Observabilidade — FET-OPS-002
+
+Todas as respostas da API recebem `X-Request-Id` UUID v4 do servidor. Header de entrada não escolhe o ID.
+
+| Método | Rota | Acesso | Contrato |
+| --- | --- | --- | --- |
+| GET | `/api/v1/health/live` | Público | 200, processo respondendo, sem consulta Mongo; no-store |
+| GET | `/api/v1/health/ready` | Público | 200 com Mongo atual/transações disponíveis; 503 em falha, sem reconectar; no-store |
+| GET | `/api/v1/admin/audit-events` | Admin autenticado | Page 1/limit 25, máximo 100; filtros explícitos; no-store |
+
+Auditoria tem consulta apenas; sem endpoints create/update/delete. Dashboard oferece aba Auditoria. Rotas administrativas existentes geram eventos persistentes atômicos conforme [inventário completo](docs/OBSERVABILIDADE.md). F024 continua parcial; pagamento/frete não implementados.
+
 ## Navegacao da loja
 
 | Rota | Comportamento |

@@ -10,17 +10,17 @@ function checkTransition(order, target) {
     if (!paymentConfirmed(order)) throw conflict('ORDER_PAYMENT_NOT_CONFIRMED', 'O pedido não pode avançar para envio ou entrega antes da confirmação do pagamento.');
     return true;
 }
-async function transitionOrder(id, target) {
+async function transitionOrder(id, target, { session, onChanged } = {}) {
     if (typeof target !== 'string' || !['Processing', 'Shipped', 'Delivered'].includes(target)) throw new ErrorHander('Status do pedido inválido.', 400);
-    const read = () => Order.findById(id).select(fields).lean();
+    const read = () => Order.findById(id).session(session || null).select(fields).lean();
     const initial = await read();
     if (!initial) throw new ErrorHander('Pedido não encontrado.', 404);
     if (!checkTransition(initial, target)) return initial;
     const updated = await Order.findOneAndUpdate({ _id: id, orderStatus: initial.orderStatus, paymentStatus: 'PAID',
         paidAt: { $eq: initial.paidAt, $type: 'date' } },
         { $set: { orderStatus: target, ...(target === 'Delivered' ? { deliveredAt: new Date() } : {}) } },
-        { returnDocument: 'after', runValidators: true }).select(fields).lean();
-    if (updated) return updated;
+        { returnDocument: 'after', runValidators: true, session }).select(fields).lean();
+    if (updated) { if (onChanged) onChanged(initial.orderStatus, target, updated._id); return updated; }
     const current = await read();
     if (!current) throw new ErrorHander('Pedido não encontrado.', 404);
     if (current.orderStatus === target) return current;

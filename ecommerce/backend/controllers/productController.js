@@ -1,4 +1,5 @@
 const Product = require("../models/productModel");
+const { runAuditedAdminMutation } = require('../services/adminAuditService');
 const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ApiFeatures = require("../utils/apiFeatures");
@@ -13,7 +14,10 @@ const productInput = body => {
     return result;
 };
 exports.createProduct = catchAsyncErrors(async (req, res) => {
-    const product = await Product.create({ ...productInput(req.body), ...await resolveProductCategory(req.body), user: req.user._id });
+    const product = await runAuditedAdminMutation(req, async session => {
+        const [value] = await Product.create([{ ...productInput(req.body), ...await resolveProductCategory(req.body, session), user: req.user._id }], { session });
+        return { value, event: { action: 'PRODUCT_CREATED', targetId: value._id } };
+    });
     res.status(201).json({ success: true, product });
 });
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
@@ -46,15 +50,22 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, product });
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
-    const existing = await Product.findById(req.params.id);
-    if (!existing) return next(new ErrorHander("Produto não encontrado.", 404));
-    const product = await Product.findByIdAndUpdate(req.params.id, { $set: { ...productMoney({ ...existing.toObject(), ...productInput(req.body) }), ...productInput(req.body), ...await resolveProductCategory(req.body) }, $unset: Object.fromEntries(moneyFields.map(field => [field, 1])) }, { returnDocument: "after", runValidators: true });
-    if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
+    const product = await runAuditedAdminMutation(req, async session => {
+        const existing = await Product.findById(req.params.id).session(session);
+        if (!existing) throw new ErrorHander('Produto não encontrado.', 404);
+        const value = await Product.findByIdAndUpdate(req.params.id, { $set: { ...productMoney({ ...existing.toObject(), ...productInput(req.body) }), ...productInput(req.body), ...await resolveProductCategory(req.body, session) }, $unset: Object.fromEntries(moneyFields.map(field => [field, 1])) }, { returnDocument: 'after', runValidators: true, session });
+        if (!value) throw new ErrorHander('Produto não encontrado.', 404);
+        const changedFields = [...productFields.filter(key => !moneyFields.includes(key)), 'category_id', ...moneyFields.map(field => field + 'Cents')].filter(key => JSON.stringify(existing[key]) !== JSON.stringify(value[key]));
+        return { value, event: { action: 'PRODUCT_UPDATED', targetId: value._id, metadata: { changedFields } } };
+    });
     res.json({ success: true, product });
 });
 exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findByIdAndDelete(req.params.id);
-    if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
+    await runAuditedAdminMutation(req, async session => {
+        const product = await Product.findByIdAndDelete(req.params.id, { session });
+        if (!product) throw new ErrorHander('Produto não encontrado.', 404);
+        return { event: { action: 'PRODUCT_DELETED', targetId: product._id } };
+    });
     res.json({ success: true, message: "Produto removido." });
 });
 function recalculateReviews(product) {
@@ -81,13 +92,18 @@ exports.getProductReviews = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, reviews: product.reviews });
 });
 exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findById(req.query.productId);
-    if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
-    const review = product.reviews.id(req.query.id);
-    if (!review) return next(new ErrorHander("Avaliação não encontrada.", 404));
-    if (req.user.role !== "admin" && review.user.toString() !== req.user.id) return next(new ErrorHander("Você não pode remover esta avaliação.", 403));
-    product.reviews = product.reviews.filter(item => item.id !== review.id);
-    recalculateReviews(product);
-    await product.save();
+    const mutate = async session => {
+        const product = await Product.findById(req.query.productId).session(session || null);
+        if (!product) throw new ErrorHander('Produto não encontrado.', 404);
+        const review = product.reviews.id(req.query.id);
+        if (!review) throw new ErrorHander('Avaliação não encontrada.', 404);
+        if (req.user.role !== 'admin' && review.user.toString() !== req.user.id) throw new ErrorHander('Você não pode remover esta avaliação.', 403);
+        product.reviews = product.reviews.filter(item => item.id !== review.id);
+        recalculateReviews(product);
+        await product.save({ session });
+        return { event: { action: 'PRODUCT_REVIEW_DELETED', targetId: product._id, metadata: { reviewId: review.id } } };
+    };
+    if (req.user.role === 'admin') await runAuditedAdminMutation(req, mutate);
+    else await mutate();
     res.json({ success: true });
 });

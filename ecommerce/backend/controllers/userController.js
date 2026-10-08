@@ -31,6 +31,7 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
         if (!email || !password) throw new ErrorHander("Please enter Email and Password", 400);
         const user = await User.findOne({ email: String(email).trim().toLowerCase() }).select("+password");
         if (!user || !await user.comparePassword(password)) {
+            require('../observability/logger').warn('auth.login.failed', { status: 401, reason: 'invalid_credentials' });
             throw new ErrorHander("Invalid email or password", 401);
         }
         await req.loginRateLimit.finish(true);
@@ -75,7 +76,7 @@ exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
             });
 
         } catch {
-            console.warn('password_recovery_email_failed');
+            require('../observability/logger').warn('password.recovery.email.failed');
             // Limpar somente o token deste envio, preservando uma recuperação mais recente.
             // Falhas estruturais de persistência continuam no middleware global.
             await User.updateOne({ _id: user._id, resetPasswordToken: user.resetPasswordToken },
@@ -176,7 +177,7 @@ exports.getSingleUser = catchAsyncErrors (async (req, res, next) => {
 });
 //UPDATE USER ROLE --ADMIN
 exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
-    const user = await adminSafety.updateUser(req.user.id, req.params.id, req.body);
+    const user = await adminSafety.updateUser(req.user.id, req.params.id, req.body, req);
     res.status(200).json({
         success: true,
         user,
@@ -184,7 +185,7 @@ exports.updateUserRole = catchAsyncErrors(async(req, res, next) => {
 });
 //DELETE USER --ADMIN
 exports.deleteUser = catchAsyncErrors(async(req, res, next) => {
-    await adminSafety.deleteUser(req.user.id, req.params.id);
+    await adminSafety.deleteUser(req.user.id, req.params.id, req);
 
     res.status(200).json({
         success: true,

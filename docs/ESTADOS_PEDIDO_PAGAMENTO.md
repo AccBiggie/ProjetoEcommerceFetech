@@ -1,5 +1,7 @@
 # Estados do pedido e pagamento
 
+FET-OPS-002: transição administrativa efetiva gera `ORDER_STATUS_CHANGED` com from/to na mesma transaction do update. Request ID correlaciona resposta/log/audit. Mesmo estado permanece no-op; PENDING/legados sem evidência não avançam. Nenhum pagamento real foi implementado. [Observabilidade](OBSERVABILIDADE.md).
+
 FET-ORDER-004 / F002 / FET-P0-002 — 08/10/2026.
 
 **Até F001, nenhum endpoint da aplicação confirma pagamento. Novos pedidos permanecem bloqueados para expedição.** Não existe botão administrativo, rota pública/administrativa, segredo manual, webhook ou gateway simulado que marque um pedido como pago. PAID em testes é apenas fixture escrita diretamente no replica set temporário.

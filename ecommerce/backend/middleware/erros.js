@@ -2,6 +2,7 @@
 const ErrorHander = require("../utils/errorHander");
 
 module.exports = (err,req,res,next) => {
+    const original = err;
     err.statusCode = err.statusCode || 500;
     err.message = err.message || "Internal Server Error ";
     //Wrong MongoDB Id error
@@ -11,7 +12,7 @@ module.exports = (err,req,res,next) => {
     };
     //Mongoose duplicate key error
     if(err.code === 11000) {
-        const message = `Duplicate ${Object.keys(err.keyValue)} Entered`;
+        const message = 'Registro duplicado.';
         err = new ErrorHander(message,400);
     };
     //Wrong TWTToken error
@@ -28,9 +29,16 @@ module.exports = (err,req,res,next) => {
         err = new ErrorHander(Object.values(err.errors).map(error => error.message).join("; "), 400);
     }
     if (err.name === "VersionError") err = new ErrorHander("O pedido foi alterado. Atualize a página e tente novamente.", 409);
-    res.status(err.statusCode).json({
+    const status = Number.isInteger(err.statusCode) && err.statusCode >= 400 && err.statusCode <= 599 ? err.statusCode : 500;
+    require('../observability/logger')[status >= 500 ? 'error' : 'warn']('http.request.error', {
+        route: require('./requestContext').safeRoute(req), method: req.method, status,
+        errorCode: typeof original.code === 'string' && /^ORDER_[A-Z_]{1,60}$/.test(original.code) ? original.code : Number.isSafeInteger(original.code) ? original.code : 'HTTP_' + status,
+        errorName: original.name
+    });
+    if (res.headersSent) return next(err);
+    res.status(status).json({
         success: false,
         ...(typeof err.code === "string" && /^ORDER_[A-Z_]+$/.test(err.code) ? { code: err.code } : {}),
-        message: err.message,
+        message: status >= 500 ? 'Não foi possível concluir a operação.' : err.message,
     });
 };

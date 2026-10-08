@@ -1,5 +1,7 @@
 # Autenticação e revogação JWT
 
+FET-OPS-002: logs e eventos de audit não contêm credenciais, JWT/cookies, e-mails, IP bruto ou token de reset. Auth acrescenta somente userId/role ao contexto de observabilidade; autorização permanece baseada em req.user/banco. [Contrato de observabilidade](OBSERVABILIDADE.md).
+
 Atualização FET-SEC-001 a FET-SEC-007 em 08/10/2026. A autenticação continua usando JWT
 assinado no cookie `token` HttpOnly; o frontend não armazena o JWT em Redux,
 localStorage ou sessionStorage. A resposta JSON não contém JWT: o navegador

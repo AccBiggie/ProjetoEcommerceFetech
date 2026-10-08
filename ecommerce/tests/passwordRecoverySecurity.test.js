@@ -68,12 +68,14 @@ test('PR-14 resposta não contém PII ou estado interno', async () => {
     assert.deepEqual(Object.keys(reply.result).sort(), ['message', 'success']);
 });
 test('PR-15 logging SMTP registra somente evento constante seguro', async () => {
-    const original = console.warn, logs = []; console.warn = (...args) => logs.push(args);
+    h.configure({ LOG_LEVEL: 'warn' });
     try {
-        h.setTransportFailure(true); await forgot(user.email);
-        assert.ok(logs.length > 0, 'Falha não registrada');
-        assert.ok(logs.every(args => args.length === 1 && args[0] === 'password_recovery_email_failed'), 'Log contém dados não previstos');
-    } finally { console.warn = original; }
+        h.setTransportFailure(true);
+        const { logs, output } = await require('./helpers/observabilityHarness').capture(() => forgot(user.email));
+        assert.ok(logs.some(row => row.event === 'password.recovery.email.failed'), 'Falha não registrada');
+        assert.ok(logs.every(row => row.event === 'password.recovery.email.failed'), 'Log contém evento não previsto');
+        assert.ok(!output.includes(user.email) && !output.includes(user.name), 'PII no log');
+    } finally { h.configure({ LOG_LEVEL: 'error' }); }
 });
 test('PR-16 reset continua single-use', async () => { const token = await h.recoveryToken(user); assert.equal((await reset(token)).status, 200); assert.equal((await reset(token)).status, 400); });
 test('PR-17 reset revoga JWT anterior', async () => { const cookie = await h.login(user); await reset(await h.recoveryToken(user)); await h.request('GET', '/me', null, cookie, 401); });

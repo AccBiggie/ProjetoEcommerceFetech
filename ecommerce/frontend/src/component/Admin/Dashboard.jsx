@@ -29,6 +29,7 @@ import { useSelector } from "react-redux";
 import Page from "../layout/Page";
 import { useCategories } from "../../context/CategoriesContext";
 import CategoriesManager from "./CategoriesManager";
+import AuditTrail from './AuditTrail';
 import { getErrorMessage } from "../../utils/api";
 import { money, statusLabel, paymentLabel } from "../../utils/format";
 
@@ -147,6 +148,7 @@ export default function Dashboard() {
           ["categories", "Categorias"],
           ["users", "Usuários"],
           ["orders", "Pedidos"],
+          ["audit", "Auditoria"],
         ].map(([value, label]) => (
           <Tab key={value} value={value} label={label} />
         ))}
@@ -158,6 +160,7 @@ export default function Dashboard() {
         </Alert>
       )}
       <CategoriesManager showTable={tab === "categories"} onChanged={load} />
+      {tab === 'audit' && <AuditTrail />}
       {tab === "products" && (
         <>
           <Card

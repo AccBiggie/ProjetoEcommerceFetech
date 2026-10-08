@@ -1,0 +1,27 @@
+const { test, expect } = require('@playwright/test');
+const { password } = require('../fixtures');
+const { installSecurityChecks, mutation } = require('./securityChecks');
+installSecurityChecks(test, expect);
+test('observabilidade: categoria no browser correlaciona response, audit API e painel', async ({ page }) => {
+    expect((await mutation(page, 'post', '/api/v1/login', { data: { email: 'admin@routes.example.com', password } })).status()).toBe(200);
+    await page.goto('/dashboard');
+    await page.getByRole('button', { name: 'Cadastrar categoria', exact: true }).click();
+    const dialog = page.getByRole('dialog');
+    await dialog.getByLabel('Nome da categoria').fill('Categoria Auditoria Browser');
+    const response = page.waitForResponse(r => r.url().endsWith('/api/v1/admin/category') && r.request().method() === 'POST');
+    await dialog.getByRole('button', { name: 'Salvar categoria', exact: true }).click();
+    const created = await response;
+    expect(created.status()).toBe(201);
+    const requestId = created.headers()['x-request-id'];
+    expect(requestId).toMatch(/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i);
+    const api = await page.request.get('/api/v1/admin/audit-events', { params: { requestId } });
+    expect(api.status()).toBe(200);const body=await api.json();expect(body.events).toHaveLength(1);
+    expect(body.events[0].action).toBe('CATEGORY_CREATED');expect(body.events[0].requestId).toBe(requestId);
+    expect(body.events[0].targetId).toBe((await created.json()).category._id);
+    expect(JSON.stringify(body.events)).not.toContain('Categoria Auditoria Browser');
+    await page.getByRole('tab', { name: 'Auditoria', exact: true }).click();
+    await page.getByLabel('Código de suporte (Request ID)').fill(requestId);
+    await page.getByRole('button', { name: 'Buscar eventos', exact: true }).click();
+    const row=page.getByRole('row').filter({hasText:requestId});await expect(row).toHaveCount(1);await expect(row).toContainText('CATEGORY_CREATED');
+    await expect(page.getByRole('button', { name: 'Página anterior', exact: true })).toBeDisabled();
+});

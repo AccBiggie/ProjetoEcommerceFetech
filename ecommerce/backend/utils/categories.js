@@ -11,13 +11,13 @@ const categoryName = value => {
 };
 const categoryKey = name => categoryName(name).toLocaleLowerCase("pt-BR");
 
-async function resolveProductCategory(body) {
+async function resolveProductCategory(body, session) {
     let category;
     if (body.category_id !== undefined) {
         if (!mongoose.isObjectIdOrHexString(body.category_id)) throw new ErrorHander("Identificador de categoria inválido.", 400);
-        category = await Category.findById(body.category_id);
+        category = await Category.findById(body.category_id).session(session || null);
     } else if (body.category !== undefined) {
-        category = await Category.findOne({ name_key: categoryKey(body.category) });
+        category = await Category.findOne({ name_key: categoryKey(body.category) }).session(session || null);
     } else {
         return {};
     }

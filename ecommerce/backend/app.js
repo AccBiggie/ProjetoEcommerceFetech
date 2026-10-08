@@ -1,6 +1,7 @@
 require('./config/runtimeConfig').getRuntimeConfig();
 const express = require("express");
 const app = express();
+app.use(require('./middleware/requestContext').requestContext);
 app.set("query parser", "extended");
 app.set('trust proxy', require('./config/trustProxy').getTrustProxySetting());
 // Validar somente a configuração necessária para emitir cookies válidos.
@@ -32,6 +33,8 @@ app.use("/api/v1", user);
 app.use("/api/v1", order);
 app.use("/api/v1", require("./routes/categoryRoute"));
 app.use("/api/v1", require("./routes/addressRoute"));
+app.use('/api/v1', require('./routes/healthRoute'));
+app.use('/api/v1', require('./routes/adminAuditRoute'));
 //Middleware for Errors
 app.use((req, res, next) => next(new (require("./utils/errorHander"))("Rota não encontrada.", 404)));
 app.use(errorMiddleware);

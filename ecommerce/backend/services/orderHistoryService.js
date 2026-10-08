@@ -27,12 +27,13 @@ function archiveFilter(value = 'active') {
   if (typeof value !== 'string' || !['active', 'archived', 'all'].includes(value)) throw new ErrorHander('Filtro de arquivamento inválido.', 400);
   return value === 'all' ? {} : { administrativeArchivedAt: value === 'active' ? null : { $ne: null } };
 }
-async function setArchived(id, actor, archived) {
+async function setArchived(id, actor, archived, { session, onChanged } = {}) {
   const order = await Order.findOneAndUpdate({ _id: id, administrativeArchivedAt: archived ? null : { $ne: null } },
     { $set: { administrativeArchivedAt: archived ? new Date() : null, administrativeArchivedBy: archived ? actor : null } },
-    { returnDocument: 'after', runValidators: true }).select(fields).lean();
-  const result = order || await Order.findById(id).select(fields).lean();
+    { returnDocument: 'after', runValidators: true, session }).select(fields).lean();
+  const result = order || await Order.findById(id).session(session || null).select(fields).lean();
   if (!result) throw new ErrorHander('Pedido não encontrado.', 404);
+  if (order && onChanged) onChanged(order._id);
   return adminOrder(result);
 }
 module.exports = { fields, adminOrder, customerOrder, archiveFilter, setArchived };

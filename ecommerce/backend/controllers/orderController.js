@@ -1,4 +1,5 @@
 const history = require('../services/orderHistoryService');
+const { runAuditedAdminMutation } = require('../services/adminAuditService');
 const Order = require('../models/orderModel');
 const ErrorHander = require('../utils/errorHander');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
@@ -14,9 +15,9 @@ exports.newOrder = catchAsyncErrors(async (req, res) => {
             prepare: () => inventory.prepare(intent),
             create: (_prepared, hashes, complete) => inventory.create({ intent, user: req.user._id, hashes, complete }),
         });
-        if (result.replayed) res.set('Idempotency-Replayed', 'true');
+        if (result.replayed) { res.set('Idempotency-Replayed', 'true'); require('../observability/logger').info('order.idempotency.replayed', { orderId: String(result.order._id) }); }
         res.status(201).json({ success: true, order: history.customerOrder(result.order) });
-    } catch (error) { if (error.retryAfter) res.set('Retry-After', String(error.retryAfter)); throw error; }
+    } catch (error) { if (error.retryAfter) res.set('Retry-After', String(error.retryAfter)); require('../observability/logger').warn('order.transaction.failed', { errorCode: error.code }); throw error; }
 });
 exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
     const order = await Order.findById(req.params.id).select(req.user.role === 'admin' ? history.fields : '').populate("user", "name email").lean();
@@ -36,15 +37,25 @@ exports.getAllOrders = catchAsyncErrors(async (req, res) => {
     res.json({ success: true, totalAmountCents, totalAmount: formatCentsToDecimal(totalAmountCents), orders: orders.map(history.adminOrder) });
 });
 exports.updateOrder = catchAsyncErrors(async (req, res) => {
-    const order = await require('../services/orderStateMachine').transitionOrder(req.params.id, req.body?.status);
+    const order = await runAuditedAdminMutation(req, async session => {
+        let event;
+        const value = await require('../services/orderStateMachine').transitionOrder(req.params.id, req.body?.status, { session,
+            onChanged: (from, to, targetId) => { event = { action: 'ORDER_STATUS_CHANGED', targetId, metadata: { from, to } }; } });
+        return { value, event };
+    });
     res.json({ success: true, order: history.adminOrder(order) });
 });
 exports.deleteOrder = (_req, res) => {
     res.set('Allow', 'PATCH').status(405).json({ success: false, message: 'Pedidos não podem ser excluídos fisicamente.' });
 };
-exports.archiveOrder = catchAsyncErrors(async (req, res) => {
-    res.json({ success: true, order: await history.setArchived(req.params.id, req.user._id, true) });
+const archive = archived => catchAsyncErrors(async (req, res) => {
+    const order = await runAuditedAdminMutation(req, async session => {
+        let event;
+        const value = await history.setArchived(req.params.id, req.user._id, archived, { session,
+            onChanged: targetId => { event = { action: archived ? 'ORDER_ARCHIVED' : 'ORDER_UNARCHIVED', targetId, metadata: { archived } }; } });
+        return { value, event };
+    });
+    res.json({ success: true, order });
 });
-exports.unarchiveOrder = catchAsyncErrors(async (req, res) => {
-    res.json({ success: true, order: await history.setArchived(req.params.id, req.user._id, false) });
-});
+exports.archiveOrder = archive(true);
+exports.unarchiveOrder = archive(false);

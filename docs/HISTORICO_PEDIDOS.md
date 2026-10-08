@@ -1,5 +1,7 @@
 # Histórico comercial e arquivamento administrativo
 
+FET-OPS-002: archive/unarchive efetivos agora geram `ORDER_ARCHIVED`/`ORDER_UNARCHIVED` na mesma transaction da mutação. Metadata somente archived; ator admin e Request ID internos. Repetição é no-op sem evento fictício. Falha do insert de audit aborta archive/unarchive; Orders continuam sem exclusão física. [Observabilidade](OBSERVABILIDADE.md).
+
 Recuperação FET-OPS-001: archive BSON deve preservar pedidos ativos/arquivados, metadata administrativa, centavos, entrega, PAID/paidAt, ledger e idempotência sem excluir históricos. Verificação de conteúdo não confirma pagamento nem corrige legados. F011 permanece corrigido; F024 parcial, drill real bloqueado. [Procedimento de backup e recuperação](BACKUP_RESTORE.md).
 
 FET-ORDER-003 / F011 / FET-P0-009, 08/10/2026.

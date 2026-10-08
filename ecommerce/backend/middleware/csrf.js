@@ -20,6 +20,7 @@ module.exports = function createCsrfProtection(options) {
             (source !== undefined && !allowedOrigins.has(source)) ||
             (site !== undefined && !['same-origin', 'none'].includes(site))) {
             setNoStore(res);
+            require('../observability/logger').warn('csrf.rejected', { reason: source !== undefined && !allowedOrigins.has(source) ? 'origin_mismatch' : 'policy_rejected', status: 403 });
             return res.status(403).json({ success: false, message: 'Requisição não autorizada.' });
         }
         next();

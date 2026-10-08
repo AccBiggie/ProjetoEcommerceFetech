@@ -1,5 +1,11 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## Atualização FET-OPS-002 — 08/10/2026
+
+F025 **CORRIGIDO NO CÓDIGO**: request ID server-side/response header, AsyncLocalStorage, logs JSON com níveis e redaction, rota template segura, live/ready e audit administrativo append-only implementados. Mutações Mongo e evento são transacionais; read API admin-only paginada e aba Auditoria no dashboard. Sem dependência/collector externo, sem TTL até F030. Validação: focused116/116, API822 aprovados/15 skips F024, build aprovado, E2E31/31, diff aprovado. Evidências finais: [relatório](RELATORIO_FET_OPS_002.md); contrato: [OBSERVABILIDADE.md](OBSERVABILIDADE.md).
+
+F024 permanece **PARCIAL / AGUARDANDO MONGODUMP + MONGORESTORE**; nenhuma ferramenta baixada nesta tarefa. F001/F027 adiados; banco real/config.env/auditoria histórica preservados. Próxima recomendação F016, sem início automático. Esta atualização prevalece sobre recomendações anteriores abaixo.
+
 ## Atualização FET-OPS-001 — 08/10/2026
 
 **F024 / FET-P0-012 PARCIAL — VALIDAÇÃO REAL BLOQUEADA.** CLIs `backup:db`, `restore:db` e `verify:backup` implementadas com tools oficiais, archive gzip, manifesto/checksums, destino novo e verificação de dados/índices/relações. Exige replica set e janela sem escrita verificada pelo oplog; não oferece PITR ou snapshot online com escrita contínua. Database Tools ausentes; usuário escolheu não baixar. Nenhum backup/restore/drill real foi executado, RTO não medido.

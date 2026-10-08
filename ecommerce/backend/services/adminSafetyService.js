@@ -27,7 +27,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
         return target;
     }
     const filter = (target, lease) => ({ _id: target._id, role: target.role, adminMutationFence: lease.fence });
-    async function updateUser(executorId, targetId, body) {
+    async function updateUser(executorId, targetId, body, auditRequest) {
         if (body.role !== undefined && !['admin', 'user'].includes(body.role)) throw new ErrorHander('Perfil inválido.', 400);
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
@@ -37,20 +37,30 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
             }
             if (reducing) await ensureAnotherAdmin(User);
             await lock.assertHeld(lease);
-            const user = await User.findOneAndUpdate(filter(target, lease),
-                { name: body.name, email: body.email, role: body.role }, { returnDocument: 'after', runValidators: true });
-            if (!user) throw conflict();
-            return user;
+            const mutate = async session => {
+                const user = await User.findOneAndUpdate(filter(target, lease),
+                    { name: body.name, email: body.email, role: body.role }, { returnDocument: 'after', runValidators: true, session });
+                if (!user) throw conflict();
+                const changedFields = ['name','email','role'].filter(key => user[key] !== target[key]);
+                return { value: user, event: changedFields.length ? { action: user.role !== target.role ? 'USER_ROLE_CHANGED' : 'USER_UPDATED', targetId: user._id,
+                    metadata: user.role !== target.role ? { fromRole: target.role, toRole: user.role } : { changedFields } } : undefined };
+            };
+            return auditRequest ? require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db }) : (await mutate()).value;
         });
     }
-    async function deleteUser(executorId, targetId) {
+    async function deleteUser(executorId, targetId, auditRequest) {
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
             if (String(executorId) === target.id) throw new ErrorHander('Não é permitido excluir sua própria conta administrativa.', 403);
             if (target.role === 'admin') await ensureAnotherAdmin(User);
             await lock.assertHeld(lease);
-            const result = await User.deleteOne(filter(target, lease));
-            if (result.deletedCount !== 1) throw conflict();
+            const mutate = async session => {
+                const result = await User.deleteOne(filter(target, lease), { session });
+                if (result.deletedCount !== 1) throw conflict();
+                return { event: { action: 'USER_DELETED', targetId: target._id } };
+            };
+            if (auditRequest) await require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db });
+            else await mutate();
         });
     }
     async function bootstrap(input) {

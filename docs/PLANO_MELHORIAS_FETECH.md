@@ -1,5 +1,11 @@
 # Plano de melhorias Fetech
 
+## F025 / FET-P1-012 — Observabilidade operacional
+
+**Status: CORRIGIDO NO CÓDIGO.** FET-OPS-002 (08/10/2026): implementados Request ID server-side/X-Request-Id, AsyncLocalStorage, logs JSON/LOG_LEVEL validado, redaction de secrets/PII, templates de rotas sem body/headers/query/raw URL, live/ready, audit administrativo append-only atômico e consulta admin paginada com UI mínima. Correlação header ↔ log ↔ audit e testes sentinelas/rollback. Validação: focused116/116, API822 pass/15 skipped F024, build aprovado, E2E31/31 e diff aprovado. [RELATORIO_FET_OPS_002.md](RELATORIO_FET_OPS_002.md). Contrato: [OBSERVABILIDADE.md](OBSERVABILIDADE.md).
+
+Coleta/persistência de logs e health no deployment dependem de F023; alerting/SIEM não implementados; retenção depende de F030; analytics comercial F034 permanece aberto. F024 **PARCIAL**, scripts disponíveis e restore real pendente por ausência de mongodump/mongorestore, sem download nesta task. F001/F027 continuam adiados. Próxima recomendação F016 (lifecycle referencial/órfãos na exclusão de usuário), não iniciada automaticamente. Este status corrente prevalece sobre recomendações históricas abaixo.
+
 ## F024 / FET-P0-012 — Backup, restore e recuperação verificável
 
 08/10/2026, FET-OPS-001: **PARCIAL / VALIDAÇÃO REAL BLOQUEADA**. Implementadas CLIs de backup BSON via mongodump, restore seguro via mongorestore em destino novo e verificação somente leitura. Manifesto/checksums obrigatórios, comparação de collections/índices/tipos BSON e invariantes; nenhuma exclusão/overwrite. Captura exige janela sem escrita e acesso ao oplog. Tools ausentes; usuário decidiu não baixar. Não houve captura, restore ou drill real; não há RTO/RPO comprovados. Não declarar F024 corrigido.
