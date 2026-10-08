@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+  administrativeArchivedAt: { type: Date, default: null, select: false },
+  administrativeArchivedBy: { type: mongoose.Schema.ObjectId, ref: 'User', default: null, select: false },
   idempotencyKeyHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
   idempotencyRequestHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
   inventoryStatus: { type: String, enum: ['RESERVED'], immutable: true },
@@ -83,7 +85,28 @@ orderSchema.pre('validate', function () {
   this.orderItems.forEach((item, index) => { item.priceCents = normalized.orderItems[index].priceCents; item.price = undefined; });
 });
 orderSchema.set('toJSON', { transform: (_doc, ret) => {
+  delete ret.administrativeArchivedAt; delete ret.administrativeArchivedBy;
   delete ret.idempotencyKeyHash; delete ret.idempotencyRequestHash;
   return require('../utils/money').presentOrder(ret);
 } });
-module.exports = mongoose.model("Order", orderSchema);
+function forbidPhysicalDelete() {
+  const error = new Error('Pedidos não podem ser excluídos fisicamente.');
+  error.code = 'ORDER_PHYSICAL_DELETE_FORBIDDEN';
+  error.statusCode = 405;
+  throw error;
+}
+for (const operation of ['deleteOne', 'deleteMany', 'findOneAndDelete']) orderSchema.pre(operation, forbidPhysicalDelete);
+orderSchema.pre('deleteOne', { document: true, query: false }, forbidPhysicalDelete);
+orderSchema.pre('bulkWrite', function (operations) {
+  if (operations.some(operation => operation.deleteOne || operation.deleteMany)) forbidPhysicalDelete();
+});
+const Order = mongoose.model('Order', orderSchema);
+// Also protect collection calls and bulkWrite with skipMiddleware; native database
+// maintenance remains outside the commercial model and requires separate authority.
+for (const operation of ['deleteOne', 'deleteMany', 'findOneAndDelete']) Order.collection[operation] = async () => forbidPhysicalDelete();
+const bulkWrite = Order.collection.bulkWrite.bind(Order.collection);
+Order.collection.bulkWrite = async (operations, ...options) => {
+  if (operations.some(operation => operation.deleteOne || operation.deleteMany)) forbidPhysicalDelete();
+  return bulkWrite(operations, ...options);
+};
+module.exports = Order;

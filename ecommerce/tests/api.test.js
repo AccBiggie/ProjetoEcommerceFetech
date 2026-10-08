@@ -202,8 +202,8 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
     assert.equal((await Product.findById(product.id)).Stock, 18);
     assert.ok((await Order.findById(order._id)).deliveredAt);
     await request('PUT', '/admin/order/' + missing, { status: 'Shipped' }, 'admin', 404);
-    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 409);
-    await request('DELETE', '/admin/order/' + missing, null, 'admin', 404);
+    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 405);
+    await request('DELETE', '/admin/order/' + missing, null, 'admin', 405);
 });
 
 test('logout e conta removida não deixam sessões utilizáveis', async () => {
@@ -380,5 +380,5 @@ test('endereços: editar e excluir cadastro não altera snapshot de pedidos', as
     await request('PUT', '/address/' + address._id, { address: 'Rua alterada', pinCode: '00000001' }, 'addressOwner');
     await request('DELETE', '/address/' + address._id, null, 'addressOwner');
     assert.deepEqual((await request('GET', '/order/' + order._id, null, 'addressOwner')).result.order.shippingInfo, shippingInfo);
-    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 409);
+    await request('DELETE', '/admin/order/' + order._id, null, 'admin', 405);
 });

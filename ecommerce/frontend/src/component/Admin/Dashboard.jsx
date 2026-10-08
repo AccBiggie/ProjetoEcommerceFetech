@@ -45,6 +45,7 @@ export default function Dashboard() {
   const { ordered: categories } = useCategories();
   const { user } = useSelector((state) => state.user);
   const [confirmation, setConfirmation] = useState(null);
+  const [archived, setArchived] = useState('active');
   const [tab, setTab] = useState("products");
   const [data, setData] = useState({ products: [], users: [], orders: [] });
   const [error, setError] = useState("");
@@ -54,14 +55,14 @@ export default function Dashboard() {
     const [products, users, orders] = await Promise.all([
       axios.get("/api/v1/admin/products"),
       axios.get("/api/v1/admin/users"),
-      axios.get("/api/v1/admin/orders"),
+      axios.get("/api/v1/admin/orders", { params: { archived } }),
     ]);
     setData({
       products: products.data.products,
       users: users.data.users,
       orders: orders.data.orders,
     });
-  }, []);
+  }, [archived]);
   useEffect(() => {
     load().catch((error) => setError(getErrorMessage(error)));
   }, [load]);
@@ -340,6 +341,11 @@ export default function Dashboard() {
         </DataTable>
       )}
       {tab === "orders" && (
+        <Box>
+        <TextField select label="Filtrar pedidos" value={archived} disabled={pending}
+          slotProps={{ select: { native: true } }} onChange={event => setArchived(event.target.value)} sx={{ mb: 2 }}>
+          <option value="active">Ativos</option><option value="archived">Arquivados</option><option value="all">Todos</option>
+        </TextField>
         <DataTable
           label="Pedidos da loja"
           columns={["Pedido", "Status", "Total", "Ações"]}
@@ -354,6 +360,7 @@ export default function Dashboard() {
                 >
                   {order._id}
                 </MuiLink>
+                {order.administrativeArchivedAt && <Chip size="small" label="Arquivado" sx={{ ml: 1 }} />}
               </TableCell>
               <TableCell>
                 <Chip
@@ -389,23 +396,26 @@ export default function Dashboard() {
                     </Button>
                   )}
                   <Button
-                    color="error"
+                    color="primary"
                     disabled={pending}
                     onClick={() =>
                       setConfirmation({
-                        title: "Excluir este pedido?",
-                        action: () =>
-                          axios.delete("/api/v1/admin/order/" + order._id),
+                        title: order.administrativeArchivedAt ? "Desarquivar este pedido?" : "Arquivar este pedido?",
+                        description: "O pedido e seu histórico serão preservados.",
+                        label: order.administrativeArchivedAt ? "Confirmar desarquivamento" : "Confirmar arquivamento",
+                        color: "primary",
+                        action: () => axios.patch("/api/v1/admin/order/" + order._id + (order.administrativeArchivedAt ? "/unarchive" : "/archive")),
                       })
                     }
                   >
-                    Excluir
+                    {order.administrativeArchivedAt ? "Desarquivar" : "Arquivar"}
                   </Button>
                 </Stack>
               </TableCell>
             </TableRow>
           ))}
         </DataTable>
+        </Box>
       )}
       <Dialog
         open={Boolean(confirmation)}
@@ -415,21 +425,21 @@ export default function Dashboard() {
         <DialogTitle id="delete-title">{confirmation?.title}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Esta ação remove o registro da loja. Confirme para continuar.
+            {confirmation?.description || "Esta ação remove o registro da loja. Confirme para continuar."}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmation(null)}>Cancelar</Button>
           <Button
             variant="contained"
-            color="error"
+            color={confirmation?.color || "error"}
             onClick={() => {
               const action = confirmation.action;
               setConfirmation(null);
               mutate(action);
             }}
           >
-            Confirmar exclusão
+            {confirmation?.label || "Confirmar exclusão"}
           </Button>
         </DialogActions>
       </Dialog>

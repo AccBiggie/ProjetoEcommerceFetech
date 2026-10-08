@@ -114,8 +114,7 @@ FAILED não é retomado automaticamente; erro terminal de estoque retorna o
 mesmo código para encerrar a tentativa no frontend. PROCESSING órfão não tem
 takeover por tempo. [Contrato transacional](ESTOQUE_TRANSACIONAL.md).
 
-Mesmo que o pedido seja excluído pelo endpoint administrativo atual, a claim
-concluída permanece e bloqueia recriação. F011 exclusão física continua pendente.
+O endpoint administrativo rejeita DELETE com 405. Archive/unarchive preservam o pedido e sua claim: replay retorna o mesmo ID. Perda histórica por acesso externo privilegiado ainda falha fechada, sem recriação. F011 corrigido pela FET-ORDER-003; consulte [Histórico de pedidos](HISTORICO_PEDIDOS.md).
 
 ## Frontend
 
@@ -159,6 +158,6 @@ mudança de carrinho. Sem dependências, locks ou configs de ambiente novas.
 Riscos: PROCESSING órfão sem Order exige futura reconciliação;
 retenção comercial ainda indefinida (sem TTL nesta tarefa); pagamento terá
 idempotência/webhooks próprios; observabilidade operacional será ampliada.
-F001 pagamento, F011 exclusão física, F024 backup/restore e F027 frete continuam abertos.
+F001 pagamento, F024 backup/restore e F027 frete continuam abertos. F011 corrigido por arquivamento não destrutivo.
 Transação/reserva/ledger implementados na FET-ORDER-002. Gateway permanece
-ausente. Próxima recomendação: F011, sem início automático.
+ausente. Próxima recomendação atual: F002, sem início automático.

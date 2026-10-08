@@ -72,7 +72,10 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | GET | `/order/:id` | Proprietario ou administrador |
 | GET | `/admin/products`, `/admin/users`, `/admin/orders`, `/admin/user/:id` | Administrador |
 | POST | `/product/new` | Administrador |
-| PUT, DELETE | `/product/:id`, `/admin/user/:id`, `/admin/order/:id` | Administrador |
+| PUT, DELETE | `/product/:id`, `/admin/user/:id` | Administrador |
+| PUT | `/admin/order/:id` | Administrador; transição comercial |
+| DELETE | `/admin/order/:id` | Administrador; sempre 405, Allow: PATCH |
+| PATCH | `/admin/order/:id/archive`, `/admin/order/:id/unarchive` | Administrador; arquivamento não destrutivo |
 
 `POST /api/v1/order/new`: `shippingInfo` contém `recipientName`, `address`,
 `number`, `complement` opcional, `neighborhood`, `city`, `state`, `country`,
@@ -289,3 +292,10 @@ inválido. Configuração, headers/CSP exatos e limites: [SEGURANCA_HTTP.md](doc
 Product create/update recebe `price`, `oldPrice`, `installmmentPrice` em decimal técnico (ponto, até duas casas). Backend deriva os campos Cents e ignora canônicos do cliente. Product retorna `priceCents`, `oldPriceCents`, `installmmentPriceCents` e strings de compatibilidade derivadas. Pedido recebe IDs/quantidades e ignora preços/totais client-side; retorna `orderItems[].priceCents`, `itemsPriceCents`, `taxPriceCents`, `shippingPriceCents`, `totalPriceCents`. Campos antigos de Order agora são strings exatas de apresentação. Admin/orders também retorna `totalAmountCents`.
 
 Filtros `price[gt/gte/lt/lte]` mantêm decimal humano e comparação inteira. Ordenação por preço não existia e não foi adicionada. Documentos legados exatos possuem `moneyLegacy=true`; precisão/inconsistência causa erro controlado, sem arredondamento. Veja [DINHEIRO.md](docs/DINHEIRO.md). CSRF, autorização e no-store permanecem.
+
+
+## FET-ORDER-003 — histórico comercial preservado (08/10/2026)
+
+F011 / FET-P0-009 corrigido. DELETE administrativo de qualquer pedido retorna 405 com Allow: PATCH; não há exclusão física no fluxo comercial. PATCH /api/v1/admin/order/:id/archive e /unarchive são exclusivos para admin, com CSRF e metadata atômica. O painel filtra Ativos (padrão), Arquivados e Todos. Cliente mantém histórico completo, sem metadata administrativa. Arquivamento preserva centavos, snapshot, pagamento, estoque, ledger e replay. Pedidos legados não exigem migração. Auditoria somente leitura: npm.cmd run audit:orders --prefix ecommerce.
+
+Detalhes: [Histórico de pedidos](docs/HISTORICO_PEDIDOS.md) e [Relatório FET-ORDER-003](docs/RELATORIO_FET_ORDER_003.md). F002 é a próxima recomendação, sem início automático.

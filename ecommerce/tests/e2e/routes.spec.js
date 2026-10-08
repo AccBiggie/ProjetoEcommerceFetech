@@ -391,12 +391,20 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   await expect(orderRow).toContainText("Enviado");
   await orderRow.getByRole("button", { name: "Marcar entregue" }).click();
   await expect(orderRow).toContainText("Entregue");
-  await orderRow.getByRole("button", { name: "Excluir", exact: true }).click();
-  await page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Confirmar exclusão" })
-    .click();
-  await expect(page.getByRole('alert')).toContainText('Pedido com estoque reservado não pode ser excluído fisicamente.');
+  const denied = await mutation(page, "delete", "/api/v1/admin/order/" + createdOrder.order._id);
+  expect(denied.status()).toBe(405);
+  expect(denied.headers().allow).toBe("PATCH");
+  await orderRow.getByRole("button", { name: "Arquivar", exact: true }).click();
+  await expect(page.getByRole("dialog")).toContainText("O pedido e seu histórico serão preservados.");
+  await page.getByRole("button", { name: "Confirmar arquivamento" }).click();
+  await expect(orderRow).toHaveCount(0);
+  await page.getByLabel("Filtrar pedidos").selectOption("archived");
+  await expect(orderRow).toContainText("Arquivado");
+  expect((await page.request.get("/api/v1/order/" + createdOrder.order._id)).status()).toBe(200);
+  await orderRow.getByRole("button", { name: "Desarquivar", exact: true }).click();
+  await page.getByRole("button", { name: "Confirmar desarquivamento" }).click();
+  await expect(orderRow).toHaveCount(0);
+  await page.getByLabel("Filtrar pedidos").selectOption("active");
   await expect(orderRow).toHaveCount(1);
 });
 

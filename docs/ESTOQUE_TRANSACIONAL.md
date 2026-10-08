@@ -132,7 +132,7 @@ descontam novamente ao marcar Shipped/Delivered. Shipping ainda pode ocorrer
 com pagamento Pending (F002 aberto).
 
 DELETE físico de RESERVED retorna 409 e preserva Order/movimentos/Stock.
-Não devolve estoque. DELETE legado permanece: F011 continua aberto.
+Não devolve estoque. FET-ORDER-003 substitui toda exclusão por DELETE 405 e arquivamento administrativo. F011 corrigido; archive/unarchive preservam a reserva e o ledger. Consulte [Histórico de pedidos](HISTORICO_PEDIDOS.md).
 Product pode ser fisicamente removido no catálogo; reservas preservam IDs e
 snapshot, mas esse lifecycle ainda exige política de catálogo/post-sale.
 Não há release automático nem reconstrução de baseline histórico.

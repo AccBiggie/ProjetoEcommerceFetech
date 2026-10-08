@@ -12,7 +12,8 @@
     "admin:bootstrap": "node backend/scripts/bootstrapAdmin.js",
     "migrate:money": "node backend/scripts/migrateMoneyToCents.js",
     "audit:shipping": "node backend/scripts/auditShippingSnapshots.js",
-    "audit:inventory": "node backend/scripts/auditInventory.js"
+    "audit:inventory": "node backend/scripts/auditInventory.js",
+    "audit:orders": "node backend/scripts/auditOrders.js"
   },
   "author": "",
   "license": "ISC",

@@ -313,3 +313,10 @@ Validação FET-SEC-008: 46/46 focados (842 ms), 306/306 API (37,950 s), build a
 F014 corrigido no código. Estado inicial: main, HEAD d3bd5e9, worktree limpo; F036 já commitada. Product e Order usam campos Cents safe integer como fonte persistida. API mantém decimais derivados para compatibilidade; frontend calcula/formata centavos. Parser rejeita precisão >2 casas e overflow. Leitura legada estrita sinaliza moneyLegacy e não escreve automaticamente. Migração explícita com dry-run padrão, confirmação de database e CAS por documento; testada apenas em bases temporárias. Banco real e auditoria histórica preservados. Contrato: [DINHEIRO.md](DINHEIRO.md), operação: [MIGRACAO_DINHEIRO_CENTAVOS.md](MIGRACAO_DINHEIRO_CENTAVOS.md).
 
 Validação FET-DATA-001: 28/28 money, 23/23 API monetária, 16/16 migração; 373/373 API completa (27,485 s); build aprovado (959 ms); 24/24 E2E (1,9 min, exit 0); git diff --check aprovado. Sem pacote novo/lockfile alterado. Migração real não executada; implementação permanece sem commit. Relatório: [RELATORIO_FET_DATA_001.md](RELATORIO_FET_DATA_001.md).
+
+
+## FET-ORDER-003 — histórico comercial preservado (08/10/2026)
+
+F011 / FET-P0-009 corrigido. DELETE administrativo de qualquer pedido retorna 405 com Allow: PATCH; não há exclusão física no fluxo comercial. PATCH /api/v1/admin/order/:id/archive e /unarchive são exclusivos para admin, com CSRF e metadata atômica. O painel filtra Ativos (padrão), Arquivados e Todos. Cliente mantém histórico completo, sem metadata administrativa. Arquivamento preserva centavos, snapshot, pagamento, estoque, ledger e replay. Pedidos legados não exigem migração. Auditoria somente leitura: npm.cmd run audit:orders --prefix ecommerce.
+
+Detalhes: [Histórico de pedidos](HISTORICO_PEDIDOS.md) e [Relatório FET-ORDER-003](RELATORIO_FET_ORDER_003.md). F002 é a próxima recomendação, sem início automático.

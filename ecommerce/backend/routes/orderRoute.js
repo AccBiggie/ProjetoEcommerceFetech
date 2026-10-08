@@ -1,5 +1,5 @@
 const express = require("express");
-const { newOrder, getSingleOrder, myOrders, getAllOrders, updateOrder, deleteOrder } = require("../controllers/orderController");
+const { newOrder, getSingleOrder, myOrders, getAllOrders, updateOrder, deleteOrder, archiveOrder, unarchiveOrder } = require("../controllers/orderController");
 const { isAuthenticatedUser, authorizeRoles } = require("../middleware/auth");
 const router = express.Router();
 router.param("id", require("../middleware/validateId"));
@@ -16,4 +16,6 @@ router
   .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder)
   .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder);
 
+router.patch('/admin/order/:id/archive', isAuthenticatedUser, authorizeRoles('admin'), archiveOrder);
+router.patch('/admin/order/:id/unarchive', isAuthenticatedUser, authorizeRoles('admin'), unarchiveOrder);
 module.exports = router;

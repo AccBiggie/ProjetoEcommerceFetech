@@ -206,8 +206,8 @@ test('IDEM resposta perdida, snapshot e estado posterior preservados; exclusão 
     assert.equal(replay.result.order._id, a.result.order._id); assert.equal(replay.result.order.orderStatus, 'Shipped');
     assert.deepEqual(replay.result.order.shippingInfo, shipping());
     assert.equal((await Product.findById(data.products[0].id)).Stock, stock);
-    await h.request('DELETE', '/admin/order/' + a.result.order._id, null, cookie, 409);
-    await Order.collection.deleteOne({ _id: new mongoose.Types.ObjectId(a.result.order._id) }); // Fixture de exclusao historica.
+    await h.request('DELETE', '/admin/order/' + a.result.order._id, null, cookie, 405);
+    await mongoose.connection.db.collection('orders').deleteOne({ _id: new mongoose.Types.ObjectId(a.result.order._id) }); // Fixture de exclusao historica.
     const count = await Order.countDocuments(); await post(body, key, 409); assert.equal(await Order.countDocuments(), count);
 });
 test('IDEM PROCESSING conclui durante espera sem executar nova criação', async (t) => {

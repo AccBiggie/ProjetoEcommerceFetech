@@ -27,7 +27,7 @@ async function invariant(orders, movements, remaining) {
 before(async () => { await h.start(); data = await fixtures(); cookie = await h.login(data.users.admin); });
 after(h.stop);
 beforeEach(async () => {
-    await h.clearRateLimits(); await Order.deleteMany({}); await Movement.deleteMany({}); await Claim.deleteMany({});
+    await h.clearRateLimits(); await mongoose.connection.db.collection('orders').deleteMany({}); await Movement.deleteMany({}); await Claim.deleteMany({});
     await Product.updateMany({}, { $set: { Stock: 10, priceCents: 10000 } });
 });
 test('INV-01 topology real replica set suporta transações', async () => { await requireTransactions(); });
@@ -145,7 +145,7 @@ test('INV shipping não reduz estoque e DELETE RESERVED preserva tudo', async ()
     const {result}=await post(payload(),crypto.randomUUID(),201); const route='/admin/order/'+result.order._id;
     await h.request('PUT',route,{status:'Shipped'},cookie,200); await invariant(1,1,9);
     await h.request('PUT',route,{status:'Delivered'},cookie,200); await invariant(1,1,9);
-    await h.request('DELETE',route,null,cookie,409); await invariant(1,1,9);
+    await h.request('DELETE',route,null,cookie,405); await invariant(1,1,9);
 });
 test('INV legado sem inventário permanece legível e mantém fluxo de envio atual', async () => {
     const {result}=await post(payload(),crypto.randomUUID(),201);
