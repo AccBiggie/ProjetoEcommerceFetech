@@ -5,6 +5,12 @@
 O mapa das rotas, permissoes, integracoes e testes de ponta a ponta esta
 em [ROTAS.md](ROTAS.md).
 
+A autenticação usa `User.tokenVersion` para revogar JWTs server-side após
+logout, troca e reset de senha. Logout revoga todas as sessões da versão atual;
+JWTs antigos sem versão são rejeitados e exigem novo login após o deploy.
+Política, concorrência, compatibilidade e testes: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
+Remediações pós-auditoria: [docs/PLANO_MELHORIAS_FETECH.md](docs/PLANO_MELHORIAS_FETECH.md).
+
 O layout responsivo e os componentes Material UI estao documentados em
 [FRONTEND.md](FRONTEND.md).
 

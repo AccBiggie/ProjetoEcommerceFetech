@@ -59,7 +59,7 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | GET | `/products`, `/product/:id`, `/reviews?id=:productId` | Publico |
 | POST | `/register`, `/login`, `/password/forgot` | Publico |
 | PUT | `/password/reset/:token` | Token de recuperacao valido |
-| GET | `/logout` | Encerra cookie da sessao |
+| GET | `/logout` | Revoga a versão JWT corrente e expira cookie; idempotente para sessão inválida |
 | GET | `/me` | Autenticado |
 | PUT | `/me/update`, `/password/update` | Autenticado |
 | PUT | `/review` | Autenticado; uma avaliacao por usuario/produto |
@@ -74,6 +74,15 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 IDs invalidos e formularios invalidos retornam 400; recursos inexistentes
 e rotas desconhecidas retornam 404. Sessoes ausentes, invalidas, expiradas
 ou de usuarios removidos retornam 401. Acesso sem permissao retorna 403.
+
+JWTs novos incluem `User.tokenVersion`. O middleware compara a versão com o
+usuário persistido; versões ausentes/inválidas/divergentes retornam 401.
+Logout incrementa a versão condicionalmente e revoga globalmente as sessões
+daquela versão. Replay de logout antigo não afeta sessões novas; logouts
+simultâneos incrementam apenas uma vez. Troca/reset de senha salvam senha e
+nova versão juntos e emitem a sessão atualizada. Login e alteração de role
+não incrementam a versão. JWTs anteriores ao deploy sem versão exigem novo
+login. Consulte [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
 
 O total do pedido e calculado no servidor pelos precos cadastrados, sem
 aceitar o total ou o status de pagamento enviado pelo navegador. O estoque
@@ -135,3 +144,8 @@ autenticacao e nenhum erro JavaScript nessa verificacao.
 Atualização de 07/10/2026: 10 testes da API e 10 fluxos de navegador aprovados
 após implementar categorias. A API local foi reiniciada e a migração vinculou
 os 12 produtos existentes às 11 categorias, sem apagar dados.
+
+Validação de FET-SEC-001 em 07/10/2026: 28 testes focados de sessão,
+41 testes da API, build e 19 fluxos E2E aprovados. Os comandos anteriores
+permanecem válidos; `npm.cmd test` inclui `tests/auth.test.js` automaticamente.
+Registro da remediação: [docs/PLANO_MELHORIAS_FETECH.md](docs/PLANO_MELHORIAS_FETECH.md).

@@ -29,7 +29,7 @@ async function request(method, route, body, role = 'user', expected = 200) {
     if (body && !(body instanceof FormData)) headers['Content-Type'] = 'application/json';
     const response = await fetch(base + route, { method, headers, body: body instanceof FormData ? body : body ? JSON.stringify(body) : undefined });
     const result = await response.json();
-    assert.equal(response.status, expected, `${method} ${route}: ${JSON.stringify(result)}`);
+    assert.equal(response.status, expected, `${method}: status HTTP inesperado`);
     return { result, response };
 }
 before(async () => {
@@ -83,7 +83,7 @@ test('conta: cadastro sem foto, avatar opcional, login, perfil e alteração de 
     await request('POST', '/login', { email: data.users.user.email, password: 'wrong' }, 'anonymous', 401);
     await request('POST', '/login', {}, 'anonymous', 400);
     await request('GET', '/me', null, 'anonymous', 401);
-    cookies.expired = 'token=' + jwt.sign({ id: data.users.user.id }, process.env.JWT_SECRET, { expiresIn: -1 });
+    cookies.expired = 'token=' + jwt.sign({ id: data.users.user.id, tokenVersion: 0 }, process.env.JWT_SECRET, { expiresIn: -1 });
     cookies.invalid = 'token=invalid';
     await request('GET', '/me', null, 'expired', 401);
     await request('GET', '/me', null, 'invalid', 401);
@@ -93,7 +93,9 @@ test('conta: cadastro sem foto, avatar opcional, login, perfil e alteração de 
     assert.equal(profile.name, 'Cliente atualizado'); assert.equal(profile.role, 'user'); assert.equal(profile.avatar.public_id, 'uploaded-test');
     await request('PUT', '/password/update', { oldPassword: 'wrong', newPassword: 'NovaSenha123!', confirmPassword: 'NovaSenha123!' }, 'user', 400);
     await request('PUT', '/password/update', { oldPassword: password, newPassword: 'NovaSenha123!', confirmPassword: 'different' }, 'user', 400);
-    await request('PUT', '/password/update', { oldPassword: password, newPassword: 'NovaSenha123!', confirmPassword: 'NovaSenha123!' });
+    const changed = await request('PUT', '/password/update', { oldPassword: password, newPassword: 'NovaSenha123!', confirmPassword: 'NovaSenha123!' });
+    await request('GET', '/me', null, 'user', 401);
+    cookies.user = changed.response.headers.get('set-cookie').split(';')[0];
     await request('POST', '/login', { email: data.users.user.email, password }, 'anonymous', 401);
     await request('POST', '/login', { email: data.users.user.email.toUpperCase(), password: 'NovaSenha123!' }, 'anonymous');
 });
@@ -108,6 +110,8 @@ test('recuperação: envio, token, expiração e falha de integração sem falso
     await request('PUT', '/password/reset/invalid', { password, confirmPassword: password }, 'anonymous', 400);
     await request('PUT', '/password/reset/' + token, { password, confirmPassword: 'different' }, 'anonymous', 400);
     const reset = await request('PUT', '/password/reset/' + token, { password: 'ResetSenha123!', confirmPassword: 'ResetSenha123!' }, 'anonymous');
+    await request('GET', '/me', null, 'other', 401);
+    cookies.other = reset.response.headers.get('set-cookie').split(';')[0];
     assert.equal(reset.result.user.resetPasswordToken, undefined);
     await request('PUT', '/password/reset/' + token, { password, confirmPassword: password }, 'anonymous', 400);
     await request('POST', '/login', { email: data.users.other.email, password: 'ResetSenha123!' }, 'anonymous');
@@ -197,6 +201,9 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
 test('logout e conta removida não deixam sessões utilizáveis', async () => {
     const logout = await request('GET', '/logout'); assert.equal(logout.result.success, true);
     assert.match(logout.response.headers.get('set-cookie'), /Expires=/i);
+    await request('GET', '/me', null, 'user', 401);
+    const login = await request('POST', '/login', { email: data.users.user.email, password: 'NovaSenha123!' }, 'anonymous');
+    cookies.user = login.response.headers.get('set-cookie').split(';')[0];
     const id = data.users.other.id;
     await request('DELETE', '/admin/user/' + id, null, 'admin');
     await request('GET', '/me', null, 'other', 401);

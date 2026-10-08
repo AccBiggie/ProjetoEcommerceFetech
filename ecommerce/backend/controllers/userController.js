@@ -5,6 +5,7 @@ const sendToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const uploadAvatar = require("../utils/avatar");
+const { decodeSession, versionFilter, saveWithRevokedSessions, invalidSession } = require("../utils/authSession");
 //Register a User
 exports.registerUser = catchAsyncErrors( async (req,res,next) => {
     const avatar = await uploadAvatar(req.body.avatar);
@@ -36,6 +37,11 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
 });
 //Logout User
 exports.logout = catchAsyncErrors (async (req, res, next) => {
+    const session = decodeSession(req.cookies.token);
+    if (session) {
+        await User.updateOne({ _id: session.id, ...versionFilter(session.tokenVersion) },
+            { $inc: { tokenVersion: 1 } });
+    }
     res.cookie("token", null, {
         expires: new Date( Date.now()),
         httpOnly: true,
@@ -92,10 +98,11 @@ exports.resetPassword = catchAsyncErrors (async (req, res, next) => {
     }
     
     user.password = req.body.password;
+    user.$where = { resetPasswordToken, resetPasswordExpire: { $gt: new Date() } };
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 
-    await user.save();
+    await saveWithRevokedSessions(user);
 
     sendToken(user, 200, res);
 });
@@ -111,6 +118,7 @@ exports.getUserDetails = catchAsyncErrors(async(req, res, next) => {
 //UPDATE USER DETAILS
 exports.updatePassword = catchAsyncErrors(async(req, res, next) => {
     const user = await User.findById(req.user.id).select("+password");
+    if (!user || user.tokenVersion !== req.user.tokenVersion) return next(invalidSession());
     const isPasswordMatched = await user.comparePassword(req.body.oldPassword);
 
     if(!isPasswordMatched) {
@@ -121,7 +129,7 @@ exports.updatePassword = catchAsyncErrors(async(req, res, next) => {
     }
 
     user.password = req.body.newPassword;
-    await user.save();
+    await saveWithRevokedSessions(user);
 
     sendToken(user, 200, res);
 });

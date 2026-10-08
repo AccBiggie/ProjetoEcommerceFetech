@@ -10,6 +10,17 @@ React Router 8, Redux/Thunk e Axios no frontend. A API usa Node 24, Express 5,
 Mongoose 9 e MongoDB. A autenticação usa JWT no cookie `token` e autorização
 no servidor. As dependências instaladas estão detalhadas em `DEPENDENCIAS.md`.
 
+Após FET-SEC-001, `User.tokenVersion` é persistido e incluído em todo JWT.
+O middleware compara a versão e rejeita JWTs legados, inválidos ou revogados.
+Logout revoga globalmente a versão atual com incremento atômico condicional;
+troca/reset salvam senha e versão juntas e emitem novo JWT. Replay de logout
+antigo e logouts simultâneos não derrubam sessões posteriores. Usuários antigos
+sem campo persistido usam default zero, sem backfill obrigatório; tokens antigos
+sem claim são rejeitados e exigem novo login após deploy. Sessões por dispositivo,
+rate limiting, Secure cookie, MFA e hardening HTTP/CSRF continuam pendentes.
+Detalhes em [AUTENTICACAO.md](AUTENTICACAO.md) e
+[PLANO_MELHORIAS_FETECH.md](PLANO_MELHORIAS_FETECH.md).
+
 Desenvolvimento local: frontend `http://localhost:3000`, API em
 `127.0.0.1:4000/api/v1` e MongoDB em `127.0.0.1:27017`, banco `fetech`.
 O Vite encaminha `/api` para a API. A API só abre a porta após conectar ao banco
@@ -78,12 +89,17 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 13 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 41 testes da
 API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
-Resultado após integrar a seleção de endereços na entrega: **13 testes da API
+Resultado após integrar a seleção de endereços na entrega (antes de FET-SEC-001): **13 testes da API
 aprovados, build aprovado e 19 testes E2E aprovados**, em 07/10/2026.
+
+Resultado de FET-SEC-001 em 07/10/2026: **28/28 testes focados, 41/41 testes
+da API, build aprovado e 19/19 E2E**. Testes e probes executados exclusivamente
+em bancos temporários com teardown; banco real não alterado. JWTs antigos
+sem versão exigirão novo login quando a nova API for iniciada.
 
 Documentos complementares: `README.md`, `COMANDOS.md`, `ROTAS.md`, `FRONTEND.md`,
 `DEPENDENCIAS.md` e `docs/ENDERECOS.md`.

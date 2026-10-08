@@ -45,6 +45,16 @@ const userSchema = new mongoose.Schema ( {
     },
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    tokenVersion: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: Number.MAX_SAFE_INTEGER,
+        validate: {
+            validator: Number.isSafeInteger,
+            message: "Versão de autenticação inválida.",
+        },
+    },
 });
 userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.password;
@@ -60,7 +70,9 @@ userSchema.pre("save", async function() {
 });
 //JWT TOKEN
 userSchema.methods.getJWTToken = function () {
-    return jwt.sign({ id: this._id }, process.env.JWT_SECRET, { //Can Create tons of admin fake account
+    const { isValidVersion, invalidSession } = require("../utils/authSession");
+    if (!isValidVersion(this.tokenVersion)) throw invalidSession();
+    return jwt.sign({ id: this._id, tokenVersion: this.tokenVersion }, process.env.JWT_SECRET, {
         expiresIn: process.env.JWT_EXPIRE,
     }); 
 };
