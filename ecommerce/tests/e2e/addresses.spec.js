@@ -44,14 +44,14 @@ for (const width of [360, 768, 1440]) {
     await homeRadio.focus();
     await page.keyboard.press("Space");
     await expect(homeRadio).toBeChecked();
-    await expect(page.getByRole("textbox", { name: "Endereço", exact: true })).toHaveValue("Rua das Flores, 100, Apartamento 2, Centro");
+    await expect(page.getByRole("textbox", { name: "Endereço", exact: true })).toHaveValue("Rua das Flores");
     await expect(page.getByRole("textbox", { name: "CEP", exact: true })).toHaveValue("01234567");
     await expect(page.getByRole("textbox", { name: "Telefone", exact: true })).toHaveValue("011999999999");
     await page.getByText("Trabalho checkout", { exact: true }).click();
     await expect(workRadio).toBeChecked();
     await expect(homeRadio).not.toBeChecked();
     await expect(page.getByRole("textbox", { name: "Cidade", exact: true })).toHaveValue("Curitiba");
-    await expect(page.getByRole("textbox", { name: "Endereço", exact: true })).toHaveValue("Avenida Brasil, 200, Jardim");
+    await expect(page.getByRole("textbox", { name: "Endereço", exact: true })).toHaveValue("Avenida Brasil");
     const stored = await (await page.request.get("/api/v1/addresses")).json();
     expect(stored.addresses.find(address => address._id === home._id).favorite).toBe(true);
     expect(stored.addresses.find(address => address._id === work._id).favorite).toBe(false);
@@ -64,7 +64,13 @@ for (const width of [360, 768, 1440]) {
     await expect(page).toHaveURL(/\/order\/[a-f0-9]+$/);
     const orderId = page.url().split("/").at(-1);
     const snapshot = (await (await page.request.get(`/api/v1/order/${orderId}`)).json()).order.shippingInfo;
-    expect(snapshot.address).toBe("Rua das Flores, 100, Apartamento 2, Centro");
+    expect(snapshot.address).toBe("Rua das Flores");
+    expect(snapshot.number).toBe("100");
+    expect(snapshot.complement).toBe("Apartamento 2");
+    expect(snapshot.neighborhood).toBe("Centro");
+    expect(snapshot.recipientName).toBe("Cliente Checkout");
+    expect(snapshot.pinCode).toBe("01234567");
+    expect(snapshot.phoneNo).toBe("011999999999");
     expect(snapshot.city).toBe("Campinas");
     await mutation(page, "put", `/api/v1/address/${home._id}`, { data: { city: "Santos" } });
     await mutation(page, "delete", `/api/v1/address/${home._id}`);
@@ -79,7 +85,7 @@ test("entrega: falha ao buscar endereços mantém preenchimento manual e criaç�
   await page.route("**/api/v1/addresses", route => route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ success: false, message: "Serviço temporariamente indisponível." }) }));
   await page.goto("/shipping");
   await expect(page.getByRole("alert").filter({ hasText: "Não foi possível carregar seus endereços" })).toBeVisible();
-  for (const [label, value] of [["Endereço", "Rua Manual, 1"], ["Cidade", "São Paulo"], ["Estado", "SP"], ["País", "Brasil"], ["CEP", "01234567"], ["Telefone", "11999999999"]]) {
+  for (const [label, value] of [["Nome do destinatário", "Cliente Manual"], ["Número", "S/N"], ["Bairro", "Centro"], ["Endereço", "Rua Manual"], ["Cidade", "São Paulo"], ["Estado", "SP"], ["País", "Brasil"], ["CEP", "01234567"], ["Telefone", "11999999999"]]) {
     await page.getByRole("textbox", { name: label, exact: true }).fill(value);
   }
   await page.getByRole("button", { name: "Criar pedido", exact: true }).click();

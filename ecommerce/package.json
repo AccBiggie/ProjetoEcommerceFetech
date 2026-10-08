@@ -10,7 +10,8 @@
     "dev": "node --watch backend/server.js",
     "seed:products": "node backend/scripts/seedProducts.js",
     "admin:bootstrap": "node backend/scripts/bootstrapAdmin.js",
-    "migrate:money": "node backend/scripts/migrateMoneyToCents.js"
+    "migrate:money": "node backend/scripts/migrateMoneyToCents.js",
+    "audit:shipping": "node backend/scripts/auditShippingSnapshots.js"
   },
   "author": "",
   "license": "ISC",

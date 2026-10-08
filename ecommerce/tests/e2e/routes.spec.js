@@ -249,7 +249,10 @@ test("carrinho com dois produtos, remoção, persistência, checkout e detalhe d
   await page.locator(".loginForm button[type=submit]").click();
   await expect(page).toHaveURL(/\/shipping$/);
   for (const [label, value] of Object.entries({
-    Endereço: "Rua Teste, 10",
+    "Nome do destinatário": "Cliente Fixture",
+    Número: "10",
+    Bairro: "Centro",
+    Endereço: "Rua Teste",
     Cidade: "Maringá",
     Estado: "PR",
     País: "Brasil",
@@ -364,12 +367,15 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
     await mutation(page, "post", "/api/v1/order/new", {
       data: {
         shippingInfo: {
+          recipientName: "Cliente Fixture",
+          number: "1",
+          neighborhood: "Centro",
           address: "Rua Admin",
           city: "Maringá",
           state: "PR",
           country: "Brasil",
-          pinCode: 87000000,
-          phoneNo: 44999999999,
+          pinCode: "87000000",
+          phoneNo: "44999999999",
         },
         orderItems: [{ product: products.products[0]._id, quantity: 1 }],
       },

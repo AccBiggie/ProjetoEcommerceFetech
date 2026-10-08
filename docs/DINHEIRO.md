@@ -2,6 +2,9 @@
 
 Todo dinheiro novo persistido e todo cálculo financeiro usa **centavos BRL inteiros não negativos**, limitados a Number.MAX_SAFE_INTEGER. R$ 12,34 = 1234 centavos. O finding F014 está corrigido no código; o banco real ainda não foi migrado.
 
+Desde FET-DATA-002, a [validação estrita do checkout](VALIDACAO_CHECKOUT.md)
+ocorre antes da consulta dos produtos e do cálculo monetário. A política F014 permanece igual.
+
 ## Inventário e representação
 
 | Campo anterior | Model/local | Tipo anterior | Canônico novo | Uso |

@@ -91,3 +91,12 @@ F023 (deployment/TLS), F024 (backup/restore), F025 (observabilidade) e F029 (SMT
 ## Perfil migration — FET-DATA-001
 
 `loadConfig(env, { profile: "migration" })` reutiliza validação NODE_ENV/DB_URI e database explícita, sem exigir JWT/SMTP/frontend para auditar dados. Loader dotenv central continua único no entrypoint. CLI monetária é fronteira autorizada de leitura de process.env; módulos de negócio permanecem sem leitura dispersa. Flags de apply/confirm-db pertencem ao CLI, sem envs novas. Veja [MIGRACAO_DINHEIRO_CENTAVOS.md](MIGRACAO_DINHEIRO_CENTAVOS.md).
+
+## Perfil shipping-audit — FET-DATA-002
+
+`loadConfig(env, { profile: "shipping-audit" })` usa os mesmos parsers centrais
+NODE_ENV/DB_URI, database explícita e regras de produção. Não exige configuração
+HTTP/JWT/SMTP/Cloudinary/frontend. Sem novas variáveis. O entrypoint
+`auditShippingSnapshots.js` usa o loader central e lê process.env apenas nessa
+fronteira; é coberto pelo teste arquitetural CFG-42. Não aceita flags de escrita,
+não cria índices/coleções automaticamente e não imprime URI/secrets/PII.

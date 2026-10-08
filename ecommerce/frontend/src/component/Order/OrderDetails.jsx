@@ -126,13 +126,21 @@ export default function OrderDetails() {
               <Typography variant="h2" sx={{ mb: 2 }}>
                 Entrega
               </Typography>
-              <Typography>{order.shippingInfo.address}</Typography>
+              {order.shippingInfoVersion === 2 && <>
+                <Typography>{order.shippingInfo.recipientName}</Typography>
+                <Typography>{order.shippingInfo.address}, {order.shippingInfo.number}</Typography>
+                {order.shippingInfo.complement && <Typography>{order.shippingInfo.complement}</Typography>}
+                <Typography color="textSecondary">{order.shippingInfo.neighborhood}</Typography>
+              </>}
+              {order.shippingInfoVersion !== 2 && <Typography>{order.shippingInfo.address}</Typography>}
               <Typography color="textSecondary">
                 {order.shippingInfo.city} — {order.shippingInfo.state}
               </Typography>
               <Typography color="textSecondary">
                 CEP {order.shippingInfo.pinCode}
               </Typography>
+              <Typography color="textSecondary">{order.shippingInfo.country}</Typography>
+              <Typography color="textSecondary">Telefone {order.shippingInfo.phoneNo}</Typography>
             </Card>
           </Box>
         </Stack>

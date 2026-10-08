@@ -1,6 +1,6 @@
 const {test,before,after,beforeEach}=require('node:test');const assert=require('node:assert/strict');const mongoose=require('mongoose');const h=require('./authHarness');const {productData,fixtures}=require('./fixtures');const Product=require('../backend/models/productModel');const Order=require('../backend/models/orderModel');const m=require('../backend/utils/money');
 let cookie,data,last;before(async()=>{await h.start();data=await fixtures();cookie=await h.login(data.users.admin);});after(h.stop);beforeEach(h.clearRateLimits);
-const shippingInfo={address:'Fixture',city:'Fixture',state:'PR',country:'Brasil',pinCode:87000000,phoneNo:44999999999};
+const shippingInfo={recipientName:'Cliente Fixture',address:'Fixture',number:'1',complement:'',neighborhood:'Centro',city:'Fixture',state:'PR',country:'Brasil',pinCode:'87000000',phoneNo:'44999999999'};
 async function create(overrides={},status=201){return h.request('POST','/product/new',productData(overrides),cookie,status);}
 async function order(product,quantity=3,extra={},status=201){return h.request('POST','/order/new',{shippingInfo,orderItems:[{product,quantity,price:1,priceCents:1}],totalPriceCents:1,...extra},cookie,status);}
 test('API-MONEY-01 create persiste somente centavos',async()=>{const r=await create({price:'199.90'});last=r.result.product._id;const raw=await Product.collection.findOne({_id:new mongoose.Types.ObjectId(last)});assert.equal(raw.priceCents,19990);for(const key of m.productFields)assert.equal(Object.hasOwn(raw,key),false);});

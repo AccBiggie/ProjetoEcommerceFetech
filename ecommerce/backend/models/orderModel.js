@@ -1,34 +1,8 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
-  shippingInfo: {
-    address: {
-      type: String,
-      required: true,
-    },
-    city: {
-      type: String,
-      required: true,
-    },
-
-    state: {
-      type: String,
-      required: true,
-    },
-
-    country: {
-      type: String,
-      required: true,
-    },
-    pinCode: {
-      type: Number,
-      required: true,
-    },
-    phoneNo: {
-      type: Number,
-      required: true,
-    },
-  },
+  shippingInfoVersion: { type: Number, enum: [1, 2] },
+  shippingInfo: require('../utils/shippingSchema')(true),
   orderItems: [
     {
       name: {
@@ -92,6 +66,9 @@ const orderSchema = new mongoose.Schema({
 }, { optimisticConcurrency: true });
 
 orderSchema.pre('validate', function () {
+  if (this.shippingInfoVersion === 2) {
+    this.shippingInfo = require('../../shared/shippingAddress.mjs').normalizeShippingAddress(this.shippingInfo);
+  }
   const { orderMoney, orderFields, MoneyError } = require('../utils/money');
   if (Object.keys(this.$errors || {}).some(path => path.endsWith('Cents')) || this.orderItems.some(item => item.$errors?.priceCents)) throw new MoneyError();
   const normalized = orderMoney(this.toObject());

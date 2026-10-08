@@ -54,6 +54,11 @@ cadastrados permitem preencher os campos atuais, mantendo edição manual e
 snapshot do pedido. Veja [docs/ENDERECOS.md](docs/ENDERECOS.md)
 e [o estado atual do projeto](docs/ESTADO_ATUAL_PROJETO_FETECH.md).
 
+Novos pedidos usam entrega estruturada versionada, CEP/telefone strings e
+validação estrita de quantidade, preservando zeros iniciais. Há auditoria
+histórica somente leitura; ela não foi executada no banco comercial.
+Contrato e operação: [docs/VALIDACAO_CHECKOUT.md](docs/VALIDACAO_CHECKOUT.md).
+
 Categorias possuem CRUD próprio e subcategorias vinculadas por `parent_id`.
 No dashboard, o botão **Cadastrar categoria** abre o painel lateral de
 criação/edição; a aba **Categorias** permite gerenciar os vínculos.

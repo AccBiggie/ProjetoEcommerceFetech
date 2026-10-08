@@ -274,3 +274,18 @@ node --test ecommerce/tests/money.test.js
 node --test ecommerce/tests/moneyApi.test.js
 node --test ecommerce/tests/moneyMigration.test.js
 ```
+
+## Checkout e auditoria de entrega — FET-DATA-002
+
+```powershell
+node --test ecommerce/tests/checkoutValidation.test.js
+node --test ecommerce/tests/shippingSnapshotAudit.test.js
+# Somente leitura; confira NODE_ENV e DB_URI do ambiente antes de executar:
+npm.cmd run audit:shipping --prefix ecommerce
+```
+
+Nesta tarefa o audit foi executado somente em bancos temporários de testes.
+O perfil `shipping-audit` exige somente configuração operacional NODE_ENV/DB_URI.
+Não há --apply, migração ou reconstrução de zeros históricos. F024 continua
+pendente antes de futuras ações sobre o histórico real.
+Veja [docs/VALIDACAO_CHECKOUT.md](docs/VALIDACAO_CHECKOUT.md).

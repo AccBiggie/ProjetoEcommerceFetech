@@ -1,5 +1,7 @@
 const ErrorHander = require("./errorHander");
 
+const { normalizeShippingField } = require('../../shared/shippingAddress.mjs');
+
 const fields = ["label", "recipientName", "address", "number", "complement", "neighborhood", "city", "state", "country", "pinCode", "phoneNo"];
 
 module.exports = (body = {}) => {
@@ -13,6 +15,9 @@ module.exports = (body = {}) => {
             if (!allowed.test(value)) throw new ErrorHander(field === "pinCode" ? "CEP inválido." : "Telefone inválido.", 400);
             input[field] = value.replace(/\D/g, "");
         } else input[field] = value;
+    }
+    for (const field of fields.filter(field => field !== 'label')) {
+        if (input[field] !== undefined) input[field] = normalizeShippingField(field, input[field]);
     }
     if (body.favorite !== undefined) {
         if (typeof body.favorite !== "boolean") throw new ErrorHander("O favorito deve ser informado como verdadeiro ou falso.", 400);

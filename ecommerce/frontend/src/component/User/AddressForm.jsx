@@ -1,3 +1,4 @@
+import { normalizeShippingField } from '../../../../shared/shippingAddress.mjs';
 import { useEffect, useRef, useState } from "react";
 import {
   Alert, Box, Button, Checkbox, Divider, Drawer, FormControlLabel,
@@ -36,10 +37,15 @@ export default function AddressForm({ address, onSave, onClose }) {
     event.preventDefault();
     const errors = {};
     for (const [field] of fields) {
-      if (field !== "complement" && !draft[field].trim()) errors[field] = "Preencha este campo.";
+      if (field === 'label') {
+        if (!draft.label.trim()) errors.label = 'Preencha este campo.';
+        continue;
+      }
+      const value = ['pinCode', 'phoneNo'].includes(field) ? draft[field].replace(/\D/g, '') : draft[field];
+      try { normalizeShippingField(field, value); } catch (error) { errors[field] = error.message; }
     }
-    if (!/^[\d\s-]+$/.test(draft.pinCode) || draft.pinCode.replace(/\D/g, "").length !== 8) errors.pinCode = "Informe um CEP com 8 dígitos.";
-    if (!/^[\d\s()+.-]+$/.test(draft.phoneNo) || !/^\d{10,15}$/.test(draft.phoneNo.replace(/\D/g, ""))) errors.phoneNo = "Informe um telefone com 10 a 15 dígitos, incluindo DDD.";
+    if (!/^[0-9\s-]+$/.test(draft.pinCode)) errors.pinCode = "Informe um CEP com 8 dígitos.";
+    if (!/^[0-9\s()+.-]+$/.test(draft.phoneNo)) errors.phoneNo = "Informe um telefone com 10 a 15 dígitos, incluindo DDD.";
     setFieldErrors(errors);
     if (Object.keys(errors).length) return;
     setPending(true);

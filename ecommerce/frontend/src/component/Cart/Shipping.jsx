@@ -1,3 +1,4 @@
+import { shippingFields, normalizeShippingAddress } from '../../../../shared/shippingAddress.mjs';
 import { cartTotalCents } from '../../utils/money';
 import {
   Alert,
@@ -23,15 +24,10 @@ import SavedAddressPicker from "./SavedAddressPicker";
 
 export default function Shipping() {
   const { cartItems, shippingInfo } = useSelector((state) => state.cart);
-  const [shipping, setShipping] = useState({
-    address: "",
-    city: "",
-    state: "",
-    country: "Brasil",
-    pinCode: "",
-    phoneNo: "",
-    ...shippingInfo,
-  });
+  const [shipping, setShipping] = useState(() => Object.fromEntries(
+    Object.keys(shippingFields).map(key => [key, typeof shippingInfo[key] === 'string'
+      ? shippingInfo[key] : key === 'country' ? 'Brasil' : '']),
+  ));
   const [pending, setPending] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [error, setError] = useState("");
@@ -40,23 +36,17 @@ export default function Shipping() {
   const selectAddress = address => {
     setSelectedAddressId(address?._id || "");
     if (!address) return;
-    setShipping({
-      address: [address.address, address.number, address.complement, address.neighborhood].filter(Boolean).join(", "),
-      city: address.city,
-      state: address.state,
-      country: address.country,
-      pinCode: address.pinCode,
-      phoneNo: address.phoneNo,
-    });
+    setShipping(normalizeShippingAddress(address));
   };
   const submit = async (event) => {
     event.preventDefault();
     setPending(true);
     setError("");
     try {
-      await dispatch(saveShippingInfo(shipping));
+      const normalized = normalizeShippingAddress(shipping);
+      await dispatch(saveShippingInfo(normalized));
       const { data } = await axios.post("/api/v1/order/new", {
-        shippingInfo: shipping,
+        shippingInfo: normalized,
         orderItems: cartItems.map((item) => ({
           product: item.product,
           quantity: item.quantity,
@@ -114,6 +104,10 @@ export default function Shipping() {
             }}
           >
             {[
+              ["recipientName", "Nome do destinatário", "name"],
+              ["number", "Número", "off"],
+              ["complement", "Complemento", "address-line2"],
+              ["neighborhood", "Bairro", "address-level3"],
               ["address", "Endereço", "street-address"],
               ["city", "Cidade", "address-level2"],
               ["state", "Estado", "address-level1"],
@@ -126,18 +120,16 @@ export default function Shipping() {
                 label={label}
                 name={key}
                 value={shipping[key]}
-                required
+                required={!shippingFields[key].optional}
+                type={key === "phoneNo" ? "tel" : "text"}
                 disabled={pending}
                 autoComplete={autoComplete}
                 sx={{ gridColumn: key === "address" ? "1 / -1" : undefined }}
                 slotProps={{
                   htmlInput: {
-                    inputMode: ["pinCode", "phoneNo"].includes(key)
-                      ? "numeric"
-                      : undefined,
-                    pattern: ["pinCode", "phoneNo"].includes(key)
-                      ? "[0-9]+"
-                      : undefined,
+                    maxLength: shippingFields[key].max,
+                    inputMode: key === 'pinCode' ? 'numeric' : key === 'phoneNo' ? 'tel' : undefined,
+                    pattern: key === 'pinCode' ? '[0-9]{8}' : key === 'phoneNo' ? '[0-9]{10,15}' : undefined,
                   },
                 }}
                 onChange={(e) => {

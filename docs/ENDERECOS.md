@@ -115,13 +115,13 @@ pedidos concorrentes terem sucesso.
 
 O cadastro novo não lê nem sobrescreve `localStorage.shippingInfo` e não altera
 `Order.shippingInfo`. Na etapa `/shipping`, os endereços cadastrados aparecem
-em cards com seleção única e favorito destacado. Os campos atuais de endereço,
-cidade, estado, país, CEP e telefone continuam disponíveis para edição.
+em cards com seleção única e favorito destacado. Destinatário, endereço, número,
+complemento, bairro, cidade, estado, país, CEP e telefone ficam disponíveis para edição.
 
 Inicialmente o checkout mantém os valores anteriores de `shippingInfo`, sem
 selecionar o favorito automaticamente. Escolher um card copia os seus dados
-para o formulário. Rua, número, complemento e bairro são reunidos no campo
-Endereço; os demais campos são copiados individualmente. Ao editar qualquer
+para o formulário. Todos os campos são copiados individualmente, preservando
+strings e zeros iniciais. Ao editar qualquer
 campo, a seleção muda para **Preencher ou ajustar manualmente**, sem perder
 os dados preenchidos. Escolher um endereço não altera o favorito da conta.
 
@@ -132,10 +132,11 @@ tentar novamente. Os cards são carregados pelo endpoint privado da conta.
 Não há referência obrigatória de `Order` para `Address`. Editar ou excluir
 um endereço cadastrado não afeta pedidos. Nesta integração, o formulário envia
 os dados finais ao endpoint atual de pedido: não envia uma referência de
-`Address` e não muda o contrato de `Order.shippingInfo`. CEP e telefone continuam
-strings no cadastro `Address`, mas o snapshot de pedido mantém os tipos
-numéricos históricos. Uma futura seleção resolvida diretamente por ID no
-servidor exigirá validação de propriedade e adaptação explícita do contrato.
+`Address`. Desde FET-DATA-002, o contrato de `Order.shippingInfo` é completo e
+versionado (`shippingInfoVersion: 2`), com CEP e telefone strings, conforme
+[VALIDACAO_CHECKOUT.md](VALIDACAO_CHECKOUT.md). A agenda continua normalizando
+entradas formatadas, enquanto o pedido exige dígitos canônicos. Uma futura seleção
+resolvida por ID no servidor exigiria validação explícita de propriedade.
 
 Ficam fora desta implementação: transportadora, frete, rastreamento e vínculo
 opcional de referência no pedido.

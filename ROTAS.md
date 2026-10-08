@@ -41,8 +41,10 @@ Rotas autenticadas: `GET /addresses`, `POST /address/new`,
 O proprietário vem da sessão; IDs de outra conta retornam 404, inclusive
 para admin. CEP e telefone são strings. O índice único parcial protege o
 favorito por usuário; excluir o favorito não escolhe outro automaticamente.
-O checkout e `Order.shippingInfo` permanecem como antes, sem vínculo com
-`Address`. Consulte [docs/ENDERECOS.md](docs/ENDERECOS.md).
+O checkout copia um snapshot completo e independente de `Address`, com
+`shippingInfoVersion: 2` controlado pelo servidor e CEP/telefone strings.
+Consulte [docs/ENDERECOS.md](docs/ENDERECOS.md) e
+[docs/VALIDACAO_CHECKOUT.md](docs/VALIDACAO_CHECKOUT.md).
 
 Validação após endereços em 07/10/2026: 13 testes da API, build e 15 fluxos
 E2E aprovados, incluindo checkout existente e snapshot histórico de pedidos.
@@ -71,6 +73,15 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | GET | `/admin/products`, `/admin/users`, `/admin/orders`, `/admin/user/:id` | Administrador |
 | POST | `/product/new` | Administrador |
 | PUT, DELETE | `/product/:id`, `/admin/user/:id`, `/admin/order/:id` | Administrador |
+
+`POST /api/v1/order/new`: `shippingInfo` contém `recipientName`, `address`,
+`number`, `complement` opcional, `neighborhood`, `city`, `state`, `country`,
+`pinCode` e `phoneNo`, todos strings. Obrigatórios rejeitam espaços vazios;
+CEP exige 8 dígitos ASCII, telefone 10–15. `orderItems` é array não vazio de
+`{ product: ObjectId em string, quantity: Number inteiro seguro >= 1 }`.
+Não aceita coerção de quantity. Input inválido retorna 400 antes de consultas
+comerciais; produto válido inexistente retorna 404. Preços/totais/versão do
+cliente são ignorados. Sessão, CSRF e `Cache-Control: no-store` permanecem ativos.
 
 IDs invalidos e formularios invalidos retornam 400; recursos inexistentes
 e rotas desconhecidas retornam 404. Sessoes ausentes, invalidas, expiradas

@@ -4,14 +4,19 @@ const Order = require("../models/orderModel");
 const Product = require("../models/productModel");
 const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
+const { normalizeShippingAddress } = require('../../shared/shippingAddress.mjs');
 
 exports.newOrder = catchAsyncErrors(async (req, res, next) => {
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) return next(new ErrorHander("Dados do pedido inválidos.", 400));
     if (!Array.isArray(req.body.orderItems) || !req.body.orderItems.length) return next(new ErrorHander("O pedido precisa conter produtos.", 400));
+    const shippingInfo = normalizeShippingAddress(req.body.shippingInfo);
     const quantities = new Map();
     for (const item of req.body.orderItems) {
-        const quantity = typeof item.quantity === "string" && /^\d+$/.test(item.quantity) ? Number(item.quantity) : item.quantity;
-        if (!Number.isSafeInteger(quantity) || quantity < 1) return next(new ErrorHander("Quantidade inválida.", 400));
-        quantities.set(String(item.product), addCents(quantities.get(String(item.product)) || 0, quantity));
+        if (!item || typeof item !== 'object' || Array.isArray(item) || typeof item.product !== 'string' || !/^[0-9a-fA-F]{24}$/.test(item.product)) return next(new ErrorHander("Produto inválido no pedido.", 400));
+        const quantity = item.quantity;
+        if (typeof quantity !== 'number' || !Number.isSafeInteger(quantity) || quantity < 1) return next(new ErrorHander("Quantidade inválida.", 400));
+        const productId = item.product.toLowerCase();
+        quantities.set(productId, addCents(quantities.get(productId) || 0, quantity));
     }
     const orderItems = [];
     for (const [id, quantity] of quantities) {
@@ -24,7 +29,7 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     const itemsPriceCents = sumCents(orderItems.map(item => multiplyCents(item.priceCents, item.quantity)));
     // Nenhum provedor de pagamento foi integrado: o pedido permanece pendente.
     const order = await Order.create({
-        shippingInfo: req.body.shippingInfo, orderItems, user: req.user._id,
+        shippingInfoVersion: 2, shippingInfo, orderItems, user: req.user._id,
         itemsPriceCents, taxPriceCents: 0, shippingPriceCents: 0, totalPriceCents: itemsPriceCents,
         paymentInfo: { id: crypto.randomUUID(), status: "Pending" },
     });

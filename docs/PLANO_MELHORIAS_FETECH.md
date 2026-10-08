@@ -1023,3 +1023,36 @@ Banco real não migrado. Riscos: backup/restore F024 deve ser validado antes de 
 Próxima recomendação: **F012 + F013 — snapshot de entrega com CEP/telefone strings e validações de checkout**. Não iniciada automaticamente.
 
 Validação FET-DATA-001: 28/28 money, 23/23 API monetária, 16/16 migração; 373/373 API completa (27,485 s); build aprovado (959 ms); 24/24 E2E (1,9 min, exit 0); git diff --check aprovado. Sem pacote novo/lockfile alterado. Migração real não executada; implementação permanece sem commit. Relatório: [RELATORIO_FET_DATA_001.md](RELATORIO_FET_DATA_001.md).
+
+## F012 / FET-P1-003 — CEP/telefone do Order — FET-DATA-002
+
+**Status: CORRIGIDO NO CÓDIGO.** F014 já estava commitado em `64d11ae` antes desta tarefa.
+
+Novos pedidos preservam CEP/telefone strings e zeros iniciais no snapshot
+estruturado completo, versão 2. Edição, exclusão e favorito de Address não
+alteram Order. Histórico continua legível e com atualização de status válida,
+sem reconstrução artificial de zeros. Audit READ ONLY identifica dados
+numéricos, campos ausentes e formatos inválidos sem PII.
+
+Risco residual: zeros perdidos podem exigir fonte externa ou ser irrecuperáveis;
+banco real não auditado. F024 backup/restore deve preceder alterações históricas.
+
+## F013 / FET-P1-004 — Validação de checkout — FET-DATA-002
+
+**Status: CORRIGIDO.** Strings obrigatórias exigem tipo real, trim, texto não
+vazio e limites do Address. CEP: 8 dígitos; telefone: 10–15 dígitos. Quantity:
+Number inteiro seguro positivo, sem coerções. Boolean/string/float/zero/negativo
+rejeitados. Array e IDs validados antes de consultas/cálculos. Payload inválido
+não cria Order, muda estoque/Address/favorito ou envia e-mail. Endereço manual
+e salvo compartilham contrato canônico; a agenda conserva seu adaptador de pontuação.
+
+F006/F007/F008/F009/F010/F014/F020/F021/F036 continuam corrigidos no código.
+F001, F003, F004, F005, F024, F027, F031 e F037 permanecem abertos.
+Validação: 113/113 checkout, 11/11 audit, 497/497 API, build aprovado, 25/25 E2E,
+git diff --check aprovado. Sem dependência/lockfile/secret/config.env alterado.
+Banco real não auditado/modificado; auditoria original intacta; sem commit nesta entrega.
+Detalhes: [VALIDACAO_CHECKOUT.md](VALIDACAO_CHECKOUT.md) e
+[RELATORIO_FET_DATA_002.md](RELATORIO_FET_DATA_002.md).
+
+Próxima recomendação: **F005 — idempotência persistente na criação de pedidos**.
+Não iniciada automaticamente.

@@ -1,5 +1,13 @@
 # Estado atual — ProjetoEcommerceFetech
 
+FET-DATA-002: entrega versionada completa, CEP/telefone strings, quantities
+estritas e diagnóstico histórico READ ONLY. Novos pedidos preservam zeros;
+pedidos antigos continuam legíveis e atualizáveis sem inventar dados perdidos.
+Validação: 113/113 checkout, 11/11 audit, 497/497 API, build aprovado, 25/25 E2E.
+Banco real não auditado/modificado. F014 preservado no commit `64d11ae`.
+Contrato: [VALIDACAO_CHECKOUT.md](VALIDACAO_CHECKOUT.md).
+Entrega: [RELATORIO_FET_DATA_002.md](RELATORIO_FET_DATA_002.md).
+
 Referência em 08/10/2026 para continuidade do projeto. O código e os lockfiles
 são as fontes de verdade; atualizar este documento ao mudar os contratos.
 
@@ -75,7 +83,8 @@ Detalhes de campos, endpoints e regras estão em [ENDERECOS.md](ENDERECOS.md).
 ## Regras a preservar
 
 O checkout atual mantém seu endereço em `localStorage.shippingInfo`. O pedido
-mantém `Order.shippingInfo` como snapshot, com o contrato histórico atual.
+mantém `Order.shippingInfo` como snapshot completo com `shippingInfoVersion: 2`,
+strings e validação estrita conforme [VALIDACAO_CHECKOUT.md](VALIDACAO_CHECKOUT.md).
 Os cards na entrega copiam os dados de `Address` para os campos editáveis do
 formulário, sem selecionar um endereço automaticamente. O endpoint do pedido
 recebe os dados finais, preservando o snapshot. Editar um campo passa a indicar
@@ -100,8 +109,8 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 373 testes da
-API e 24 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 497 testes da
+API e 25 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
 Resultado após integrar a seleção de endereços na entrega (antes de FET-SEC-001): **13 testes da API

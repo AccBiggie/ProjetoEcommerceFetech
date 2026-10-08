@@ -179,7 +179,7 @@ test('avaliações: criar, atualizar, listar, remover e recalcular média', asyn
 
 test('pedidos: checkout, preços do servidor, propriedade, status e estoque', async () => {
     const product = data.products[1];
-    const payload = { shippingInfo: { address: 'Rua Teste, 1', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: 87000000, phoneNo: 44999999999 }, orderItems: [{ product: product.id, quantity: 2, price: 1 }], totalPrice: 1, paymentInfo: { id: 'forged', status: 'succeeded' } };
+    const payload = { shippingInfo: { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste, 1', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' }, orderItems: [{ product: product.id, quantity: 2, price: 1 }], totalPrice: 1, paymentInfo: { id: 'forged', status: 'succeeded' } };
     await request('POST', '/order/new', payload, 'anonymous', 401);
     await request('POST', '/order/new', { ...payload, orderItems: [] }, 'user', 400);
     await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 400);
@@ -218,7 +218,7 @@ test('logout e conta removida não deixam sessões utilizáveis', async () => {
 
 test('envio com falha de estoque restaura os itens anteriores e mantém o pedido', async () => {
     const [first, second] = data.products.slice(3, 5);
-    const shippingInfo = { address: 'Rua Teste', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: 87000000, phoneNo: 44999999999 };
+    const shippingInfo = { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Teste', city: 'Maringá', state: 'PR', country: 'Brasil', pinCode: '87000000', phoneNo: '44999999999' };
     const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: first.id, quantity: 2 }, { product: second.id, quantity: 1 }] }, 'user', 201)).result.order;
     await Product.updateOne({ _id: second.id }, { Stock: 0 });
     await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 400);
@@ -377,7 +377,7 @@ test('endereços: validação não remove favorito e índice protege alteraçõe
 });
 
 test('endereços: editar e excluir cadastro não altera snapshot de pedidos', async () => {
-    const shippingInfo = { address: 'Rua Histórica, 100', city: 'São Paulo', state: 'SP', country: 'Brasil', pinCode: 1234567, phoneNo: 11999999999 };
+    const shippingInfo = { recipientName: 'Cliente Fixture', number: '1', complement: '', neighborhood: 'Centro', address: 'Rua Histórica, 100', city: 'São Paulo', state: 'SP', country: 'Brasil', pinCode: '01234567', phoneNo: '011999999999' };
     const order = (await request('POST', '/order/new', { shippingInfo, orderItems: [{ product: data.products[0].id, quantity: 1 }] }, 'addressOwner', 201)).result.order;
     const address = (await request('POST', '/address/new', addressData(), 'addressOwner', 201)).result.address;
     await request('PUT', '/address/' + address._id, { address: 'Rua alterada', pinCode: '00000001' }, 'addressOwner');
