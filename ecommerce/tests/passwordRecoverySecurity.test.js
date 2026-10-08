@@ -92,9 +92,9 @@ test('PR-21 equalização temporal determinística com relógio e sleep injetado
     }
 });
 test('PR-22 SMTP não configurado mantém contrato e limpa token', async () => {
-    const host = process.env.HOST; process.env.HOST = '';
+    h.configure({ HOST: '', USER: '', PASSWORD: '', PORTEMAIL: undefined, EMAIL_SECURE: undefined });
     try { uniform(await forgot(user.email)); assert.equal((await saved()).resetPasswordToken, undefined); }
-    finally { process.env.HOST = host; }
+    finally { h.configure(); }
 });
 test('PR-23 indisponibilidade do limiter permanece 503 antes do lookup', async () => {
     const model = require('../backend/models/authRateLimitModel'), original = model.collection.findOneAndUpdate;

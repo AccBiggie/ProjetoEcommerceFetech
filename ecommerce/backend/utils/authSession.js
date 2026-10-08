@@ -8,7 +8,7 @@ const isValidVersion = version => Number.isSafeInteger(version) && version >= 0 
 function decodeSession(token) {
     if (typeof token !== 'string' || !token) return null;
     let decoded;
-    try { decoded = jwt.verify(token, process.env.JWT_SECRET); }
+    try { decoded = jwt.verify(token, require('../config/runtimeConfig').getRuntimeConfig().jwt.secret); }
     catch (error) {
         if (error instanceof jwt.JsonWebTokenError) return null;
         throw error;

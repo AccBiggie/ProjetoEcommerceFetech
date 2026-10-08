@@ -993,3 +993,19 @@ novos provedores exigem revisão CSP; observabilidade/redaction completa F025 e
 env completo F036 seguem abertos. HSTS produtivo não declarado implantado.
 Próxima task: **F036 / FET-P1-019 — validação central e fail-fast das variáveis
 de ambiente, secrets e configuração por ambiente.** Não iniciada automaticamente.
+
+## F036 / FET-P1-019 — Validação de configuração (FET-SEC-008)
+
+Status: **CORRIGIDO**.
+
+Estado inicial: branch main; HEAD f2101f4; worktree limpo; F020 já commitada. Probe com dependências interceptadas reproduziu tentativa de conexão Mongo e configuração Cloudinary mesmo sem JWT_SECRET/JWT_EXPIRE, URI Mongo com protocolo inválido e SMTP parcial. Nenhum serviço real foi chamado.
+
+Implementado: inventário real das envs; parser central puro `loadConfig(env)`; ConfigurationError agregado sem valores; snapshot tipado/congelado; validação antes do app, Mongo e listen; regras de produção; grupos SMTP/Cloudinary; config auth/HTTP/timing/rate limit centralizada; perfis server/bootstrap/seed; config.env.example atualizado; inspeção permanente contra leituras dispersas. Nenhuma dependência nova.
+
+F008 e F010 usam constantes internas, sem env artificial. SMTP completo obrigatório em produção; Cloudinary opcional por fallback sem avatar. Parser Mongo usa driver já instalado, sem conexão; exige database explícita e bloqueia test em produção. Contratos e efeitos de compatibilidade: [CONFIGURACAO.md](CONFIGURACAO.md).
+
+Riscos residuais: configuração sintaticamente válida não prova conectividade, quota, permissões ou entrega; SMTP/Cloudinary reais continuam F029; gestão/rotação de secrets depende da infraestrutura F023; observabilidade completa permanece F025; backup/restore permanece F024. Auditoria histórica intacta.
+
+Próxima task recomendada: **F014 / FET-P0-010 — modelo monetário exato em centavos**, antes de mudanças em pedido, estoque e pagamento. Não iniciada automaticamente.
+
+Validação final FET-SEC-008: `node --test ecommerce/tests/configSecurity.test.js` 46/46 (842 ms); `npm.cmd test --prefix ecommerce` 306/306 (37,950 s); `npm.cmd run build --prefix ecommerce/frontend` aprovado (4,00 s); `npm.cmd run test:e2e --prefix ecommerce` 21/21 (2,1 min, exit code 0). Nenhuma dependência/lockfile alterada; npm audit não reexecutado (dispensado pelo escopo). Banco temporário removido pelos harnesses; nenhum e-mail ou upload real; config.env e auditoria histórica preservados; task permanece sem commit.

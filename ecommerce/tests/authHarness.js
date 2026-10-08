@@ -9,9 +9,9 @@ const { withCsrf } = require('./httpHeaders');
 const User = require('../backend/models/userModel');
 
 Object.assign(process.env, {
-    NODE_ENV: 'test', TRUST_PROXY_HOPS: '0',
+    NODE_ENV: 'test', PORT: '4000', TRUST_PROXY_HOPS: '0',
     JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7',
-    FRONTEND_URL: 'http://127.0.0.1:3300', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test',
+    FRONTEND_URL: 'http://127.0.0.1:3300', EMAIL_SECURE: 'false', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test',
     PORTEMAIL: '587', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '',
     AUTH_FORGOT_MIN_RESPONSE_MS: process.env.AUTH_FORGOT_MIN_RESPONSE_MS ?? '20',
 });
@@ -21,8 +21,13 @@ nodemailer.createTransport = () => ({ sendMail: async mail => {
     if (transportFailure) throw new Error('SMTP de teste indisponível');
     mails.push(mail);
 } });
-const app = require('../backend/app');
 const database = `fetech_routes_auth_${process.pid}_${Date.now()}`;
+process.env.DB_URI = `mongodb://127.0.0.1:27017/${database}`;
+const runtime = require('../backend/config/runtimeConfig');
+const fixtureEnv = { ...process.env };
+runtime.initializeConfig(fixtureEnv);
+function configure(overrides = {}) { return runtime.initializeConfig({ ...fixtureEnv, ...overrides }); }
+const app = require('../backend/app');
 let server, base, sequence = 0;
 
 async function start() {
@@ -86,7 +91,7 @@ async function recoveryToken(user) {
     assert.ok(match, 'Link de recuperação ausente');
     return match[1];
 }
-module.exports = { start, stop, request, cookieOf, extractCookieValue, createUser, login, signedCookie, recoveryToken,
+module.exports = { configure, start, stop, request, cookieOf, extractCookieValue, createUser, login, signedCookie, recoveryToken,
     User, jwt, password, database, setTransportFailure: value => { transportFailure = value; },
     mailCount: () => mails.length,
     clearRateLimits: () => mongoose.connection.collection('authratelimits').deleteMany({}),

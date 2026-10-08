@@ -26,13 +26,13 @@ function createInteractivePrompt(input = process.stdin, output = process.stdout)
     };
 }
 
-async function runBootstrapCli({ connection, service = createAdminSafetyService(), prompt,
+async function runBootstrapCli({ connection, environment = 'test', service = createAdminSafetyService(), prompt,
     prepare = async () => {},
     write = line => process.stdout.write(line + '\n') }) {
     try {
         write('Banco alvo: ' + connection.name);
         write('Host: ' + connection.host);
-        write('Ambiente: ' + (process.env.NODE_ENV || 'não definido'));
+        write('Ambiente: ' + environment);
         const count = await connection.model('User').countDocuments({ role: 'admin' });
         write('Administradores atuais: ' + count);
         if (count > 0) {
@@ -62,16 +62,18 @@ async function main({ argv = process.argv.slice(2), write = line => process.stdo
     if (!process.stdin.isTTY || !process.stdout.isTTY) {
         write('Execute em um terminal interativo. Provisionamento por stdin ainda não é suportado.'); return 1;
     }
-    require('dotenv').config({ path: path.join(__dirname, '../config/config.env'), quiet: true });
+    const { loadEnvironment, loadConfig, ConfigurationError } = require('../config/runtimeConfig');
+    loadEnvironment();
     let interactive;
     try {
-        if (!process.env.DB_URI) { write('Configure DB_URI no servidor antes do bootstrap.'); return 1; }
+        const config = loadConfig(process.env, { profile: 'bootstrap' });
         // A consulta inicial não deve criar coleção/índice antes da confirmação.
-        await mongoose.connect(process.env.DB_URI, { serverSelectionTimeoutMS: 5000, autoCreate: false, autoIndex: false });
+        await mongoose.connect(config.mongo.uri, { serverSelectionTimeoutMS: 5000, autoCreate: false, autoIndex: false });
         interactive = createInteractivePrompt();
-        return await runBootstrapCli({ connection: mongoose.connection, prompt: interactive.prompt,
+        return await runBootstrapCli({ connection: mongoose.connection, environment: config.environment, prompt: interactive.prompt,
             prepare: () => User.createIndexes(), write });
-    } catch {
+    } catch (error) {
+        if (error instanceof ConfigurationError) { write(error.message); return 1; }
         write('Não foi possível executar o bootstrap. Verifique a conexão e a configuração do servidor.');
         return 1;
     } finally {

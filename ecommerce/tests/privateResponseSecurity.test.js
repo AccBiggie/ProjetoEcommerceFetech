@@ -99,10 +99,10 @@ test('PRV-29 review autenticada no-store', async () => noStore(await h.request('
 test('PRV-30 perfil atualizado no-store', async () => noStore(await h.request('PUT', '/me/update', { name: 'Atualizado', email: user.email }, cookie, 200)));
 test('PRV-31 erro de validação privado no-store', async () => noStore(await h.request('POST', '/order/new', {}, cookie, 400)));
 test('PRV-32 produção preserva política F007', async () => {
-    const previous = process.env.NODE_ENV; process.env.NODE_ENV = 'production';
+    const previous = process.env.NODE_ENV; process.env.NODE_ENV = 'production'; h.configure({ NODE_ENV: 'production', FRONTEND_URL: 'https://shop.example.test' });
     try { const reply = await login(); session(reply); const attrs = reply.response.headers.get('set-cookie').split(';').slice(1).join(';');
         assert.ok(/Secure/i.test(attrs)); assert.ok(/SameSite=Lax/i.test(attrs)); assert.ok(/Path=\//i.test(attrs)); assert.ok(!/Domain=/i.test(attrs)); }
-    finally { process.env.NODE_ENV = previous; }
+    finally { process.env.NODE_ENV = previous; h.configure(); }
 });
 test('PRV-33 F008 mantém 429 e Retry-After', async () => {
     for (let i = 0; i < 5; i++) await h.request('POST', '/login', { email: user.email, password: 'invalid-fixture' }, null, 401);

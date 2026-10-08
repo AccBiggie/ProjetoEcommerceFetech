@@ -2,20 +2,21 @@ const nodeMailer = require("nodemailer");
 const ErrorHander = require("./errorHander");
 
 const sendEmail = async (options) => {
-    if (!process.env.HOST || !process.env.USER || !process.env.PASSWORD) {
+    const smtp = require('../config/runtimeConfig').getRuntimeConfig().smtp;
+    if (!smtp.enabled) {
         throw new ErrorHander("Envio de e-mail indisponível. Configure HOST, PORTEMAIL, USER e PASSWORD no servidor.", 503);
     }
     const transporter = nodeMailer.createTransport ({
-        host: process.env.HOST,
-        port: process.env.PORTEMAIL,
-        secure: process.env.EMAIL_SECURE ? process.env.EMAIL_SECURE === "true" : Number(process.env.PORTEMAIL) === 465,
+        host: smtp.host,
+        port: smtp.port,
+        secure: smtp.secure,
         auth: {
-                user: process.env.USER,
-                pass: process.env.PASSWORD,
+                user: smtp.user,
+                pass: smtp.password,
         },
     });
     const mailOptions = {
-        from: process.env.USER,
+        from: smtp.user,
         to: options.email,
         subject: options.subject,
         text: options.message,

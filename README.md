@@ -123,3 +123,7 @@ Frontend = () => {
 }
 
 
+
+## Configuração central e startup seguro (FET-SEC-008)
+
+O backend valida ambiente, Mongo, JWT, cookie, origin, proxy e grupos externos antes de conectar ou aceitar tráfego. Configuração inválida encerra com erro agregado sem secrets. Veja [CONFIGURACAO.md](docs/CONFIGURACAO.md) para inventário, defaults, perfis server/bootstrap/seed e migração de configurações antigas. Nenhuma dependência nova.

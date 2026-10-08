@@ -14,10 +14,13 @@ const Order = require('../backend/models/orderModel');
 const Category = require('../backend/models/categoryModel');
 const Address = require('../backend/models/addressModel');
 const { migrateLegacyCategories } = require('../backend/utils/categories');
-Object.assign(process.env, { NODE_ENV: 'test', TRUST_PROXY_HOPS: '0' });
+Object.assign(process.env, { NODE_ENV: 'test', PORT: '4000', TRUST_PROXY_HOPS: '0' });
 
-Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
+Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', PORTEMAIL: '', EMAIL_SECURE: '', HOST: '', USER: '', PASSWORD: '', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 const database = `fetech_routes_${process.pid}_${Date.now()}`;
+process.env.DB_URI = `mongodb://127.0.0.1:27017/${database}`;
+const runtime = require('../backend/config/runtimeConfig');
+runtime.initializeConfig(process.env);
 const mails = [];
 let transportFailure = false;
 nodemailer.createTransport = () => ({ sendMail: async mail => { if (transportFailure) throw new Error('SMTP indisponível'); mails.push(mail); } });
@@ -80,6 +83,7 @@ test('conta: cadastro sem foto, avatar opcional, login, perfil e alteração de 
     await request('POST', '/register', { name: 'Cliente curto', email: 'short@routes.example.com', password: '123' }, 'anonymous', 400);
     await request('POST', '/register', { name: 'Com avatar', email: 'avatar@routes.example.com', password, avatar: 'data:image/png;base64,AAAA' }, 'anonymous', 503);
     Object.assign(process.env, { CLOUDINARY_NAME: 'test', CLOUDINARY_API_KEY: 'test', CLOUDINARY_API_SECRET: 'test' });
+    runtime.initializeConfig(process.env);
     const avatar = await request('POST', '/register', { name: 'Com avatar', email: 'avatar@routes.example.com', password, avatar: 'data:image/png;base64,AAAA' }, 'anonymous', 201);
     assert.equal(avatar.result.user.avatar.public_id, 'uploaded-test');
     await request('POST', '/login', { email: data.users.user.email, password: 'wrong' }, 'anonymous', 401);
@@ -107,6 +111,7 @@ test('recuperação: contrato genérico, token, expiração e limpeza em falha S
     await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous', 200);
     assert.equal((await User.findById(data.users.other._id)).resetPasswordToken, undefined);
     Object.assign(process.env, { HOST: 'smtp.test', USER: 'test', PASSWORD: 'test', PORTEMAIL: '587' });
+    runtime.initializeConfig(process.env);
     await request('POST', '/password/forgot', { email: data.users.other.email }, 'anonymous');
     const token = mails.at(-1).text.match(/password\/reset\/([a-f0-9]+)/)[1];
     await request('PUT', '/password/reset/invalid', { password, confirmPassword: password }, 'anonymous', 400);

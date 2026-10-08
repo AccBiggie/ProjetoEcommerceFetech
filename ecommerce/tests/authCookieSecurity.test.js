@@ -10,8 +10,9 @@ beforeEach(async () => { await h.clearRateLimits(); user = await h.createUser();
 async function environment(nodeEnv, fn, extra = {}) {
     const values = { NODE_ENV: nodeEnv, ...extra }, previous = {};
     for (const key of Object.keys(values)) { previous[key] = process.env[key]; process.env[key] = values[key]; }
+    h.configure({ NODE_ENV: nodeEnv, FRONTEND_URL: nodeEnv === 'production' ? 'https://shop.example.test' : 'http://127.0.0.1:3300', ...extra });
     try { return await fn(); }
-    finally { for (const key of Object.keys(values)) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key]; } }
+    finally { h.configure(); for (const key of Object.keys(values)) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key]; } }
 }
 function attributes(reply) {
     const header = reply.response.headers.get('set-cookie');

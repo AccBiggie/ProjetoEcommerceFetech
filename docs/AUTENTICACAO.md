@@ -362,3 +362,7 @@ envia header pelo interceptor Axios e migrou logout para POST. Body.token
 continua ausente, no-store privado/cookie Secure/HttpOnly/Lax intactos.
 FRONTEND_URL deve ser HTTPS explícito válido em produção; erro falha startup.
 Políticas, configuração, compatibilidade e CSP exatas: [SEGURANCA_HTTP.md](SEGURANCA_HTTP.md).
+
+## Configuração central — FET-SEC-008
+
+JWT_SECRET/JWT_EXPIRE e COOKIE_EXPIRE são validados antes de conexão/listen, pelo [contrato de ambiente](CONFIGURACAO.md). Production exige secret de no mínimo 32 bytes, sem placeholders; não existe secret default. Cookie, revogação, rate limiting e resposta uniforme não mudaram. PASSWORD e demais credenciais não aparecem em erros de configuração. Valores de configuração são snapshots tipados; alterações exigem reinício.

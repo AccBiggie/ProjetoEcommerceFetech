@@ -1,41 +1,39 @@
-const path = require("path");
-const dotenv = require("dotenv");
-dotenv.config({path: path.join(__dirname, "config", "config.env")});
-const app = require("./app");
-const cloudinary = require("cloudinary")
-const connectDataBase = require("./config/database.js");
-//Handling Uncaught Exception
-process.on("uncaughtException", (err) => {
-    console.log(`Error: ${err.message}`);
-    console.log(`Shutting down to server duo to Uncaught Exceptions Rejection`);
-    process.exit(1);    
-})
-//config
+const { initializeConfig, loadEnvironment, ConfigurationError } = require('./config/runtimeConfig');
 
-cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET,
-});
-
-let server;
-connectDataBase().then(async () => {
-    await require("./models/addressModel").init();
-    await require("./models/authRateLimitModel").init();
-    await require("./models/adminMutationLockModel").init();
-    await require("./utils/categories").migrateLegacyCategories();
-    const port = process.env.PORT || 4000;
-    server = app.listen(port, "127.0.0.1", () => {
-        console.log(`Server is Working on http://localhost:${port}`);
-    });
-});
-//Unhandled Promise Rejection
-process.on("unhandledRejection", (err) => {
-    console.log(`Error: ${err.message}`);
-    console.log(`Shutting down to server duo to Unhandled Promise Rejection`);
-    
-    if (!server) process.exit(1);
-    server.close(() => {
-        process.exit(1);
-    });
-});
+async function startServer(env, dependencies = {}) {
+    // Validação completa antes de carregar app, configurar providers ou conectar.
+    const config = initializeConfig(env);
+    const app = dependencies.createApp ? dependencies.createApp(config) : require('./app');
+    if (config.cloudinary.enabled) {
+        const configureCloudinary = dependencies.configureCloudinary || (settings => require('cloudinary').config(settings));
+        configureCloudinary(config.cloudinary);
+    }
+    await (dependencies.connect || require('./config/database'))(config);
+    await (dependencies.prepare || (async () => {
+        await require('./models/addressModel').init();
+        await require('./models/authRateLimitModel').init();
+        await require('./models/adminMutationLockModel').init();
+        await require('./utils/categories').migrateLegacyCategories();
+    }))();
+    return app.listen(config.port, '127.0.0.1', () => console.log(`Server is Working on http://localhost:${config.port}`));
+}
+async function main() {
+    loadEnvironment();
+    let server;
+    const shutdown = () => {
+        console.error('Falha operacional do servidor. Nenhuma configuração sensível será exibida.');
+        process.exitCode = 1;
+        if (server) server.close(() => process.exit(1));
+        else process.exit(1);
+    };
+    process.on('uncaughtException', shutdown);
+    process.on('unhandledRejection', shutdown);
+    try { server = await startServer(process.env); }
+    catch (error) {
+        console.error(error instanceof ConfigurationError ? error.message : 'Falha ao iniciar o servidor. Verifique configuração e conectividade do MongoDB.');
+        process.exitCode = 1;
+        await require('mongoose').disconnect();
+    }
+}
+module.exports = { startServer, main };
+if (require.main === module) main();

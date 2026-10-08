@@ -166,4 +166,8 @@ token nunca devem entrar em logs/traces; observabilidade/redaction completa
 permanece F025. Banco real, config.env e auditoria histórica preservados;
 testes somente em bancos temporários com teardown. Reiniciar todas as APIs
 para carregar o novo contrato; nenhuma instância real reiniciada nesta task.
-Próxima recomendação: F036; não iniciada automaticamente.
+No encerramento FET-SEC-007, a recomendação era F036; implementada posteriormente na FET-SEC-008 (ver seção abaixo).
+
+## Configuração central — FET-SEC-008
+
+FRONTEND_URL e TRUST_PROXY_HOPS agora chegam aos consumidores pelo snapshot validado de runtimeConfig.js. A configuração preserva o validador puro F020 e normaliza URLs com path para origin, inclusive nos links de reset. Origin produtiva HTTPS e hops 0..5 são validados antes de importar o app/conectar Mongo/listen. Consulte [CONFIGURACAO.md](CONFIGURACAO.md). CSP, HSTS desabilitado, CSRF, Fetch Metadata e logout POST permanecem iguais.

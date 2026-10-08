@@ -1,3 +1,4 @@
+require('./config/runtimeConfig').getRuntimeConfig();
 const express = require("express");
 const app = express();
 app.set("query parser", "extended");

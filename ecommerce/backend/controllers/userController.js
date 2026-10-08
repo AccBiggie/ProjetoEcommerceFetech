@@ -8,7 +8,7 @@ const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const { performance } = require('node:perf_hooks');
 const { waitForMinimumDuration } = require('../utils/waitForMinimumDuration');
-const { minimumResponseMs } = require('../config/passwordRecovery');
+const recoveryConfig = require('../config/passwordRecovery');
 const uploadAvatar = require("../utils/avatar");
 const { decodeSession, versionFilter, saveWithRevokedSessions, invalidSession } = require("../utils/authSession");
 const adminSafety = require('../services/adminSafetyService').createAdminSafetyService();
@@ -64,7 +64,7 @@ exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
         const resetToken =  user.getResetPasswordToken();
         await user.save({ validateBeforeSave:false });
 
-        const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
+        const resetPasswordUrl = `${require('../config/runtimeConfig').getRuntimeConfig().frontend.origin}/password/reset/${resetToken}`;
         const message = `Your password reset token is :- \n\n ${ resetPasswordUrl } \n\nIf you have not requested this email then please ignore it`;
 
         try {
@@ -82,7 +82,7 @@ exports.forgotPassword = catchAsyncErrors (async (req, res, next) => {
                 { $unset: { resetPasswordToken: '', resetPasswordExpire: '' } });
         }
     }
-    await waitForMinimumDuration(started, minimumResponseMs);
+    await waitForMinimumDuration(started, recoveryConfig.minimumResponseMs);
     res.status(200).json({ success: true,
         message: 'Se existir uma conta associada a este e-mail, enviaremos as instruções para redefinição de senha.' });
 });

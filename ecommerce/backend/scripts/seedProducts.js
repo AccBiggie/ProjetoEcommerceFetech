@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
-require("dotenv").config({ path: path.join(__dirname, "../config/config.env") });
+const { loadEnvironment, loadConfig, ConfigurationError } = require('../config/runtimeConfig');
 const Product = require("../models/productModel");
 const User = require("../models/userModel");
 const Category = require("../models/categoryModel");
@@ -23,7 +23,8 @@ const examples = [
 ];
 
 async function seed() {
-    const uri = process.env.DB_URI || "";
+    loadEnvironment();
+    const { mongo: { uri } } = loadConfig(process.env, { profile: 'seed' });
     if (!/^mongodb:\/\/(?:127\.0\.0\.1|localhost):27017\/fetech(?:\?|$)/.test(uri)) {
         throw new Error("Este cadastro de exemplos exige o banco local fetech na porta 27017.");
     }
@@ -75,6 +76,6 @@ async function seed() {
 }
 
 seed().catch(error => {
-    console.error(error.message);
+    console.error(error instanceof ConfigurationError ? error.message : 'Falha no cadastro de exemplos. Verifique configuração, banco local e administrador.');
     process.exitCode = 1;
 });

@@ -1,10 +1,12 @@
 const ErrorHander = require('../utils/errorHander');
 
-function getClearAuthCookieOptions({ nodeEnv = process.env.NODE_ENV } = {}) {
+function getClearAuthCookieOptions(options) {
+    const nodeEnv = options ? options.nodeEnv : require('./runtimeConfig').getRuntimeConfig().environment;
     return { httpOnly: true, sameSite: 'lax', secure: nodeEnv === 'production', path: '/' };
 }
-function getAuthCookieOptions({ nodeEnv = process.env.NODE_ENV, cookieExpire = process.env.COOKIE_EXPIRE,
-    now = Date.now() } = {}) {
+function getAuthCookieOptions(options) {
+    const config = options ? null : require('./runtimeConfig').getRuntimeConfig();
+    const { nodeEnv = config?.environment, cookieExpire = config?.cookie.expireDays, now = Date.now() } = options || {};
     const days = Number(cookieExpire), expires = new Date(now + days * 86400000);
     if (!['string', 'number'].includes(typeof cookieExpire) || !Number.isFinite(days) || days <= 0 ||
         !Number.isFinite(expires.getTime()) || expires.getTime() <= now) {

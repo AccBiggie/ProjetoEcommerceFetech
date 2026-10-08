@@ -75,8 +75,8 @@ userSchema.pre("save", async function() {
 userSchema.methods.getJWTToken = function () {
     const { isValidVersion, invalidSession } = require("../utils/authSession");
     if (!isValidVersion(this.tokenVersion)) throw invalidSession();
-    return jwt.sign({ id: this._id, tokenVersion: this.tokenVersion }, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRE,
+    return jwt.sign({ id: this._id, tokenVersion: this.tokenVersion }, require('../config/runtimeConfig').getRuntimeConfig().jwt.secret, {
+        expiresIn: require('../config/runtimeConfig').getRuntimeConfig().jwt.expiresIn,
     }); 
 };
 //Compare Password

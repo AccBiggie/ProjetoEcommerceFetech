@@ -100,7 +100,7 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 260 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 306 testes da
 API e 21 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
@@ -271,4 +271,12 @@ imagem HTTPS fixture, requests same-origin e header CSRF nas mutações reais.
 Banco real/config.env/auditoria histórica preservados. Testes temporários com
 teardown, sem novas coleções/schema ou mudanças comerciais. Reiniciar todas
 as APIs e atualizar frontend juntos após deploy; nenhum processo real reiniciado.
-F023/F025/F036 continuam abertos; próxima recomendação F036, não iniciada.
+No encerramento FET-SEC-007, F023/F025/F036 continuavam abertos; F036 está tratado na seção FET-SEC-008 abaixo.
+
+## FET-SEC-008 — configuração central
+
+F036/FET-P1-019 corrigido. Estado inicial: main, HEAD f2101f4, worktree limpo; F020 já commitada. `runtimeConfig.js` inventaria e valida as 17 variáveis do backend. E2E_BROWSER permanece configuração exclusiva do runner, documentada à parte. Valores tipados/congelados alimentam auth, cookie, proxy, CSRF, timing e providers. Startup falha com erro agregado seguro antes de Mongo/listen. Perfis server/bootstrap/seed evitam exigir configuração HTTP nos scripts de manutenção.
+
+Production exige secret forte, expiração, database explícita, origin HTTPS e SMTP completo. Cloudinary opcional preserva cadastro sem foto e rejeita grupo parcial. config.env real e auditoria histórica foram preservados. Contrato completo: [CONFIGURACAO.md](CONFIGURACAO.md). Implementação permanece sem commit até solicitação do usuário.
+
+Validação FET-SEC-008: 46/46 focados (842 ms), 306/306 API (37,950 s), build aprovado (4,00 s), 21/21 E2E (2,1 min, exit code 0). Sem mudança de dependências/lockfiles; npm audit não reexecutado nesta tarefa.

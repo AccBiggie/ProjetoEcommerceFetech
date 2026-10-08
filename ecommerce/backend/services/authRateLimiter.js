@@ -1,12 +1,11 @@
 const crypto = require('node:crypto');
-const defaultPolicies = require('../config/authRateLimits');
 const { createMongoRateLimitStore } = require('./mongoAuthRateLimitStore');
 const ErrorHander = require('../utils/errorHander');
 
 const unavailable = () => new ErrorHander('Autenticação temporariamente indisponível. Tente novamente mais tarde.', 503);
 
-function createAuthRateLimiter({ store = createMongoRateLimitStore(), policies = defaultPolicies,
-    now = Date.now, secret = process.env.JWT_SECRET } = {}) {
+function createAuthRateLimiter({ store = createMongoRateLimitStore(), policies = require('../config/runtimeConfig').getRuntimeConfig().auth.rateLimits,
+    now = Date.now, secret = require('../config/runtimeConfig').getRuntimeConfig().jwt.secret } = {}) {
     function rulesFor(action, { email, ip }) {
         if (typeof secret !== 'string' || !secret) throw unavailable();
         const account = String(email || '').trim().toLowerCase();

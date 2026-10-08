@@ -1,4 +1,6 @@
-function getAllowedOrigins({ nodeEnv = process.env.NODE_ENV, frontendUrl = process.env.FRONTEND_URL } = {}) {
+function getAllowedOrigins(options) {
+    if (!options) return new Set(require('./runtimeConfig').getRuntimeConfig().frontend.allowedOrigins);
+    const { nodeEnv, frontendUrl } = options;
     const production = nodeEnv === 'production';
     const origins = new Set(production ? [] : ['http://localhost:3000', 'http://127.0.0.1:3000']);
     if (frontendUrl !== undefined) {

@@ -252,3 +252,15 @@ npm.cmd audit --prefix ecommerce --cache .local/npm-cache
 Cache local evita escrita no cache global restrito do ambiente. CSP do build
 validada no host E2E; não é deployment produtivo. HTTP/TLS/HSTS reais pertencem
 à F023. Política completa: [docs/SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md).
+
+## Startup e validação de ambiente (FET-SEC-008)
+
+Antes de `npm.cmd start --prefix ecommerce`, configure as variáveis conforme [CONFIGURACAO.md](docs/CONFIGURACAO.md). Configuração inválida impede conexão Mongo e abertura da porta, com exit 1. Nenhum secret default é fornecido. Grupos SMTP/Cloudinary parciais agora são erros; deixe o grupo SMTP inteiro vazio no desenvolvimento sem transporte. Production exige SMTP completo e FRONTEND_URL HTTPS. O arquivo real config.env não é alterado automaticamente.
+
+Teste isolado, sem credenciais reais ou banco externo:
+
+```powershell
+node --test ecommerce/tests/configSecurity.test.js
+```
+
+Bootstrap administrativo usa perfil Mongo próprio; seed preserva sua restrição ao banco local. Não execute esses comandos contra o banco real para verificar configuração.
