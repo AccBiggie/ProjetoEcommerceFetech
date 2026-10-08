@@ -13,7 +13,11 @@ app.use(require('./config/securityHeaders').apiSecurityHeaders());
 // Gate antes de parsers, uploads, limiter e controllers; não consulta banco.
 app.use('/api/v1', require('./middleware/csrf')());
 
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "5mb", reviver: (key, value, context) => {
+    // Preservar token decimal JSON para não perder casas/centavos antes do parser.
+    if (['price','oldPrice','installmmentPrice'].includes(key) && typeof value === 'number' && context?.source) return context.source;
+    return value;
+} }));
 app.use(cookieParser());
 app.use(express.urlencoded({extended: true, limit: "5mb"}));
 

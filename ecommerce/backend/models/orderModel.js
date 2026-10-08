@@ -35,10 +35,8 @@ const orderSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      price: {
-        type: Number,
-        required: true,
-      },
+      price: Number,
+      priceCents: require('../utils/money').centsSchema(),
       quantity: {
         type: Number,
         required: true,
@@ -72,26 +70,14 @@ const orderSchema = new mongoose.Schema({
   paidAt: {
     type: Date,
   },
-  itemsPrice: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  taxPrice: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  shippingPrice: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
+  itemsPrice: Number,
+  taxPrice: Number,
+  shippingPrice: Number,
+  totalPrice: Number,
+  itemsPriceCents: require('../utils/money').centsSchema(),
+  taxPriceCents: require('../utils/money').centsSchema(),
+  shippingPriceCents: require('../utils/money').centsSchema(),
+  totalPriceCents: require('../utils/money').centsSchema(),
   orderStatus: {
     type: String,
     enum: ["Processing", "Shipped", "Delivered"],
@@ -105,4 +91,12 @@ const orderSchema = new mongoose.Schema({
   },
 }, { optimisticConcurrency: true });
 
+orderSchema.pre('validate', function () {
+  const { orderMoney, orderFields, MoneyError } = require('../utils/money');
+  if (Object.keys(this.$errors || {}).some(path => path.endsWith('Cents')) || this.orderItems.some(item => item.$errors?.priceCents)) throw new MoneyError();
+  const normalized = orderMoney(this.toObject());
+  for (const field of orderFields) { this[field+'Cents'] = normalized[field+'Cents']; this[field] = undefined; }
+  this.orderItems.forEach((item, index) => { item.priceCents = normalized.orderItems[index].priceCents; item.price = undefined; });
+});
+orderSchema.set('toJSON', { transform: (_doc, ret) => require('../utils/money').presentOrder(ret) });
 module.exports = mongoose.model("Order", orderSchema);

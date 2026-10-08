@@ -1,0 +1,27 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');const m=require('../backend/utils/money');
+for(const [id,value,want] of [['01','0.00',0],['02','19.9',1990],['03','19.90',1990],['04','19',1900]])test('MONEY-'+id+' parsing exato',()=>assert.equal(m.parseMoneyToCents(value),want));
+test('MONEY-05 três casas recusadas',()=>{for(const value of ['0.105',0.105,'1.999','0.001'])assert.throws(()=>m.parseMoneyToCents(value),m.MoneyError);});
+test('MONEY-06 0.1 + 0.2 = 30 centavos',()=>assert.equal(m.addCents(m.parseMoneyToCents(0.1),m.parseMoneyToCents(0.2)),30));
+test('MONEY-07 entradas inválidas',()=>{for(const value of [NaN,Infinity,-Infinity,'',' ','abc','1,99','R$ 1.99','19.90\n',' 19.90',{},[],true,null,undefined])assert.throws(()=>m.parseMoneyToCents(value),m.MoneyError);});
+test('MONEY-08 negativos recusados',()=>{for(const value of [-1,'-0.01'])assert.throws(()=>m.parseMoneyToCents(value),m.MoneyError);});
+test('MONEY-09 notação científica textual recusada',()=>{for(const value of ['1e3','1e-2'])assert.throws(()=>m.parseMoneyToCents(value),m.MoneyError);});
+test('MONEY-10 limite de parsing sem arredondar',()=>{assert.equal(m.parseMoneyToCents('90071992547409.91'),Number.MAX_SAFE_INTEGER);assert.throws(()=>m.parseMoneyToCents('90071992547409.92'),m.MoneyError);});
+test('MONEY-11 multiplicação exata',()=>assert.equal(m.multiplyCents(10,3),30));
+test('MONEY-12 multiplicação overflow',()=>assert.throws(()=>m.multiplyCents(Number.MAX_SAFE_INTEGER,2),m.MoneyError));
+test('MONEY-13 soma exata',()=>assert.equal(m.sumCents([1999,1500,100]),3599));
+test('MONEY-14 soma overflow',()=>assert.throws(()=>m.addCents(Number.MAX_SAFE_INTEGER,1),m.MoneyError));
+test('MONEY-15 formatter decimal exato',()=>assert.equal(m.formatCentsToDecimal(1990),'19.90'));
+test('MONEY-16 formatter BRL e limite seguros',()=>{assert.equal(m.formatBRLFromCents(1990).replace(/\s/g,' '),'R$ 19,90');assert.ok(m.formatBRLFromCents(Number.MAX_SAFE_INTEGER).endsWith(',91'));});
+test('MONEY-17 valores clássicos',()=>{for(const [v,c] of [['0.10',10],['0.20',20],['0.30',30],['1.01',101],['10.99',1099],['999.99',99999]])assert.equal(m.parseMoneyToCents(v),c);});
+test('MONEY-18 quantidade estrita',()=>{for(const q of [true,0,-1,1.5,'3',NaN])assert.throws(()=>m.multiplyCents(10,q),m.MoneyError);});
+test('MONEY-19 parcelas distribuem resto sem perder centavo',()=>{assert.deepEqual(m.splitInstallments(10000,3),[3334,3333,3333]);assert.equal(m.sumCents(m.splitInstallments(19990,12)),19990);});
+test('MONEY-20 fonte canônica vence legado',()=>assert.equal(m.readCents({priceCents:1990,price:'0.105'},'price'),1990));
+test('MONEY-21 centavos inválidos não caem no legado',()=>assert.throws(()=>m.readCents({priceCents:-1,price:'19.90'},'price'),m.MoneyError));
+test('MONEY-22 invariantes de pedido',()=>assert.throws(()=>m.orderMoney({orderItems:[{priceCents:10,quantity:3}],itemsPriceCents:31,taxPriceCents:0,shippingPriceCents:0,totalPriceCents:31}),m.MoneyError));
+
+test('MONEY-23 carrinho subtotal exato',async()=>{const {cartTotalCents}=await import('../frontend/src/utils/money.js');assert.equal(cartTotalCents([{priceCents:10,quantity:3},{priceCents:20,quantity:1}]),50);});
+test('MONEY-24 carrinho legado válido convertido',async()=>{const {normalizeCartItems}=await import('../frontend/src/utils/money.js');assert.equal(normalizeCartItems([{price:'19.90',quantity:1}])[0].priceCents,1990);});
+test('MONEY-25 carrinho legado inválido marcado removível',async()=>{const {normalizeCartItems}=await import('../frontend/src/utils/money.js');const [item]=normalizeCartItems([{product:'fixture',price:'0.105',quantity:3}]);assert.equal(item.moneyInvalid,true);assert.equal(item.product,'fixture');assert.equal(item.priceCents,undefined);});
+test('MONEY-26 carrinho canônico vence preço legado',async()=>{const {normalizeCartItems}=await import('../frontend/src/utils/money.js');assert.equal(normalizeCartItems([{priceCents:1990,price:'0.105',quantity:1}])[0].priceCents,1990);});
+test('MONEY-27 carrinho overflow é inválido',async()=>{const {normalizeCartItems}=await import('../frontend/src/utils/money.js');assert.equal(normalizeCartItems([{priceCents:Number.MAX_SAFE_INTEGER,quantity:2}])[0].moneyInvalid,true);});
+test('MONEY-28 modelo rejeita coerção de centavos',async()=>{const Product=require('../backend/models/productModel');const {productData}=require('./fixtures');await assert.rejects(new Product({...productData(),priceCents:true}).validate());});

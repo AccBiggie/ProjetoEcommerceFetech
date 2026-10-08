@@ -117,15 +117,15 @@ export default function ProductCard({ product }) {
             color="textSecondary"
             sx={{ textDecoration: "line-through", minHeight: 20 }}
           >
-            {Number(product.oldPrice) > Number(product.price)
-              ? money(product.oldPrice)
+            {product.oldPriceCents > product.priceCents
+              ? money(product.oldPriceCents)
               : " "}
           </Typography>
           <Typography sx={{ fontSize: 24, fontWeight: 750 }}>
-            {money(product.price)}
+            {money(product.priceCents)}
           </Typography>
           <Typography variant="caption" color="textSecondary">
-            à vista · 12x de {money(product.installmmentPrice)}
+            à vista · parcela ilustrativa de {money(product.installmmentPriceCents)}
           </Typography>
         </CardContent>
       </CardActionArea>

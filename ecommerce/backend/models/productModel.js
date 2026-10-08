@@ -20,24 +20,13 @@ const productSchema = mongoose.Schema( {
         type: String,
         required: [true ,"Please enter product description"]
     },
-    oldPrice: {
-        type: String,
-        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Preço anterior inválido." },
-        required: [true, "Please enter old price product"],
-        maxLength: [15, "Price cannot exceed 8 characters"],
-    },
-    price: {
-        type: String,
-        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Preço inválido." },
-        required: [true, "Please enter product price"],
-        maxLength: [15, "Price cannot exceed 8 characters"]
-    },
-    installmmentPrice: {
-        type: String,
-        validate: { validator: value => Number.isFinite(Number(value)) && Number(value) >= 0, message: "Parcela inválida." },
-        required: [true, "Please enter product installmmente Price"],
-        maxLength: [15, "Price canoot exceed 15 characters"],
-    },
+    // Campos antigos somente para leitura/transição. Novas gravações removem decimais.
+    price: String,
+    oldPrice: String,
+    installmmentPrice: String,
+    priceCents: require('../utils/money').centsSchema(),
+    oldPriceCents: require('../utils/money').centsSchema(),
+    installmmentPriceCents: require('../utils/money').centsSchema(),
     ratings: {
         type: Number,
         default: 0,
@@ -110,6 +99,13 @@ const productSchema = mongoose.Schema( {
         default: Date.now,
     },
 });
+productSchema.pre('validate', function () {
+    const { productMoney, productFields, MoneyError } = require('../utils/money');
+    if (Object.keys(this.$errors || {}).some(path => path.endsWith('Cents'))) throw new MoneyError();
+    Object.assign(this, productMoney(this));
+    for (const field of productFields) this[field] = undefined;
+});
+productSchema.set('toJSON', { transform: (_doc, ret) => require('../utils/money').presentProduct(ret) });
 module.exports = mongoose.model("Product", productSchema);
 
 

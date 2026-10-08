@@ -1,3 +1,4 @@
+const { parseMoneyToCents, splitInstallments } = require('../utils/money');
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -54,9 +55,9 @@ async function seed() {
             }
             await Product.create({
                 name, category, category_id: categoryRecord._id, description, countDown,
-                price: price.toFixed(2),
-                oldPrice: oldPrice.toFixed(2),
-                installmmentPrice: (price / 12).toFixed(2),
+                priceCents: parseMoneyToCents(price),
+                oldPriceCents: parseMoneyToCents(oldPrice),
+                installmmentPriceCents: splitInstallments(parseMoneyToCents(price), 12)[0],
                 off: Math.round((1 - price / oldPrice) * 100),
                 Stock: 10,
                 images: [{

@@ -1,7 +1,8 @@
+import { cartTotalCents, multiplyCents } from '../../utils/money';
 import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router";
-import { Box, Button, Card, Divider, Stack, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, Divider, Stack, Typography } from "@mui/material";
 import ShoppingBagOutlined from "@mui/icons-material/ShoppingBagOutlined";
 import { addItemsToCart, removeItemsFromCart } from "../../actions/cartAction";
 import { useAlert } from "../../utils/alerts";
@@ -28,15 +29,15 @@ export default function Cart() {
       setPending("");
     }
   };
-  const total = cartItems.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
-    0,
-  );
+  const invalidMoney = cartItems.some(item => item.moneyInvalid);
+  let total = 0, moneyError = invalidMoney;
+  try { if (!invalidMoney) total = cartTotalCents(cartItems); } catch { moneyError = true; }
   return (
     <Page
       title="Carrinho"
       subtitle="Revise seus produtos antes de finalizar o pedido."
     >
+      {moneyError && <Alert severity="error">Há valores inválidos no carrinho. Remova ou atualize os itens antes de continuar.</Alert>}
       {!cartItems.length ? (
         <Card sx={{ py: 7, textAlign: "center" }}>
           <ShoppingBagOutlined sx={{ fontSize: 56, color: "text.disabled" }} />
@@ -79,12 +80,12 @@ export default function Cart() {
                   <QuantityControl
                     value={item.quantity}
                     stock={item.stock}
-                    disabled={Boolean(pending)}
+                    disabled={Boolean(pending) || moneyError}
                     onDecrease={() => change(item, item.quantity - 1)}
                     onIncrease={() => change(item, item.quantity + 1)}
                   />
                   <Typography sx={{ fontWeight: 700 }}>
-                    {money(Number(item.price) * item.quantity)}
+                    {item.moneyInvalid ? "Preço inválido" : money(multiplyCents(item.priceCents, item.quantity))}
                   </Typography>
                 </Stack>
               </Card>
@@ -107,12 +108,12 @@ export default function Cart() {
               sx={{ my: 3, justifyContent: "space-between" }}
             >
               <Typography sx={{ fontWeight: 700 }}>Total</Typography>
-              <Typography variant="h2">{money(total)}</Typography>
+              <Typography variant="h2">{moneyError ? "Total indisponível" : money(total)}</Typography>
             </Stack>
             <Button
               fullWidth
               variant="contained"
-              disabled={Boolean(pending)}
+              disabled={Boolean(pending) || moneyError}
               onClick={() => navigate("/shipping")}
             >
               Finalizar pedido

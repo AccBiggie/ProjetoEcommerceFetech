@@ -73,7 +73,7 @@ export default function Orders() {
                   }
                 />
               </TableCell>
-              <TableCell>{money(order.totalPrice)}</TableCell>
+              <TableCell>{money(order.totalPriceCents)}</TableCell>
             </TableRow>
           ))}
         </DataTable>

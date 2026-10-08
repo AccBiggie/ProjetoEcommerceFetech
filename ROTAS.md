@@ -263,3 +263,9 @@ Helmet na API fornece CSP restritiva, nosniff, framing DENY e Referrer Policy.
 Build funciona sob CSP própria no host E2E; hosting/TLS/HSTS reais não implantados.
 FRONTEND_URL em produção exige HTTPS explícito válido e falha startup se ausente/
 inválido. Configuração, headers/CSP exatos e limites: [SEGURANCA_HTTP.md](docs/SEGURANCA_HTTP.md).
+
+## Contrato monetário — FET-DATA-001
+
+Product create/update recebe `price`, `oldPrice`, `installmmentPrice` em decimal técnico (ponto, até duas casas). Backend deriva os campos Cents e ignora canônicos do cliente. Product retorna `priceCents`, `oldPriceCents`, `installmmentPriceCents` e strings de compatibilidade derivadas. Pedido recebe IDs/quantidades e ignora preços/totais client-side; retorna `orderItems[].priceCents`, `itemsPriceCents`, `taxPriceCents`, `shippingPriceCents`, `totalPriceCents`. Campos antigos de Order agora são strings exatas de apresentação. Admin/orders também retorna `totalAmountCents`.
+
+Filtros `price[gt/gte/lt/lte]` mantêm decimal humano e comparação inteira. Ordenação por preço não existia e não foi adicionada. Documentos legados exatos possuem `moneyLegacy=true`; precisão/inconsistência causa erro controlado, sem arredondamento. Veja [DINHEIRO.md](docs/DINHEIRO.md). CSRF, autorização e no-store permanecem.

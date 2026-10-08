@@ -5,5 +5,4 @@ export const statusLabel = (status) =>
     Delivered: "Entregue",
     Pending: "Pendente",
   })[status] || status;
-export const money = (value) =>
-  Number(value).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export { formatBRLFromCents as money } from '../../../shared/money.mjs';

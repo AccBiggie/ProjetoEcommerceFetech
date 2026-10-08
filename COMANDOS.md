@@ -264,3 +264,13 @@ node --test ecommerce/tests/configSecurity.test.js
 ```
 
 Bootstrap administrativo usa perfil Mongo próprio; seed preserva sua restrição ao banco local. Não execute esses comandos contra o banco real para verificar configuração.
+
+## Migração monetária manual — FET-DATA-001
+
+`npm.cmd run migrate:money --prefix ecommerce` é dry-run por padrão. Não foi executado no banco real nesta task. Apply exige `--apply --confirm-db NOME_EXATO`; production exige autorização adicional `--allow-production` e backup/restore validado. F024 permanece aberto: não recomendamos migração em dados comerciais. Sequência completa: [MIGRACAO_DINHEIRO_CENTAVOS.md](docs/MIGRACAO_DINHEIRO_CENTAVOS.md).
+
+```powershell
+node --test ecommerce/tests/money.test.js
+node --test ecommerce/tests/moneyApi.test.js
+node --test ecommerce/tests/moneyMigration.test.js
+```

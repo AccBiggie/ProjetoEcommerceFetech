@@ -1,3 +1,4 @@
+import { parseMoneyToCents, formatCentsToDecimal, splitInstallments } from '../../utils/money';
 import {
   Alert,
   Box,
@@ -78,17 +79,18 @@ export default function Dashboard() {
   };
   const saveProduct = (event) => {
     event.preventDefault();
-    const price = Number(draft.price),
-      oldPrice = Number(draft.oldPrice || draft.price);
+    let price, oldPrice;
+    try { price = parseMoneyToCents(draft.price); oldPrice = parseMoneyToCents(draft.oldPrice || draft.price); }
+    catch (error) { setError(error.message); return; }
     const payload = {
       name: draft.name,
       description: draft.description,
       category_id: draft.category_id,
-      price: price.toFixed(2),
-      oldPrice: oldPrice.toFixed(2),
+      price: draft.price,
+      oldPrice: draft.oldPrice || draft.price,
       Stock: Number(draft.Stock),
       off: Math.max(0, Math.round((1 - price / oldPrice) * 100)),
-      installmmentPrice: (price / 12).toFixed(2),
+      installmmentPrice: formatCentsToDecimal(splitInstallments(price, 12)[0]),
       countDown:
         draft.countDown || new Date(Date.now() + 30 * 86400000).toISOString(),
       images: [
@@ -198,7 +200,7 @@ export default function Dashboard() {
                   slotProps={{
                     htmlInput: {
                       min: key === "Stock" ? 0 : 0.01,
-                      step: key === "Stock" ? 1 : 0.01,
+                      step: key === "Stock" ? 1 : "any",
                     },
                   }}
                   onChange={(event) =>
@@ -250,7 +252,7 @@ export default function Dashboard() {
                 </TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell sx={{ whiteSpace: "nowrap" }}>
-                  {money(product.price)}
+                  {money(product.priceCents)}
                 </TableCell>
                 <TableCell>
                   <Stack direction="row" spacing={1}>
@@ -363,7 +365,7 @@ export default function Dashboard() {
                 />
               </TableCell>
               <TableCell sx={{ whiteSpace: "nowrap" }}>
-                {money(order.totalPrice)}
+                {money(order.totalPriceCents)}
               </TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1}>

@@ -1009,3 +1009,17 @@ Riscos residuais: configuração sintaticamente válida não prova conectividade
 Próxima task recomendada: **F014 / FET-P0-010 — modelo monetário exato em centavos**, antes de mudanças em pedido, estoque e pagamento. Não iniciada automaticamente.
 
 Validação final FET-SEC-008: `node --test ecommerce/tests/configSecurity.test.js` 46/46 (842 ms); `npm.cmd test --prefix ecommerce` 306/306 (37,950 s); `npm.cmd run build --prefix ecommerce/frontend` aprovado (4,00 s); `npm.cmd run test:e2e --prefix ecommerce` 21/21 (2,1 min, exit code 0). Nenhuma dependência/lockfile alterada; npm audit não reexecutado (dispensado pelo escopo). Banco temporário removido pelos harnesses; nenhum e-mail ou upload real; config.env e auditoria histórica preservados; task permanece sem commit.
+
+## F014 / FET-P0-010 — Precisão monetária (FET-DATA-001)
+
+Status: **CORRIGIDO NO CÓDIGO**.
+
+HEAD inicial d3bd5e9, main, worktree limpo; F036 commitada. Probe prévio em banco temporário reproduziu preço 0.105 aceito, quantidade 3, snapshot 0.105, linha 0.315 e subtotal/total 0.33. Banco temporário removido.
+
+Implementado: utilitário compartilhado estrito, dinheiro canônico em Cents safe integer; Product, snapshots e totais Order; invariantes antes de save; preço autoritativo do servidor; filtros existentes; frontend em centavos; localStorage legado seguro/removível; decimais somente apresentação; migração dry-run/apply com confirmação, sanitização, idempotência e proteção contra mudanças concorrentes. Precisão arbitrária nunca é arredondada. Nenhuma dependência nova.
+
+Banco real não migrado. Riscos: backup/restore F024 deve ser validado antes de migração produtiva; dados históricos ambíguos exigem revisão; coerência comercial F037, pagamento F001, frete F027, estoque/atomicidade F003/F004 e idempotência F005 permanecem abertos. A auditoria histórica foi preservada.
+
+Próxima recomendação: **F012 + F013 — snapshot de entrega com CEP/telefone strings e validações de checkout**. Não iniciada automaticamente.
+
+Validação FET-DATA-001: 28/28 money, 23/23 API monetária, 16/16 migração; 373/373 API completa (27,485 s); build aprovado (959 ms); 24/24 E2E (1,9 min, exit 0); git diff --check aprovado. Sem pacote novo/lockfile alterado. Migração real não executada; implementação permanece sem commit. Relatório: [RELATORIO_FET_DATA_001.md](RELATORIO_FET_DATA_001.md).

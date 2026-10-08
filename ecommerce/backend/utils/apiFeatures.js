@@ -1,4 +1,14 @@
+const { parseMoneyToCents } = require('./money');
 const ErrorHander = require("./errorHander");
+// Compatibilidade de filtro usa dígitos e inteiro long, nunca double/round.
+function priceExpression() {
+    const legacy = { $let: { vars: { text: { $convert: { input: '$price', to: 'string', onError: '', onNull: '' } } }, in:
+        { $cond: [{ $regexMatch: { input: '$$text', regex: '^\\d+(?:\\.\\d{1,2})?$' } },
+            { $let: { vars: { parts: { $split: ['$$text', '.'] } }, in: { $convert: { input: { $concat: [
+                { $arrayElemAt: ['$$parts', 0] }, { $substrBytes: [{ $concat: [{ $ifNull: [{ $arrayElemAt: ['$$parts', 1] }, ''] }, '00'] }, 0, 2] }
+            ] }, to: 'long', onError: null, onNull: null } } } }, null] } } };
+    return { $ifNull: ['$priceCents', legacy] };
+}
 class ApiFeatures {
     constructor(query, queryStr) { this.query = query; this.queryStr = queryStr; }
     search() {
@@ -17,8 +27,9 @@ class ApiFeatures {
             if (!values || typeof values !== "object") continue;
             for (const [operator, value] of Object.entries(values)) {
                 if (!["gt", "gte", "lt", "lte"].includes(operator) || !Number.isFinite(Number(value))) throw new ErrorHander("Filtro numérico inválido.", 400);
-                const expression = field === "price" ? { $convert: { input: "$price", to: "double", onError: null, onNull: null } } : "$ratings";
-                comparisons.push({ ["$" + operator]: [expression, Number(value)] });
+                const expression = field === "price" ? priceExpression() : "$ratings";
+                const boundary = field === "price" ? parseMoneyToCents(value) : Number(value);
+                comparisons.push({ $ne: [expression, null] }, { ["$" + operator]: [expression, boundary] });
             }
         }
         if (comparisons.length) filter.$expr = { $and: comparisons };

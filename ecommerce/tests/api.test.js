@@ -185,7 +185,7 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
     await request('POST', '/order/new', { ...payload, orderItems: [{ product: product.id, quantity: 999 }] }, 'user', 400);
     await request('POST', '/order/new', { ...payload, orderItems: [{ product: missing, quantity: 1 }] }, 'user', 404);
     const order = (await request('POST', '/order/new', payload, 'user', 201)).result.order;
-    assert.equal(order.totalPrice, 200); assert.equal(order.paymentInfo.status, 'Pending'); assert.equal(order.paidAt, undefined);
+    assert.equal(order.totalPriceCents, 20000); assert.equal(order.totalPrice, "200.00"); assert.equal(order.paymentInfo.status, 'Pending'); assert.equal(order.paidAt, undefined);
     const route = '/order/' + order._id;
     await request('GET', route); await request('GET', route, null, 'admin'); await request('GET', route, null, 'other', 403);
     assert.equal((await request('GET', '/orders/me')).result.orders.length, 1);

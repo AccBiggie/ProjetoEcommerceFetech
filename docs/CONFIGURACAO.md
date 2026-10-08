@@ -87,3 +87,7 @@ Probe anterior, com dotenv substituído e conexão interceptada: production sem 
 A suíte configSecurity.test.js mantém casos CFG-01..46. Inclui fixtures válidas, grupos completos/parciais, expiração, numeric/boolean parsing, imutabilidade, perfis operacionais e inspeção de arquitetura contra leituras dispersas. As regressões F006/F007/F008/F009/F010/F020/F021 continuam na suíte API e E2E permanente.
 
 F023 (deployment/TLS), F024 (backup/restore), F025 (observabilidade) e F029 (SMTP/Cloudinary reais) permanecem abertos. Validação sintática não comprova DNS, permissões, quota, entrega ou conectividade. Gestão e rotação de secrets dependem da infraestrutura e de procedimento operacional futuro. Nenhum secrets manager, HSTS produtivo ou logger completo foi criado nesta tarefa.
+
+## Perfil migration — FET-DATA-001
+
+`loadConfig(env, { profile: "migration" })` reutiliza validação NODE_ENV/DB_URI e database explícita, sem exigir JWT/SMTP/frontend para auditar dados. Loader dotenv central continua único no entrypoint. CLI monetária é fronteira autorizada de leitura de process.env; módulos de negócio permanecem sem leitura dispersa. Flags de apply/confirm-db pertencem ao CLI, sem envs novas. Veja [MIGRACAO_DINHEIRO_CENTAVOS.md](MIGRACAO_DINHEIRO_CENTAVOS.md).

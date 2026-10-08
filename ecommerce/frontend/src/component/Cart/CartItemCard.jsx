@@ -31,7 +31,7 @@ export default function CartItemCard({ item, deleteCartItems, disabled }) {
           {item.name}
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          {money(item.price)} / unidade
+          {item.moneyInvalid ? "Preço inválido" : money(item.priceCents)} / unidade
         </Typography>
         <Button
           color="error"

@@ -127,3 +127,7 @@ Frontend = () => {
 ## Configuração central e startup seguro (FET-SEC-008)
 
 O backend valida ambiente, Mongo, JWT, cookie, origin, proxy e grupos externos antes de conectar ou aceitar tráfego. Configuração inválida encerra com erro agregado sem secrets. Veja [CONFIGURACAO.md](docs/CONFIGURACAO.md) para inventário, defaults, perfis server/bootstrap/seed e migração de configurações antigas. Nenhuma dependência nova.
+
+## Modelo monetário em centavos (FET-DATA-001)
+
+Product, snapshots Order e cálculos de carrinho/checkout usam centavos inteiros. A API preserva campos decimais como strings derivadas; valores com mais de duas casas são recusados. Veja [DINHEIRO.md](docs/DINHEIRO.md) e [migração manual](docs/MIGRACAO_DINHEIRO_CENTAVOS.md). Banco real ainda não migrado.

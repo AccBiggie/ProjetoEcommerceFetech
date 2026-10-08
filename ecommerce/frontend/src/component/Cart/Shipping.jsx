@@ -1,3 +1,4 @@
+import { cartTotalCents } from '../../utils/money';
 import {
   Alert,
   Box,
@@ -72,7 +73,9 @@ export default function Shipping() {
   };
   if (completedOrder.current)
     return <Navigate to={`/order/${completedOrder.current}`} replace />;
-  if (!cartItems.length) return <Navigate to="/cart" replace />;
+  let totalCents;
+  try { totalCents = cartTotalCents(cartItems); } catch { return <Navigate to="/cart" replace />; }
+  if (!cartItems.length || cartItems.some(item => item.moneyInvalid)) return <Navigate to="/cart" replace />;
   return (
     <Page
       title="Finalizar pedido"
@@ -156,12 +159,7 @@ export default function Shipping() {
         <Card sx={{ p: 3 }}>
           <Typography variant="h2">Resumo</Typography>
           <Typography variant="h2" sx={{ my: 3 }}>
-            {money(
-              cartItems.reduce(
-                (sum, item) => sum + Number(item.price) * item.quantity,
-                0,
-              ),
-            )}
+            {money(totalCents)}
           </Typography>
           <Alert severity="info">
             O pedido será registrado com pagamento pendente. Não será efetuada

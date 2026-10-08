@@ -5,7 +5,12 @@ const ApiFeatures = require("../utils/apiFeatures");
 const Category = require("../models/categoryModel");
 const { categoryKey, resolveProductCategory } = require("../utils/categories");
 const productFields = ["name", "description", "category", "price", "oldPrice", "installmmentPrice", "off", "countDown", "Stock", "images"];
-const productInput = body => Object.fromEntries(productFields.filter(key => body[key] !== undefined).map(key => [key, body[key]]));
+const { productMoney, productFields: moneyFields, parseMoneyToCents } = require('../utils/money');
+const productInput = body => {
+    const result = Object.fromEntries(productFields.filter(key => body[key] !== undefined && !moneyFields.includes(key)).map(key => [key, body[key]]));
+    for (const field of moneyFields) if (body[field] !== undefined) result[field+'Cents'] = parseMoneyToCents(body[field]);
+    return result;
+};
 exports.createProduct = catchAsyncErrors(async (req, res) => {
     const product = await Product.create({ ...productInput(req.body), ...await resolveProductCategory(req.body), user: req.user._id });
     res.status(201).json({ success: true, product });
@@ -40,8 +45,9 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, product });
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
-    if (!await Product.exists({ _id: req.params.id })) return next(new ErrorHander("Produto não encontrado.", 404));
-    const product = await Product.findByIdAndUpdate(req.params.id, { ...productInput(req.body), ...await resolveProductCategory(req.body) }, { returnDocument: "after", runValidators: true });
+    const existing = await Product.findById(req.params.id);
+    if (!existing) return next(new ErrorHander("Produto não encontrado.", 404));
+    const product = await Product.findByIdAndUpdate(req.params.id, { $set: { ...productMoney({ ...existing.toObject(), ...productInput(req.body) }), ...productInput(req.body), ...await resolveProductCategory(req.body) }, $unset: Object.fromEntries(moneyFields.map(field => [field, 1])) }, { returnDocument: "after", runValidators: true });
     if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
     res.json({ success: true, product });
 });

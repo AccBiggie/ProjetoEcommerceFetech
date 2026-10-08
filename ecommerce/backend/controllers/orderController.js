@@ -1,3 +1,4 @@
+const { readCents, sumCents, multiplyCents, addCents, formatCentsToDecimal } = require('../utils/money');
 const crypto = require("crypto");
 const Order = require("../models/orderModel");
 const Product = require("../models/productModel");
@@ -8,24 +9,23 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
     if (!Array.isArray(req.body.orderItems) || !req.body.orderItems.length) return next(new ErrorHander("O pedido precisa conter produtos.", 400));
     const quantities = new Map();
     for (const item of req.body.orderItems) {
-        const quantity = Number(item.quantity);
+        const quantity = typeof item.quantity === "string" && /^\d+$/.test(item.quantity) ? Number(item.quantity) : item.quantity;
         if (!Number.isSafeInteger(quantity) || quantity < 1) return next(new ErrorHander("Quantidade inválida.", 400));
-        quantities.set(String(item.product), (quantities.get(String(item.product)) || 0) + quantity);
+        quantities.set(String(item.product), addCents(quantities.get(String(item.product)) || 0, quantity));
     }
     const orderItems = [];
     for (const [id, quantity] of quantities) {
         const product = await Product.findById(id);
         if (!product) return next(new ErrorHander("Um produto do pedido não existe mais.", 404));
         if (quantity > product.Stock) return next(new ErrorHander("Estoque insuficiente para " + product.name, 400));
-        const price = Number(product.price);
-        if (!Number.isFinite(price) || price < 0) return next(new ErrorHander("Preço do produto inválido.", 400));
-        orderItems.push({ product: product._id, name: product.name, price, quantity, image: product.images[0]?.url || "/Profile.png" });
+        const priceCents = readCents(product, 'price');
+        orderItems.push({ product: product._id, name: product.name, priceCents, quantity, image: product.images[0]?.url || "/Profile.png" });
     }
-    const itemsPrice = orderItems.reduce((total, item) => total + Math.round(item.price * 100) * item.quantity, 0) / 100;
+    const itemsPriceCents = sumCents(orderItems.map(item => multiplyCents(item.priceCents, item.quantity)));
     // Nenhum provedor de pagamento foi integrado: o pedido permanece pendente.
     const order = await Order.create({
         shippingInfo: req.body.shippingInfo, orderItems, user: req.user._id,
-        itemsPrice, taxPrice: 0, shippingPrice: 0, totalPrice: itemsPrice,
+        itemsPriceCents, taxPriceCents: 0, shippingPriceCents: 0, totalPriceCents: itemsPriceCents,
         paymentInfo: { id: crypto.randomUUID(), status: "Pending" },
     });
     res.status(201).json({ success: true, order });
@@ -41,7 +41,8 @@ exports.myOrders = catchAsyncErrors(async (req, res) => {
 });
 exports.getAllOrders = catchAsyncErrors(async (req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 });
-    res.json({ success: true, totalAmount: orders.reduce((total, order) => total + order.totalPrice, 0), orders });
+    const totalAmountCents = sumCents(orders.map(order => readCents(order, 'totalPrice')));
+    res.json({ success: true, totalAmountCents, totalAmount: formatCentsToDecimal(totalAmountCents), orders });
 });
 exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
     const order = await Order.findById(req.params.id);

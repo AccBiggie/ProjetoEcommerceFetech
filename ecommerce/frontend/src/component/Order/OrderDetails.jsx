@@ -107,7 +107,7 @@ export default function OrderDetails() {
                         {item.name}
                       </MuiLink>
                       <Typography variant="body2" color="textSecondary">
-                        {item.quantity} × {money(item.price)}
+                        {item.quantity} × {money(item.priceCents)}
                       </Typography>
                     </Box>
                   </Stack>
@@ -119,7 +119,7 @@ export default function OrderDetails() {
                 sx={{ mt: 3, justifyContent: "space-between" }}
               >
                 <Typography sx={{ fontWeight: 700 }}>Total</Typography>
-                <Typography variant="h2">{money(order.totalPrice)}</Typography>
+                <Typography variant="h2">{money(order.totalPriceCents)}</Typography>
               </Stack>
             </Card>
             <Card sx={{ p: 3, alignSelf: "start" }}>

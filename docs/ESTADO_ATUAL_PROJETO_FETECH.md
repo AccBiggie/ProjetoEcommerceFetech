@@ -100,8 +100,8 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 306 testes da
-API e 21 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 373 testes da
+API e 24 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
 Resultado após integrar a seleção de endereços na entrega (antes de FET-SEC-001): **13 testes da API
@@ -280,3 +280,9 @@ F036/FET-P1-019 corrigido. Estado inicial: main, HEAD f2101f4, worktree limpo; F
 Production exige secret forte, expiração, database explícita, origin HTTPS e SMTP completo. Cloudinary opcional preserva cadastro sem foto e rejeita grupo parcial. config.env real e auditoria histórica foram preservados. Contrato completo: [CONFIGURACAO.md](CONFIGURACAO.md). Implementação permanece sem commit até solicitação do usuário.
 
 Validação FET-SEC-008: 46/46 focados (842 ms), 306/306 API (37,950 s), build aprovado (4,00 s), 21/21 E2E (2,1 min, exit code 0). Sem mudança de dependências/lockfiles; npm audit não reexecutado nesta tarefa.
+
+## FET-DATA-001 — dinheiro em centavos
+
+F014 corrigido no código. Estado inicial: main, HEAD d3bd5e9, worktree limpo; F036 já commitada. Product e Order usam campos Cents safe integer como fonte persistida. API mantém decimais derivados para compatibilidade; frontend calcula/formata centavos. Parser rejeita precisão >2 casas e overflow. Leitura legada estrita sinaliza moneyLegacy e não escreve automaticamente. Migração explícita com dry-run padrão, confirmação de database e CAS por documento; testada apenas em bases temporárias. Banco real e auditoria histórica preservados. Contrato: [DINHEIRO.md](DINHEIRO.md), operação: [MIGRACAO_DINHEIRO_CENTAVOS.md](MIGRACAO_DINHEIRO_CENTAVOS.md).
+
+Validação FET-DATA-001: 28/28 money, 23/23 API monetária, 16/16 migração; 373/373 API completa (27,485 s); build aprovado (959 ms); 24/24 E2E (1,9 min, exit 0); git diff --check aprovado. Sem pacote novo/lockfile alterado. Migração real não executada; implementação permanece sem commit. Relatório: [RELATORIO_FET_DATA_001.md](RELATORIO_FET_DATA_001.md).
