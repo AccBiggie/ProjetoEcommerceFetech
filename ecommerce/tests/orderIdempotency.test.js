@@ -1,3 +1,4 @@
+const { markOrderPaidFixture } = require('./helpers/orderPaymentFixture');
 const { testUri } = require('./replicaSetHarness');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
@@ -200,6 +201,7 @@ test('IDEM resposta perdida, snapshot e estado posterior preservados; exclusão 
     const a = await post(body, key, 201);
     await h.request('PUT', '/address/' + address._id, { city: 'Santos' }, cookie, 200);
     await h.request('DELETE', '/address/' + address._id, null, cookie, 200);
+    await markOrderPaidFixture(a.result.order._id);
     await h.request('PUT', '/admin/order/' + a.result.order._id, { status: 'Shipped' }, cookie, 200);
     const stock = (await Product.findById(data.products[0].id)).Stock;
     const replay = await post(body, key, 201);
@@ -263,11 +265,11 @@ test('IDEM duas conexões independentes e restart lógico usam mesma garantia pe
     let id;
     try {
         const results = await Promise.all([independentCall(a, key), independentCall(b, key)]);
-        assert.equal(results[0].order.id, results[1].order.id); id = results[0].order.id;
+        assert.equal(String(results[0].order._id), String(results[1].order._id)); id = String(results[0].order._id);
         assert.equal(await Order.countDocuments(), count + 1);
     } finally { await Promise.all([a.connection.close(), b.connection.close()]); }
     const restarted = await independentConnection();
-    try { assert.equal((await independentCall(restarted, key)).order.id, id); }
+    try { assert.equal(String((await independentCall(restarted, key)).order._id), id); }
     finally { await restarted.connection.close(); }
 });
 test('IDEM duas APIs em processos distintos não duplicam pedidos', async () => {

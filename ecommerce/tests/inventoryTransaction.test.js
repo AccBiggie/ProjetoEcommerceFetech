@@ -1,3 +1,4 @@
+const { markOrderPaidFixture } = require('./helpers/orderPaymentFixture');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
@@ -143,15 +144,18 @@ test('INV inventory mass assignment, dinheiro e shipping continuam autoritativos
 });
 test('INV shipping não reduz estoque e DELETE RESERVED preserva tudo', async () => {
     const {result}=await post(payload(),crypto.randomUUID(),201); const route='/admin/order/'+result.order._id;
+    await markOrderPaidFixture(result.order._id);
     await h.request('PUT',route,{status:'Shipped'},cookie,200); await invariant(1,1,9);
     await h.request('PUT',route,{status:'Delivered'},cookie,200); await invariant(1,1,9);
     await h.request('DELETE',route,null,cookie,405); await invariant(1,1,9);
 });
-test('INV legado sem inventário permanece legível e mantém fluxo de envio atual', async () => {
+test('INV legado sem inventário exige pagamento e envio não modifica Stock', async () => {
     const {result}=await post(payload(),crypto.randomUUID(),201);
     await Order.collection.updateOne({_id:new mongoose.Types.ObjectId(result.order._id)},{$unset:{inventoryStatus:1,inventoryVersion:1,inventoryReservedAt:1}});
     await h.request('GET','/order/'+result.order._id,null,cookie,200);
-    await h.request('PUT','/admin/order/'+result.order._id,{status:'Shipped'},cookie,200); assert.equal(await stock(),8);
+    await h.request('PUT','/admin/order/'+result.order._id,{status:'Shipped'},cookie,409);
+    await markOrderPaidFixture(result.order._id);
+    await h.request('PUT','/admin/order/'+result.order._id,{status:'Shipped'},cookie,200); assert.equal(await stock(),9);
 });
 for(const invalid of [true,'10',1.5,-1,null,Number.MAX_SAFE_INTEGER+1]) test(`INV admin rejeita Stock ${JSON.stringify(invalid)} antes do casting`,async()=>{
     await h.request('POST','/product/new',productData({Stock:invalid}),cookie,400);

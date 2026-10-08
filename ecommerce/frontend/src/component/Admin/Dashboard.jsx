@@ -30,7 +30,7 @@ import Page from "../layout/Page";
 import { useCategories } from "../../context/CategoriesContext";
 import CategoriesManager from "./CategoriesManager";
 import { getErrorMessage } from "../../utils/api";
-import { money, statusLabel } from "../../utils/format";
+import { money, statusLabel, paymentLabel } from "../../utils/format";
 
 const emptyProduct = () => ({
   name: "",
@@ -348,7 +348,7 @@ export default function Dashboard() {
         </TextField>
         <DataTable
           label="Pedidos da loja"
-          columns={["Pedido", "Status", "Total", "Ações"]}
+          columns={["Pedido", "Status", "Pagamento", "Total", "Ações"]}
         >
           {data.orders.map((order) => (
             <TableRow key={order._id} hover>
@@ -371,6 +371,7 @@ export default function Dashboard() {
                   }
                 />
               </TableCell>
+              <TableCell><Chip size="small" label={paymentLabel(order)} color={order.paymentConfirmed ? "success" : "default"} /></TableCell>
               <TableCell sx={{ whiteSpace: "nowrap" }}>
                 {money(order.totalPriceCents)}
               </TableCell>
@@ -378,7 +379,7 @@ export default function Dashboard() {
                 <Stack direction="row" spacing={1}>
                   {order.orderStatus !== "Delivered" && (
                     <Button
-                      disabled={pending}
+                      disabled={pending || !order.paymentConfirmed}
                       onClick={() =>
                         mutate(() =>
                           axios.put("/api/v1/admin/order/" + order._id, {
@@ -395,6 +396,7 @@ export default function Dashboard() {
                         : "Marcar entregue"}
                     </Button>
                   )}
+                  {!order.paymentConfirmed && order.orderStatus !== "Delivered" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
                   <Button
                     color="primary"
                     disabled={pending}

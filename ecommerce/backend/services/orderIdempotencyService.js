@@ -30,7 +30,7 @@ function createOrderIdempotencyService({ Claim = require('../models/orderIdempot
     async function storedOrder(id, record) {
         const filter = { user: id.user, idempotencyKeyHash: id.keyHash };
         if (record?.status === 'COMPLETED') filter._id = record.order;
-        const order = await Order.findOne(filter).select('+idempotencyKeyHash +idempotencyRequestHash');
+        const order = await Order.findOne(filter).select('+idempotencyKeyHash +idempotencyRequestHash').lean();
         if (order && order.idempotencyRequestHash !== id.requestHash) throw conflict();
         return order;
     }

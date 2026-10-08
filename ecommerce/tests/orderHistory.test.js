@@ -1,3 +1,4 @@
+const { markOrderPaidFixture } = require('./helpers/orderPaymentFixture');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
@@ -83,6 +84,7 @@ test('HISTORY guardas de modelo/documento/collection/bulkWrite impedem exclusão
 });
 test('HISTORY arquivado permite transições existentes e preserva referência ao ator removido', async () => {
     const { id } = await create(), actor = await h.createUser('admin'), cookie = await h.login(actor);
+    await markOrderPaidFixture(id);
     await patch(id, true, cookie);
     await h.request('PUT', '/admin/order/' + id, { status: 'Shipped' }, admin, 200);
     await h.request('PUT', '/admin/order/' + id, { status: 'Delivered' }, admin, 200);

@@ -161,3 +161,6 @@ idempotência/webhooks próprios; observabilidade operacional será ampliada.
 F001 pagamento, F024 backup/restore e F027 frete continuam abertos. F011 corrigido por arquivamento não destrutivo.
 Transação/reserva/ledger implementados na FET-ORDER-002. Gateway permanece
 ausente. Próxima recomendação atual: F002, sem início automático.
+
+
+FET-ORDER-004: replay após transição confirmada retorna o mesmo Order com status/pagamento atuais, sem nova reserva nem escrita na claim. Transição comercial usa CAS e não altera idempotência. Novos pedidos PENDING não podem avançar para envio até F001. [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md).

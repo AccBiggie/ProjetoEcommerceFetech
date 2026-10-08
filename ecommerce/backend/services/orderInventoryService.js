@@ -36,7 +36,7 @@ function createOrderInventoryService({ Product = require('../models/productModel
                 const [order] = await Order.create([{ _id: orderId, ...hashes, shippingInfoVersion: 2, shippingInfo: intent.shippingInfo,
                     orderItems: prepared.orderItems, user, itemsPriceCents: prepared.itemsPriceCents,
                     taxPriceCents: 0, shippingPriceCents: 0, totalPriceCents: prepared.itemsPriceCents,
-                    paymentInfo: { id: paymentId, status: 'Pending' },
+                    paymentStatus: 'PENDING', paymentInfo: { id: paymentId, status: 'Pending' },
                     inventoryStatus: 'RESERVED', inventoryVersion: 1, inventoryReservedAt: reservedAt,
                 }], { session });
                 await complete(order, session);

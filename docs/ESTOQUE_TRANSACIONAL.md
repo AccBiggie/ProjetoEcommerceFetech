@@ -126,12 +126,12 @@ retomar o Mongo dedicado, repita apenas mongod com os mesmos argumentos.
 
 ## Compatibilidade e limites
 
-Pedidos legados sem inventoryStatus permanecem legíveis e conservam o fluxo
-de envio anterior, com desconto/compensação. Novos pedidos RESERVED não
-descontam novamente ao marcar Shipped/Delivered. Shipping ainda pode ocorrer
-com pagamento Pending (F002 aberto).
+Pedidos legados sem inventoryStatus permanecem legíveis. Desde FET-ORDER-004,
+envio e entrega exigem PAID e paidAt válido, sem desconto/compensação de Stock,
+inclusive em legado. Novos pedidos RESERVED também não descontam novamente.
+F002 corrigido; pagamento Pending ou legado UNVERIFIED bloqueia o avanço.
 
-DELETE físico de RESERVED retorna 409 e preserva Order/movimentos/Stock.
+DELETE físico de qualquer pedido retorna 405 e preserva Order/movimentos/Stock.
 Não devolve estoque. FET-ORDER-003 substitui toda exclusão por DELETE 405 e arquivamento administrativo. F011 corrigido; archive/unarchive preservam a reserva e o ledger. Consulte [Histórico de pedidos](HISTORICO_PEDIDOS.md).
 Product pode ser fisicamente removido no catálogo; reservas preservam IDs e
 snapshot, mas esse lifecycle ainda exige política de catálogo/post-sale.
@@ -168,3 +168,8 @@ sobrecarga de bcrypt/Mongo. Concorrência de requests dentro dos testes continua
 real. Teste de crash mata apenas worker próprio antes do commit, verifica zero
 writes visíveis e encerra sua sessão órfã no Mongo temporário após as asserções,
 permitindo teardown imediato. Não toca processos de Mongo existentes.
+
+
+## FET-ORDER-004 — envio protegido por pagamento
+
+Shipping/entrega não toca na reserva, Product.Stock, StockMovement ou inventoryStatus, inclusive em legado: o decremento adicional do fluxo histórico foi removido. Avanço exige PAID e paidAt válido por CAS. Novo Order grava PENDING na própria transação F003/F004. Confirmação produtiva, commit/release, cancelamento e refund permanecem F001/F028. Sem migração de baseline histórico. [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md).

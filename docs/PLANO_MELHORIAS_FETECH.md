@@ -1122,3 +1122,12 @@ Próxima recomendação: F011; não iniciar automaticamente.
 F011 / FET-P0-009 corrigido. DELETE administrativo de qualquer pedido retorna 405 com Allow: PATCH; não há exclusão física no fluxo comercial. PATCH /api/v1/admin/order/:id/archive e /unarchive são exclusivos para admin, com CSRF e metadata atômica. O painel filtra Ativos (padrão), Arquivados e Todos. Cliente mantém histórico completo, sem metadata administrativa. Arquivamento preserva centavos, snapshot, pagamento, estoque, ledger e replay. Pedidos legados não exigem migração. Auditoria somente leitura: npm.cmd run audit:orders --prefix ecommerce.
 
 Detalhes: [Histórico de pedidos](HISTORICO_PEDIDOS.md) e [Relatório FET-ORDER-003](RELATORIO_FET_ORDER_003.md). F002 é a próxima recomendação, sem início automático.
+
+
+## F002 / FET-P0-002 — Envio antes da confirmação do pagamento
+
+Status: CORRIGIDO pela FET-ORDER-004 (08/10/2026). Novos Orders nascem paymentStatus=PENDING dentro da transação. Processing→Shipped e Shipped→Delivered exigem PAID e paidAt BSON Date válido; saltos e retrocessos retornam409. Mesmo estado é idempotente, target inválido400. Atualização condicional atômica/CAS preserva Stock, ledger, idempotência e archive. Cliente/admin não conseguem forçar PAID por payload; legado sem estado confiável é UNVERIFIED sem migração. UI separa pagamento do status comercial e bloqueia envio sem confirmação.
+
+Até F001 nenhum endpoint confirma pagamento: novos pedidos permanecem bloqueados para expedição. Reservas Pending continuam consumindo Stock; cancel/release/refund permanecem F028. Históricos já enviados sem confirmação exigem auditoria/revisão, sem reparo automático. audit:orders foi estendido em modo somente leitura.
+
+Documentação: [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md) e [Relatório FET-ORDER-004](RELATORIO_FET_ORDER_004.md). Próxima recomendação: F001; não iniciada automaticamente.

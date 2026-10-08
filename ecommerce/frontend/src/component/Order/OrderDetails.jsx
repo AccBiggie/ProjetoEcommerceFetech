@@ -19,7 +19,7 @@ import axios from "axios";
 import { Link, useParams } from "react-router";
 import Page from "../layout/Page";
 import { getErrorMessage } from "../../utils/api";
-import { statusLabel, money } from "../../utils/format";
+import { statusLabel, money, paymentLabel } from "../../utils/format";
 
 export default function OrderDetails() {
   const { id } = useParams();
@@ -70,7 +70,7 @@ export default function OrderDetails() {
               ))}
             </Stepper>
             <Chip
-              label={"Pagamento: " + statusLabel(order.paymentInfo.status)}
+              label={"Pagamento: " + paymentLabel(order)}
               variant="outlined"
               sx={{ mt: 3 }}
             />

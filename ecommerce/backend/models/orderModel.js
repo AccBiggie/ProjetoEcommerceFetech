@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema({
+  paymentStatus: { type: String, enum: ['PENDING', 'PAID'] },
   administrativeArchivedAt: { type: Date, default: null, select: false },
   administrativeArchivedBy: { type: mongoose.Schema.ObjectId, ref: 'User', default: null, select: false },
   idempotencyKeyHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },

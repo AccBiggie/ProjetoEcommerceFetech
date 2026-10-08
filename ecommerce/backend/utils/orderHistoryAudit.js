@@ -1,11 +1,18 @@
 async function auditOrders(connection, { write = console.log } = {}) {
-    const orders = await connection.db.collection('orders').find({}, { projection: { _id: 1, administrativeArchivedAt: 1, administrativeArchivedBy: 1, inventoryStatus: 1, 'orderItems.product': 1 } }).toArray();
+    const orders = await connection.db.collection('orders').find({}, { projection: { _id: 1, administrativeArchivedAt: 1, administrativeArchivedBy: 1, inventoryStatus: 1, 'orderItems.product': 1, orderStatus: 1, paymentStatus: 1, paidAt: 1 } }).toArray();
     const claims = await connection.db.collection('orderidempotencies').find({ status: 'COMPLETED' }, { projection: { _id: 1, order: 1 } }).toArray();
     const movements = await connection.db.collection('stockmovements').find({}, { projection: { _id: 1, order: 1, product: 1, type: 1 } }).toArray();
     const ids = new Set(orders.map(order => String(order._id))), issues = [];
     const add = (category, id) => issues.push({ category, id: String(id) });
     let archived = 0;
     for (const order of orders) {
+        const confirmed = require('./orderPayment').paymentConfirmed(order);
+        if (order.paymentStatus == null) add('LEGACY_PAYMENT_UNVERIFIED', order._id);
+        else if (!['PENDING', 'PAID'].includes(order.paymentStatus)) add('UNKNOWN_PAYMENT_STATUS', order._id);
+        if (order.paymentStatus === 'PAID' && !confirmed) add('PAID_WITHOUT_PAID_AT', order._id);
+        if (order.paidAt != null && order.paymentStatus !== 'PAID') add('PAID_AT_WITHOUT_PAID_STATUS', order._id);
+        if (order.orderStatus === 'Shipped' && !confirmed) add('SHIPPED_WITHOUT_CONFIRMED_PAYMENT', order._id);
+        if (order.orderStatus === 'Delivered' && !confirmed) add('DELIVERED_WITHOUT_CONFIRMED_PAYMENT', order._id);
         const at = order.administrativeArchivedAt, by = order.administrativeArchivedBy;
         if ((at != null) !== (by != null) || (at != null && (!(at instanceof Date) || !Number.isFinite(at.getTime()))) ||
             (by != null && by._bsontype !== 'ObjectId')) add('INVALID_ARCHIVE_METADATA', order._id);

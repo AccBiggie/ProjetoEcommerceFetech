@@ -299,3 +299,8 @@ Filtros `price[gt/gte/lt/lte]` mantêm decimal humano e comparação inteira. Or
 F011 / FET-P0-009 corrigido. DELETE administrativo de qualquer pedido retorna 405 com Allow: PATCH; não há exclusão física no fluxo comercial. PATCH /api/v1/admin/order/:id/archive e /unarchive são exclusivos para admin, com CSRF e metadata atômica. O painel filtra Ativos (padrão), Arquivados e Todos. Cliente mantém histórico completo, sem metadata administrativa. Arquivamento preserva centavos, snapshot, pagamento, estoque, ledger e replay. Pedidos legados não exigem migração. Auditoria somente leitura: npm.cmd run audit:orders --prefix ecommerce.
 
 Detalhes: [Histórico de pedidos](docs/HISTORICO_PEDIDOS.md) e [Relatório FET-ORDER-003](docs/RELATORIO_FET_ORDER_003.md). F002 é a próxima recomendação, sem início automático.
+
+
+## FET-ORDER-004 — contrato de status de pedido
+
+PUT /api/v1/admin/order/:id consome somente status. Mesmo estado200 sem escrita; target inválido/ausente/não string400; inexistente404. Salto/retrocesso409 ORDER_STATUS_TRANSITION_INVALID; avanço sem paymentStatus PAID e paidAt válido409 ORDER_PAYMENT_NOT_CONFIRMED. Sequência é validada antes de pagamento. CAS protege estado e confirmação no write; Stock/ledger/archive não são alterados. Cliente/admin não confirmam pagamento por corpo. Nenhuma rota confirma pagamento até F001. Ver [Estados do pedido e pagamento](docs/ESTADOS_PEDIDO_PAGAMENTO.md).

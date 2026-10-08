@@ -1,3 +1,4 @@
+const { markOrderPaidFixture } = require('./helpers/orderPaymentFixture');
 const { test, before, after, beforeEach } = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
@@ -136,6 +137,8 @@ test('CHECKOUT legado: leitura sem reparo e transição de status', async () => 
     assert.equal(read.result.order.shippingInfo.pinCode, '1234567');
     assert.equal(read.result.order.shippingInfo.phoneNo, '4123456789');
     assert.equal((await Order.collection.findOne({ _id: insertedId })).shippingInfo.pinCode, 1234567);
+    await h.request('PUT', '/admin/order/' + insertedId, { status: 'Shipped' }, cookie, 409);
+    await markOrderPaidFixture(insertedId);
     await h.request('PUT', '/admin/order/' + insertedId, { status: 'Shipped' }, cookie, 200);
     const raw = await Order.collection.findOne({ _id: insertedId });
     assert.deepEqual(raw.shippingInfo, legacy.shippingInfo);

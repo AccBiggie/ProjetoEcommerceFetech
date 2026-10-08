@@ -387,6 +387,19 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   const orderRow = page
     .getByRole("row")
     .filter({ hasText: createdOrder.order._id });
+  await expect(orderRow).toContainText("Pendente");
+  await expect(orderRow.getByRole("button", { name: "Marcar enviado" })).toBeDisabled();
+  const blocked = await mutation(page, "put", "/api/v1/admin/order/" + createdOrder.order._id, { data: { status: "Shipped" } });
+  expect(blocked.status()).toBe(409);
+  expect((await blocked.json()).code).toBe("ORDER_PAYMENT_NOT_CONFIRMED");
+  await expect(page.getByRole("button", { name: /Marcar como pago|Confirmar pagamento/i })).toHaveCount(0);
+  await require("../helpers/orderPaymentFixture").markE2EOrderPaidFixture(createdOrder.order._id);
+  await page.reload();
+  await page.getByRole("tab", { name: "Pedidos", exact: true }).click();
+  await expect(orderRow).toContainText("Pago");
+  await expect(orderRow.getByRole("button", { name: "Marcar entregue" })).toHaveCount(0);
+  const skip = await mutation(page, "put", "/api/v1/admin/order/" + createdOrder.order._id, { data: { status: "Delivered" } });
+  expect(skip.status()).toBe(409);
   await orderRow.getByRole("button", { name: "Marcar enviado" }).click();
   await expect(orderRow).toContainText("Enviado");
   await orderRow.getByRole("button", { name: "Marcar entregue" }).click();

@@ -17,6 +17,7 @@ function presentProduct(record) {
     return { ...record, ...cents, ...Object.fromEntries(productFields.map(f => [f, money.formatCentsToDecimal(cents[f+'Cents'])])), moneyLegacy: productFields.some(f => record[f+'Cents'] == null) };
 }
 function presentOrder(record) {
+    record = require('./orderPayment').presentPayment(record);
     const cents = orderMoney(record);
     return { ...record, ...cents,
         orderItems: cents.orderItems.map(item => ({...item, price: money.formatCentsToDecimal(item.priceCents)})),

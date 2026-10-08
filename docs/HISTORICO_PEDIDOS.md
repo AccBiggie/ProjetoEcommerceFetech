@@ -18,7 +18,7 @@ PATCH requer administrador, sessão válida e proteção CSRF existente. Corpo n
 
 `administrativeArchivedAt` (Date|null) e `administrativeArchivedBy` (ObjectId<User>|null) formam um par. Ambos ausentes/null significam ativo. A operação condicional atômica grava somente esses campos, sem `save()` comercial, migração, TTL ou release. O ID do ator não é populado; sua remoção não elimina o pedido ou sua referência histórica. Admin recebe metadata na lista, detalhe e ações. Clientes não recebem os campos, inclusive em criação/replay; hashes de idempotência continuam privados.
 
-`totalAmountCents` e `totalAmount` da lista administrativa somam somente os pedidos retornados pelo filtro. A contagem no painel também corresponde ao filtro. O badge “Arquivado” é independente do status comercial. As transições existentes continuam disponíveis, incluindo a limitação pendente F002 relativa a pagamento Pending.
+`totalAmountCents` e `totalAmount` da lista administrativa somam somente os pedidos retornados pelo filtro. A contagem no painel também corresponde ao filtro. O badge “Arquivado” é independente do status comercial. Archive permanece independente do status/payment. FET-ORDER-004 corrigiu F002: avanços comerciais exigem pagamento PAID e paidAt válido; arquivar PENDING não autoriza envio. Consulte [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md).
 
 O mesmo ID, snapshot de entrega, valores em centavos, pagamento, reserva, StockMovement e claim de idempotência são preservados. Replay com a mesma key e intenção retorna o mesmo pedido arquivado ou desarquivado, sem nova reserva.
 
@@ -44,4 +44,4 @@ npm.cmd run test:e2e --prefix ecommerce
 git -c core.safecrlf=false diff --check
 ```
 
-O runner usa mongod real em replica set temporário, porta dinâmica e bancos de teste, preservando o MongoDB local existente. Pedidos apagados antes da correção não são recuperados. Pagamento real, backup/restore, audit trail, frete, refund/release e retenção legal permanecem em suas tarefas próprias. Próxima recomendação: F002; não iniciada aqui.
+O runner usa mongod real em replica set temporário, porta dinâmica e bancos de teste, preservando o MongoDB local existente. Pedidos apagados antes da correção não são recuperados. Pagamento real, backup/restore, audit trail, frete, refund/release e retenção legal permanecem em suas tarefas próprias. Próxima recomendação atual: F001; não iniciada aqui.

@@ -16,7 +16,7 @@ import { Link } from "react-router";
 import Page from "../layout/Page";
 import { getErrorMessage } from "../../utils/api";
 
-import { statusLabel, money } from "../../utils/format";
+import { statusLabel, money, paymentLabel } from "../../utils/format";
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
@@ -51,7 +51,7 @@ export default function Orders() {
         </Card>
       )}
       {!!orders.length && (
-        <DataTable label="Meus pedidos" columns={["Pedido", "Status", "Total"]}>
+        <DataTable label="Meus pedidos" columns={["Pedido", "Status", "Pagamento", "Total"]}>
           {orders.map((order) => (
             <TableRow key={order._id} hover>
               <TableCell>
@@ -73,6 +73,7 @@ export default function Orders() {
                   }
                 />
               </TableCell>
+              <TableCell><Chip size="small" label={"Pagamento: " + paymentLabel(order)} /></TableCell>
               <TableCell>{money(order.totalPriceCents)}</TableCell>
             </TableRow>
           ))}

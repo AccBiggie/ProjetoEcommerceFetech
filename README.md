@@ -154,3 +154,6 @@ Product, snapshots Order e cálculos de carrinho/checkout usam centavos inteiros
 F011 / FET-P0-009 corrigido. DELETE administrativo de qualquer pedido retorna 405 com Allow: PATCH; não há exclusão física no fluxo comercial. PATCH /api/v1/admin/order/:id/archive e /unarchive são exclusivos para admin, com CSRF e metadata atômica. O painel filtra Ativos (padrão), Arquivados e Todos. Cliente mantém histórico completo, sem metadata administrativa. Arquivamento preserva centavos, snapshot, pagamento, estoque, ledger e replay. Pedidos legados não exigem migração. Auditoria somente leitura: npm.cmd run audit:orders --prefix ecommerce.
 
 Detalhes: [Histórico de pedidos](docs/HISTORICO_PEDIDOS.md) e [Relatório FET-ORDER-003](docs/RELATORIO_FET_ORDER_003.md). F002 é a próxima recomendação, sem início automático.
+
+
+Envio exige pagamento confirmado (FET-ORDER-004): novos pedidos nascem PENDING e permanecem bloqueados até F001. Não há endpoint/botão para marcar pago. Veja [Estados do pedido e pagamento](docs/ESTADOS_PEDIDO_PAGAMENTO.md).

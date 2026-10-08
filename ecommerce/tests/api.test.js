@@ -1,3 +1,4 @@
+const { markOrderPaidFixture } = require('./helpers/orderPaymentFixture');
 const { testUri } = require('./replicaSetHarness');
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
@@ -193,11 +194,13 @@ test('pedidos: checkout, preços do servidor, propriedade, status e estoque', as
     await request('GET', '/order/' + missing, null, 'user', 404);
     await request('GET', '/order/invalid', null, 'user', 400);
     await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'user', 403);
-    await request('PUT', '/admin/order/' + order._id, { status: 'Delivered' }, 'admin', 400);
+    await request('PUT', '/admin/order/' + order._id, { status: 'Delivered' }, 'admin', 409);
     await request('PUT', '/admin/order/' + order._id, { status: 'invalid' }, 'admin', 400);
+    await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 409);
+    await markOrderPaidFixture(order._id);
     await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin');
     assert.equal((await Product.findById(product.id)).Stock, 18);
-    await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 400);
+    await request('PUT', '/admin/order/' + order._id, { status: 'Shipped' }, 'admin', 200);
     await request('PUT', '/admin/order/' + order._id, { status: 'Delivered' }, 'admin');
     assert.equal((await Product.findById(product.id)).Stock, 18);
     assert.ok((await Order.findById(order._id)).deliveredAt);
@@ -223,6 +226,7 @@ test('envio de pedido reservado preserva disponibilidade atual, mesmo sem estoqu
     const order=(await request('POST','/order/new',{shippingInfo,orderItems:[{product:first.id,quantity:2},{product:second.id,quantity:1}]},'user',201,{'Idempotency-Key':crypto.randomUUID()})).result.order;
     assert.equal((await Product.findById(first.id)).Stock,18);assert.equal((await Product.findById(second.id)).Stock,19);
     await Product.updateOne({_id:second.id},{Stock:0});
+    await markOrderPaidFixture(order._id);
     await request('PUT','/admin/order/'+order._id,{status:'Shipped'},'admin');
     assert.equal((await Product.findById(first.id)).Stock,18);assert.equal((await Product.findById(second.id)).Stock,0);
 });
