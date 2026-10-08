@@ -13,7 +13,10 @@
     "migrate:money": "node backend/scripts/migrateMoneyToCents.js",
     "audit:shipping": "node backend/scripts/auditShippingSnapshots.js",
     "audit:inventory": "node backend/scripts/auditInventory.js",
-    "audit:orders": "node backend/scripts/auditOrders.js"
+    "audit:orders": "node backend/scripts/auditOrders.js",
+    "backup:db": "node backend/scripts/backupDatabase.js",
+    "restore:db": "node backend/scripts/restoreDatabase.js",
+    "verify:backup": "node backend/scripts/verifyBackup.js"
   },
   "author": "",
   "license": "ISC",

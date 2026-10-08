@@ -1,5 +1,7 @@
 # ProjetoEcommerceFetech
 
+Backup/recuperação: [runbook](docs/BACKUP_RESTORE.md) e [relatório FET-OPS-001](docs/RELATORIO_FET_OPS_001.md). Implementação disponível; **F024 parcial, restore real bloqueado por ausência das Database Tools**. O usuário escolheu não baixar ferramentas. Pagamento real (F001) e frete real (F027) permanecem adiados.
+
 ## Executar localmente no Windows
 
 O mapa das rotas, permissoes, integracoes e testes de ponta a ponta esta

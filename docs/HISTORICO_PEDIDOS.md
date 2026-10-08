@@ -1,5 +1,7 @@
 # Histórico comercial e arquivamento administrativo
 
+Recuperação FET-OPS-001: archive BSON deve preservar pedidos ativos/arquivados, metadata administrativa, centavos, entrega, PAID/paidAt, ledger e idempotência sem excluir históricos. Verificação de conteúdo não confirma pagamento nem corrige legados. F011 permanece corrigido; F024 parcial, drill real bloqueado. [Procedimento de backup e recuperação](BACKUP_RESTORE.md).
+
 FET-ORDER-003 / F011 / FET-P0-009, 08/10/2026.
 
 Pedidos comerciais permanecem no banco. Arquivar apenas organiza a visão administrativa; não cancela, devolve estoque, confirma pagamento, estorna ou altera a entrega. Um pedido Pending com reserva continua consumindo estoque.

@@ -1,5 +1,7 @@
 # Estoque transacional — FET-ORDER-002
 
+Recuperação FET-OPS-001: a cópia deve preservar conjuntamente Product.Stock, Order.inventoryStatus, StockMovement e claims COMPLETED, incluindo índices únicos. O verificador compara conteúdo e relações; não refaz reservas nem reexecuta checkout. Antes de restaurar/promover dados comerciais, seguir [BACKUP_RESTORE.md](BACKUP_RESTORE.md). F003/F004 continuam corrigidos; F024 está parcial, sem restore real comprovado. Nenhum estoque comercial foi alterado nesta tarefa.
+
 ## Disponibilidade e reserva
 
 `Product.Stock` representa a quantidade atualmente disponível para novas

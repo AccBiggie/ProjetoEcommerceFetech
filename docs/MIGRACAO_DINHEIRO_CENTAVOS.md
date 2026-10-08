@@ -1,5 +1,7 @@
 # Migração monetária para centavos
 
+**Gate operacional FET-OPS-001:** antes de qualquer `--apply` comercial, capturar backup recente da própria origem e comprovar restore/verificação em database nova isolada, conforme [BACKUP_RESTORE.md](BACKUP_RESTORE.md). Nesta entrega o drill real está bloqueado por ausência das Database Tools e decisão de não baixar; migração real permanece não autorizada/executada. Implementação ou testes de integridade sintéticos não substituem esse gate.
+
 Script: ecommerce/backend/scripts/migrateMoneyToCents.js. Usa loadEnvironment/loadConfig com perfil migration de F036 (NODE_ENV e DB_URI, sem exigir HTTP/SMTP/Cloudinary). Sem migração automática no servidor.
 
 ## Comandos e proteção

@@ -1,5 +1,19 @@
 # Comandos para executar o projeto
 
+## Backup e recuperação — FET-OPS-001
+
+**Validação real bloqueada:** Database Tools ausentes, sem download por decisão do usuário. Antes de operar, seguir os pré-requisitos e a janela sem escrita do [runbook](docs/BACKUP_RESTORE.md). Na raiz, com ambiente seguro já configurado:
+
+```powershell
+npm.cmd run backup:db --prefix ecommerce -- --output "C:\FetechBackups" --tools-dir "C:\MongoDBTools\bin"
+npm.cmd run restore:db --prefix ecommerce -- --backup "C:\FetechBackups\PASTA_DA_CAPTURA" --target-db fetech_restore_drill_20261008 --confirm-target fetech_restore_drill_20261008 --tools-dir "C:\MongoDBTools\bin"
+npm.cmd run verify:backup --prefix ecommerce -- --backup "C:\FetechBackups\PASTA_DA_CAPTURA" --target-db fetech_restore_drill_20261008 --confirm-target fetech_restore_drill_20261008
+node --test ecommerce/tests/backupRestore.test.js
+node --test ecommerce/tests/backupArtifactSafety.test.js
+```
+
+Restore exige destino novo, isolado e vazio; sem overwrite/`--drop`. Não executar captura/migração comercial antes de preparar acesso, consistência e drill. Caminhos acima são exemplos, não instalações existentes. Não publicar URI ou secrets.
+
 Execute no PowerShell a partir da raiz do repositorio:
 
 ```powershell

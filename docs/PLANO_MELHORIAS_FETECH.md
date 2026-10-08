@@ -1,5 +1,13 @@
 # Plano de melhorias Fetech
 
+## F024 / FET-P0-012 — Backup, restore e recuperação verificável
+
+08/10/2026, FET-OPS-001: **PARCIAL / VALIDAÇÃO REAL BLOQUEADA**. Implementadas CLIs de backup BSON via mongodump, restore seguro via mongorestore em destino novo e verificação somente leitura. Manifesto/checksums obrigatórios, comparação de collections/índices/tipos BSON e invariantes; nenhuma exclusão/overwrite. Captura exige janela sem escrita e acesso ao oplog. Tools ausentes; usuário decidiu não baixar. Não houve captura, restore ou drill real; não há RTO/RPO comprovados. Não declarar F024 corrigido.
+
+API 706 pass/15 skipped, build aprovado, E2E 30/30. Dados reais/config.env/auditoria histórica preservados. Infraestrutura ainda deve prover scheduler, off-site, criptografia/ACL, monitoramento e promoção comercial. Gate de backup+restore da própria origem antecede migrações comerciais.
+
+F002/F003/F004/F005/F011 e remediações anteriores continuam corrigidos. F001 (pagamento) e F027 (frete) estão **adiados por decisão do usuário**. Próxima recomendação: F025 / FET-P1-012 — observabilidade, correlação, redaction e trilha administrativa; não iniciada automaticamente. [Runbook](BACKUP_RESTORE.md), [relatório](RELATORIO_FET_OPS_001.md). Este status prevalece sobre recomendações históricas abaixo.
+
 Este documento acompanha remediações posteriores à auditoria. Não altera
 os achados históricos nem transforma a correção de um finding em aprovação
 geral para produção. Não iniciar outra task automaticamente.

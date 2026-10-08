@@ -1,5 +1,7 @@
 # Configuração de ambiente — FET-SEC-008
 
+FET-OPS-001 acrescenta o perfil `database-operations`: valida centralmente `NODE_ENV` e `DB_URI` com database explícita, sem exigir JWT/SMTP/Cloudinary. Nenhuma variável obrigatória nova ou alteração em `config.env`. `--tools-dir` é argumento opcional da CLI; `FETECH_TEST_MONGO_TOOLS` pertence apenas ao runner de testes. Database Tools oficiais 100.3+ da série 100.x são pré-requisito externo, não dependência npm. [Runbook de backup/restore](BACKUP_RESTORE.md). F024 continua parcial até prova real de recuperação.
+
 A API usa `ecommerce/backend/config/runtimeConfig.js`. `loadConfig(env, { profile })` é um parser síncrono, sem conexão externa, que retorna valores tipados e objetos congelados. `initializeConfig(env)` publica uma configuração já validada; `getRuntimeConfig()` permite aos consumidores acessar o snapshot. Alterações no ambiente após a inicialização exigem reinício. Testes podem injetar outro snapshot explicitamente, sempre passando pelas mesmas regras de validação.
 
 `ConfigurationError` agrega nomes de variáveis e motivos seguros. Não armazena o objeto env, valores rejeitados, exceções do parser do driver ou URI completa. Nunca registre o objeto de configuração: ele contém secrets. Falhas operacionais do entrypoint também usam mensagens fixas, sem imprimir erros arbitrários de providers.

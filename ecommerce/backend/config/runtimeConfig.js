@@ -28,7 +28,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
     }
     const environment = supplied('NODE_ENV') ? text('NODE_ENV') : 'development';
     if (!['development','test','production'].includes(environment)) bad('NODE_ENV','use development, test ou production');
-    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit'].includes(profile)) bad('PROFILE','perfil desconhecido');
+    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
     const production = environment === 'production';
     const uri = required('DB_URI');
     if (uri) {

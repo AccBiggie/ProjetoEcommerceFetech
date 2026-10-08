@@ -1,1 +1,5 @@
 .local/
+backups/
+*.archive.gz
+backup-manifest.json
+backup-manifest.sha256

@@ -1,5 +1,13 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## Atualização FET-OPS-001 — 08/10/2026
+
+**F024 / FET-P0-012 PARCIAL — VALIDAÇÃO REAL BLOQUEADA.** CLIs `backup:db`, `restore:db` e `verify:backup` implementadas com tools oficiais, archive gzip, manifesto/checksums, destino novo e verificação de dados/índices/relações. Exige replica set e janela sem escrita verificada pelo oplog; não oferece PITR ou snapshot online com escrita contínua. Database Tools ausentes; usuário escolheu não baixar. Nenhum backup/restore/drill real foi executado, RTO não medido.
+
+API: 706 aprovados, 15 skipped de integração com tools; build aprovado; E2E 30/30. Banco comercial/config.env/auditoria histórica preservados. Sem commit nesta entrega. F002/F003/F004/F005/F011 e remediações anteriores preservadas. F001 e F027 adiados pelo usuário, não iniciados. Próxima recomendação F025 (observabilidade), sem início automático.
+
+Contrato atualizado: [BACKUP_RESTORE.md](BACKUP_RESTORE.md); evidências/limitações: [RELATORIO_FET_OPS_001.md](RELATORIO_FET_OPS_001.md). Esta atualização prevalece sobre recomendações históricas abaixo.
+
 FET-ORDER-002: F003/F004 corrigidos para novos pedidos. Reserva condicional e
 trilha StockMovement, pedido RESERVED e idempotência COMPLETED são atômicos.
 API exige Mongo transacional, testes usam replica set isolado e banco real
