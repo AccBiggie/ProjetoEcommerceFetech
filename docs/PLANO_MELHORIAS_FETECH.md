@@ -718,3 +718,132 @@ de proxy deve corresponder à infraestrutura; HSTS/Helmet/CSP e CSRF explícito
 continuam pendentes. JWT JSON permanece até F021. Próxima task recomendada:
 **F021 / FET-P1-010 — remover JWT do JSON e aplicar Cache-Control: no-store às
 respostas privadas de autenticação, conta, endereços e pedidos.** Não iniciada.
+
+## F021 / FET-P1-010 — Exposição do JWT e cache privado
+
+**Status: CORRIGIDO — FET-SEC-006, 08/10/2026.**
+
+Início factual: main, HEAD `5a9e4ec41a10fe16630d41af355fac476f3bedb5`, worktree
+limpo. F007 já commitada, F006/F008/F009/F010 preservados. HEAD final igual;
+SEC-006 permanece sem commit. Baseline 175/175 API, 22,868 s.
+
+Reprodução isolada anterior: login/cadastro/update/reset continham body.token,
+embora cookie HttpOnly/Secure existisse em produção simulada. /me, /addresses,
+/orders/me, /admin/users e logout sem Cache-Control: no-store. Primeiros 35
+testes novos: 29 falhas e 6 passes. JWTs e dados privados nunca impressos.
+
+Correção: sendToken remove somente token do JSON, mantendo success/user/status
+e cookie F007. Sem campo/header substituto. privateResponse centraliza no-store;
+auth chama antes da validação, emissores antes da emissão, logout antes da
+revogação. 30 combinações protegidas inventariadas em AUTENTICACAO herdam header,
+inclusive 401/403 e erros posteriores. Validações anteriores ao auth não passam
+por essa política; não há regra global de cache de erros. Mutações privadas
+incluídas; público não recebe no-store incidentalmente por cookie. ETag mantido.
+Forgot e erros dos emissores públicos anteriores ao sendToken não foram alterados.
+
+Frontend: actions/reducers/ProtectedRoute/Axios inspecionados. Nenhuma leitura de
+JWT da resposta, nenhum Bearer e nenhuma persistência de sessão em storage/Redux.
+Não foi necessário mudar código frontend. E2E fortalecido nos quatro fluxos:
+JSON sem campos de sessão, no-store, ausência de Authorization e storage sem JWT,
+cookie inacessível ao document.cookie. Harness já lia Set-Cookie; agora helper
+reutilizável extractCookieValue seleciona nome entre headers, sem log do valor.
+
+### Testes permanentes
+
+Arquivo: `ecommerce/tests/privateResponseSecurity.test.js`.
+
+| ID | Garantia |
+| --- | --- |
+| PRV-01 | Login sem JWT JSON |
+| PRV-02 | Login com cookie HttpOnly/no-store |
+| PRV-03 | Cadastro sem JWT, com cookie/no-store |
+| PRV-04 | Troca de senha, JWT antigo 401/novo 200 |
+| PRV-05 | Reset, JWT antigo 401/novo 200 |
+| PRV-06 | Harness captura JWT somente de Set-Cookie |
+| PRV-07 | Logout sem JWT, expira cookie, replay 401/no-store |
+| PRV-08 | /me privado no-store |
+| PRV-09 | /me ausente/inválido 401 no-store |
+| PRV-10 | Lista de endereços no-store |
+| PRV-11 | Endereço individual no-store |
+| PRV-12 | Criação/edição de endereço no-store |
+| PRV-13 | Lista de pedidos no-store |
+| PRV-14 | Detalhe de pedido no-store |
+| PRV-15 | Criação de pedido no-store |
+| PRV-16 | Admin usuários no-store |
+| PRV-17 | Admin pedidos no-store |
+| PRV-18 | Admin produtos no-store |
+| PRV-19 | Admin categorias no-store |
+| PRV-20 | Catálogo público preservado |
+| PRV-21 | Produto público preservado |
+| PRV-22 | Cookie no catálogo não impõe no-store |
+| PRV-23 | Admin 403 no-store |
+| PRV-24 | Erro controlado 500 após auth no-store, sem stack |
+| PRV-25 | Quatro emissores sem campos substitutos |
+| PRV-26 | Login não revoga sessão existente/tokenVersion |
+| PRV-27 | Categorias/reviews públicas com cookie preservadas |
+| PRV-28 | Favorito/exclusão de endereço no-store |
+| PRV-29 | Review autenticada no-store |
+| PRV-30 | Atualização de perfil no-store |
+| PRV-31 | Validação privada 400 no-store |
+| PRV-32 | Produção preserva Secure/HttpOnly/Lax/Path/host-only |
+| PRV-33 | F008 429/Retry-After |
+| PRV-34 | F009 recuperação uniforme |
+| PRV-35 | F010 autoações 403/no-store |
+
+E2E existente ampliado também cobre login/cadastro/troca/reset sem token JSON,
+JWT ausente em localStorage/sessionStorage, cookie inacessível ao JS e navegação
+autenticada por cookie. Redux recebe user/success e não recebe JWT.
+
+### Validação
+
+| Comando | Resultado |
+| --- | --- |
+| `node --test ecommerce/tests/privateResponseSecurity.test.js` | 35/35, 9,594 s |
+| `npm.cmd test --prefix ecommerce` | 210/210, 23,717 s |
+| `npm.cmd run build --prefix ecommerce/frontend` | Aprovado, Vite 742 ms |
+| `npm.cmd run test:e2e --prefix ecommerce` | 19/19, 1,8 min |
+
+Audit não reexecutado: sem dependência/lockfile novo. F006/F007/F008/F009/F010
+continuam corrigidos, com todas as suítes anteriores verdes. Nenhum incremento
+de tokenVersion por remoção do campo; política de cookie e rate limiter intactos.
+
+### Probes finais
+
+| Fluxo | Status | JWT JSON | Cookie | No-store |
+| --- | --- | --- | --- | --- |
+| Login | 200 | Não | HttpOnly/Secure | Sim |
+| Cadastro | 201 | Não | HttpOnly/Secure | Sim |
+| Troca de senha | 200 | Não | Novo HttpOnly/Secure | Sim |
+| Reset | 200 | Não | Novo HttpOnly/Secure | Sim |
+| Logout | 200 | Não | Vazio/expirado | Sim |
+| /me | 200 | — | Sessão válida | Sim |
+| /addresses | 200 | — | Sessão válida | Sim |
+| /orders/me | 200 | — | Sessão válida | Sim |
+| /admin/users | 200 | — | Admin válido | Sim |
+| /products sem cookie | 200 | — | — | Não |
+| /products com cookie | 200 | — | Incidental | Não |
+
+JWT A = <omitido>. Troca e reset: anterior 401, novo 200; logout replay 401.
+Produção simulada via headers, sem deployment HTTPS real. Probes mostram apenas
+status/atributos/booleanos: nenhuma PII, lista de usuários, cookie completo,
+JWT, reset token, senha ou credencial exposta.
+
+### Continuidade
+
+Frontend oficial funcional via cookie; body.token removido propositalmente do
+contrato. Clientes externos que dependessem desse campo precisam atualizar.
+Sessões existentes não são invalidadas apenas por esta mudança. Reiniciar todas
+as instâncias após deploy para carregar política; nenhum processo real reiniciado.
+Somente databases temporárias fetech_routes_auth_*, fetech_routes_* e
+fetech_e2e_* com teardown. **BANCO REAL NÃO ALTERADO. CONFIG.ENV NÃO SOBRESCRITO
+E NENHUM SEGREDO EXPOSTO. AUDITORIA HISTÓRICA NÃO ALTERADA.**
+
+Sem nova collection/schema/dependência ou mudança comercial. Documentos vivos:
+README, ROTAS, AUTENTICACAO, ESTADO_ATUAL, COMANDOS e este plano. Fora de escopo:
+nenhuma alteração. F020 headers/CSRF/logout POST, F023 TLS/proxy/CDN real,
+F025 observabilidade/redaction e F036 env completo permanecem abertos. Logout
+ainda GET; Helmet/CSP/HSTS/CSRF não implantados; proxy/CDN reais precisam validar
+no-store em staging. Nunca registrar JWT/cookie/senha/reset token em logs/traces.
+Próxima task: **F020 / FET-P1-009 — hardening HTTP com Helmet/CSP, proteção
+explícita contra CSRF/Origin e migração segura do logout GET para POST.**
+Não iniciada automaticamente.

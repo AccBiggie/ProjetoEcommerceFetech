@@ -223,6 +223,7 @@ após aplicar alterações. Política: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.
 
 ```powershell
 node --test ecommerce/tests/authCookieSecurity.test.js
+node --test ecommerce/tests/privateResponseSecurity.test.js
 npm.cmd test --prefix ecommerce
 npm.cmd run build --prefix ecommerce/frontend
 npm.cmd run test:e2e --prefix ecommerce

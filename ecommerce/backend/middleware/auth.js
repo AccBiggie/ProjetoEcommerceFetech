@@ -2,8 +2,10 @@ const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("./catchAsyncErrors");
 const User = require("../models/userModel");
 const { decodeSession, invalidSession } = require("../utils/authSession");
+const setNoStore = require('../utils/privateResponse');
 
 exports.isAuthenticatedUser = catchAsyncErrors (async (req, res, next) => {
+    setNoStore(res);
     const { token } = req.cookies;
     const decodedData = decodeSession(token);
     if (!decodedData) return next(invalidSession());

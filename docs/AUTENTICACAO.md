@@ -1,8 +1,9 @@
 # Autenticação e revogação JWT
 
-Atualização FET-SEC-001 a FET-SEC-005 em 08/10/2026. A autenticação continua usando JWT
+Atualização FET-SEC-001 a FET-SEC-006 em 08/10/2026. A autenticação continua usando JWT
 assinado no cookie `token` HttpOnly; o frontend não armazena o JWT em Redux,
-localStorage ou sessionStorage. A resposta JSON continua contendo o token.
+localStorage ou sessionStorage. A resposta JSON não contém JWT: o navegador
+transporta a sessão somente pelo cookie HttpOnly.
 
 ## Versão de autenticação
 
@@ -169,7 +170,7 @@ sem aguardar exclusão física. Referência: [TTL do MongoDB](https://www.mongod
 
 F009 foi corrigido quanto a status, corpo e headers públicos. Latência SMTP
 externa ainda pode introduzir variação temporal além do piso configurado.
-MFA, implantação de HTTPS, hardening HTTP/CSRF, CAPTCHA e remoção do JWT do JSON
+MFA, implantação de HTTPS, hardening HTTP/CSRF e CAPTCHA
 dependem de tarefas próprias. Proxy definitivo, capacidade/disponibilidade do
 MongoDB, alertas e observabilidade completa também exigem validação operacional.
 `GET /logout` permanece GET. Estas remediações não alteram pedidos, estoque
@@ -277,7 +278,71 @@ replay, default anti-spoof, hops e regressões F006/F008/F009/F010. E2E confere
 HttpOnly/SameSite/Path e remoção efetiva no navegador em HTTP de teste.
 Reiniciar todas as instâncias da API para carregar a política nova.
 
-F020 (headers/CSRF), F021 (JWT no JSON/no-store privado), F023 (deployment/TLS)
-e F036 (validação completa de env) permanecem abertos. HSTS/Helmet/CSP, CSRF
-explícito e MFA não foram implementados. Próxima recomendação: F021, sem início
-automático. Config.env, banco real e auditoria histórica foram preservados.
+F021 foi posteriormente corrigido pela FET-SEC-006 abaixo. F020 (headers/CSRF),
+F023 (deployment/TLS) e F036 (validação completa de env) permanecem abertos.
+HSTS/Helmet/CSP, CSRF explícito e MFA não foram implementados. Config.env,
+banco real e auditoria histórica foram preservados.
+
+## Respostas privadas — FET-SEC-006 / F021
+
+Os quatro emissores (register/login/updatePassword/resetPassword) retornam
+somente `{ "success": true, "user": { ... } }`, com HTTP 201 no cadastro e
+200 nos demais. JWT não aparece em campo substituto nem header acessível ao JS;
+é enviado apenas no Set-Cookie token HttpOnly, com a política F007 preservada.
+Nenhum JWT real deve aparecer em logs, traces, artifacts ou documentação;
+o mesmo cuidado vale para cookies, senhas e tokens de recuperação (F025).
+
+`backend/utils/privateResponse.js` centraliza Cache-Control: no-store:
+isAuthenticatedUser chama antes de verificar sessão, sendToken antes da emissão
+e logout antes da revogação. Assim 401 de autenticação, 403 de role e erros
+posteriores ao middleware privado mantêm o header. Mutações herdam a política.
+Validações anteriores ao auth (por exemplo router.param) não passam por esse
+middleware; não foi criada uma política global de cache de erros.
+
+Inventário das 30 combinações método/rota protegidas (prefixo `/api/v1`):
+
+| Método | Rotas |
+| --- | --- |
+| GET | /me |
+| PUT | /me/update, /password/update |
+| GET | /addresses, /address/:id |
+| POST | /address/new |
+| PUT | /address/:id, /address/:id/favorite |
+| DELETE | /address/:id |
+| GET | /orders/me, /order/:id |
+| POST | /order/new |
+| GET | /admin/users, /admin/user/:id, /admin/orders, /admin/products |
+| PUT, DELETE | /admin/user/:id, /admin/order/:id |
+| POST | /product/new |
+| PUT, DELETE | /product/:id |
+| PUT | /review |
+| DELETE | /reviews |
+| GET | /admin/categories, /admin/category/:id |
+| POST | /admin/category |
+| PUT, DELETE | /admin/category/:id |
+
+Rotas públicas products/product/categories/category/reviews não recebem
+no-store por essa regra, mesmo com cookie incidental. Nenhuma regra global
+baseada na presença de cookie; ETag global permanece. Forgot genérico e falhas
+de login/reset anteriores à emissão não tiveram política adicional de cache.
+Somente o sucesso dos emissores públicos passa pelo sendToken.
+
+Frontend oficial usa chamadas Axios relativas e Redux com user/success; não
+depende de data.token, não usa Bearer nem persiste JWT. Não exigiu mudança em
+produção frontend. E2E verifica ausência de campos de sessão nas respostas,
+no-store, ausência de Bearer, JWT no localStorage/sessionStorage e inacessibilidade
+do cookie ao document.cookie. Os mesmos testes cobrem login/cadastro/troca/reset.
+
+Harness já obtinha sessão do Set-Cookie; agora extractCookieValue é reutilizável
+e seleciona o cookie pelo nome. Replay não lê body.token nem imprime o segredo.
+`node --test ecommerce/tests/privateResponseSecurity.test.js`: 35 regressões.
+
+Compatibilidade: body.token deixou o contrato; clientes externos dependentes
+precisam migrar para cookie. JWT/cookie/tokenVersion e sessões existentes não
+mudam apenas por esta task; não exige logout global. Reiniciar todas as APIs
+para carregar a política; nenhuma instância real foi reiniciada nesta execução.
+
+F020 (CSRF/Origin/Helmet/CSP/logout POST), F023 (TLS/proxy/CDN real), F025
+(observabilidade/redaction completa) e F036 (env completo) permanecem abertos.
+Cache/headers precisam ser validados no proxy/CDN de staging quando implantados.
+Próxima task recomendada: F020; não iniciada automaticamente.

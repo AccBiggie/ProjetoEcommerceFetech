@@ -55,9 +55,18 @@ async function request(method, route, body, cookie, expected, extraHeaders = {})
     if (expected !== undefined) assert.equal(response.status, expected, `${method}: status HTTP inesperado`);
     return { response, result, status: response.status };
 }
+function extractCookieValue(setCookie, name = 'token') {
+    for (const header of Array.isArray(setCookie) ? setCookie : [setCookie]) {
+        if (typeof header !== 'string') continue;
+        const pair = header.split(';')[0], separator = pair.indexOf('=');
+        if (pair.slice(0, separator).trim() === name) return decodeURIComponent(pair.slice(separator + 1));
+    }
+    return undefined;
+}
 function cookieOf(reply) {
-    assert.ok(reply.response.headers.has('set-cookie'), 'Cookie de sessão ausente');
-    return reply.response.headers.get('set-cookie').split(';')[0];
+    const value = extractCookieValue(reply.response.headers.getSetCookie());
+    assert.ok(Boolean(value), 'Cookie de sessão ausente');
+    return 'token=' + encodeURIComponent(value);
 }
 async function createUser(role = 'user') {
     return User.create({ name: 'Cliente de sessão', email: `session${++sequence}@routes.example.com`, password,
@@ -75,7 +84,7 @@ async function recoveryToken(user) {
     assert.ok(match, 'Link de recuperação ausente');
     return match[1];
 }
-module.exports = { start, stop, request, cookieOf, createUser, login, signedCookie, recoveryToken,
+module.exports = { start, stop, request, cookieOf, extractCookieValue, createUser, login, signedCookie, recoveryToken,
     User, jwt, password, database, setTransportFailure: value => { transportFailure = value; },
     mailCount: () => mails.length,
     clearRateLimits: () => mongoose.connection.collection('authratelimits').deleteMany({}),

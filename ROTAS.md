@@ -216,7 +216,30 @@ Cadastro, login, atualização e reset de senha emitem `token` pela mesma polít
 HttpOnly, SameSite=Lax, Path=/, sem Domain e duração COOKIE_EXPIRE em dias.
 Secure obrigatório em NODE_ENV=production; falso em development/test.
 GET `/api/v1/logout` mantém revogação F006 e limpa cookie com mesmos atributos,
-expiração passada e valor vazio. Métodos, payloads e JWT no JSON foram mantidos.
+expiração passada e valor vazio. Métodos mantidos; JWT no JSON foi removido
+posteriormente pela FET-SEC-006 abaixo.
 TRUST_PROXY_HOPS ausente/0 mantém req.ip imune a spoof de X-Forwarded-For;
 1..5 exige infraestrutura validada. Configuração inválida impede startup.
 Detalhes: [docs/AUTENTICACAO.md](docs/AUTENTICACAO.md).
+
+## JWT e cache privado — FET-SEC-006
+
+`POST /register` (201), `POST /login` (200), `PUT /password/update` (200) e
+`PUT /password/reset/:token` (200) retornam o mesmo formato:
+
+```json
+{
+  "success": true,
+  "user": { "...": "campos públicos do usuário" }
+}
+```
+
+JWT somente no cookie token HttpOnly, sem campo token/jwt/accessToken/authToken
+substituto. Os quatro sucessos incluem Cache-Control: no-store e Set-Cookie.
+Logout mantém 200/message e recebe no-store. Todas as rotas que passam por
+isAuthenticatedUser recebem no-store desde o início, incluindo erros 401/403 e
+erros posteriores. Inventário completo em [AUTENTICACAO.md](docs/AUTENTICACAO.md).
+Catálogo público não recebe no-store por essa regra, mesmo com cookie; ETag
+preservado. Forgot mantém contrato F009. Frontend oficial funciona por cookie;
+clientes externos dependentes de body.token precisam atualizar. Sessões
+existentes não são revogadas apenas pela remoção do campo.

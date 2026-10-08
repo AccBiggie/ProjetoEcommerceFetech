@@ -3,6 +3,7 @@ const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const User = require("../models/userModel");
 const sendToken = require("../utils/jwtToken");
 const { clearAuthCookie } = require('../config/authCookie');
+const setNoStore = require('../utils/privateResponse');
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
 const { performance } = require('node:perf_hooks');
@@ -41,6 +42,7 @@ exports.loginUser = catchAsyncErrors ( async (req,res,next) => {
 });
 //Logout User
 exports.logout = catchAsyncErrors (async (req, res, next) => {
+    setNoStore(res);
     const session = decodeSession(req.cookies.token);
     if (session) {
         await User.updateOne({ _id: session.id, ...versionFilter(session.tokenVersion) },

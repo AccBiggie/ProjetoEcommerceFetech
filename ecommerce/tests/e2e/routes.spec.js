@@ -1,6 +1,31 @@
 const { test, expect } = require("@playwright/test");
 const { password, categories, productData } = require("../fixtures");
 
+async function assertSessionResponse(response) {
+  const body = await response.json();
+  function hasSessionField(value) {
+    return value && typeof value === "object" && Object.entries(value).some(([key, child]) =>
+      ["token", "jwt", "accessToken", "authToken", "sessionToken"].includes(key) || hasSessionField(child));
+  }
+  // Comparar somente booleanos para não registrar JWT/corpo em falhas.
+  expect(Boolean(hasSessionField(body))).toBe(false);
+  expect((response.headers()["cache-control"] || "").includes("no-store")).toBe(true);
+  expect(Boolean(response.request().headers().authorization)).toBe(false);
+}
+function sessionResponse(page, path) {
+  return page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/" + path && response.ok());
+}
+async function assertBrowserSessionPrivacy(page) {
+  const result = await page.evaluate(() => {
+    const jwtPattern = /eyJ[\w-]*\.[\w-]+\.[\w-]+/;
+    const containsSession = storage => Object.keys(storage).some(key =>
+      /^(token|jwt|accessToken|authToken|sessionToken)$/i.test(key) || jwtPattern.test(storage.getItem(key) || ""));
+    return { local: containsSession(localStorage), session: containsSession(sessionStorage),
+      scriptCookie: /(?:^|;\s*)token=/.test(document.cookie) };
+  });
+  expect(result).toEqual({ local: false, session: false, scriptCookie: false });
+}
+
 async function login(
   page,
   email = "user@routes.example.com",
@@ -9,8 +34,11 @@ async function login(
   await page.goto("/login");
   await page.locator(".loginForm input[type=email]").fill(email);
   await page.locator(".loginForm input[type=password]").fill(secret);
+  const response = sessionResponse(page, "login");
   await page.locator(".loginForm button[type=submit]").click();
+  await assertSessionResponse(await response);
   await expect(page).not.toHaveURL(/\/login/);
+  await assertBrowserSessionPrivacy(page);
 }
 const pageErrors = new WeakMap();
 test.beforeEach(async ({ page }) => {
@@ -78,7 +106,9 @@ test("rotas privadas, login incorreto, retorno ao destino e restrição do dashb
     page.getByText("Invalid email or password", { exact: true }),
   ).toBeVisible();
   await page.locator(".loginForm input[type=password]").fill(password);
+  const loginResponse = sessionResponse(page, "login");
   await page.locator(".loginForm button[type=submit]").click();
+  await assertSessionResponse(await loginResponse);
   await expect(page).toHaveURL(/\/account$/);
   await expect(page.getByRole("heading", { name: "Meu perfil" })).toBeVisible();
   await page.reload();
@@ -103,6 +133,7 @@ test("rotas privadas, login incorreto, retorno ao destino e restrição do dashb
   expect(authCookies.length).toBe(1);
   expect(authCookies.every(cookie => cookie.httpOnly && !cookie.secure &&
     cookie.sameSite === "Lax" && cookie.path === "/")).toBe(true);
+  await assertBrowserSessionPrivacy(page);
   await page.getByRole("button", { name: "Minha conta" }).click();
   await page.getByRole("menuitem", { name: "Sair", exact: true }).click();
   await expect(page.getByRole("button", { name: "Minha conta" })).toHaveCount(
@@ -139,14 +170,20 @@ test("cadastro, alteração de senha, recuperação e redefinição pelo link", 
   await page.locator(".signUpForm input[name=name]").fill("Cliente navegador");
   await page.locator(".signUpForm input[name=email]").fill(email);
   await page.locator(".signUpForm input[name=password]").fill(password);
+  const registrationResponse = sessionResponse(page, "register");
   await page.locator(".signUpBtn").click();
+  await assertSessionResponse(await registrationResponse);
   await expect(page).toHaveURL(/\/$/);
+  await assertBrowserSessionPrivacy(page);
   await page.goto("/password/update");
   await page.getByLabel(/^Senha atual/).fill(password);
   await page.getByLabel(/^Nova senha/).fill("NovaSenhaBrowser123!");
   await page.getByLabel(/^Confirmar senha/).fill("NovaSenhaBrowser123!");
+  const updateResponse = sessionResponse(page, "password/update");
   await page.locator(".updatePasswordBtn").click();
+  await assertSessionResponse(await updateResponse);
   await expect(page).toHaveURL(/\/account$/);
+  await assertBrowserSessionPrivacy(page);
   await page.context().clearCookies();
   await page.goto("/password/forgot");
   await page.getByRole("textbox", { name: "E-mail", exact: true }).fill(email);
@@ -158,8 +195,12 @@ test("cadastro, alteração de senha, recuperação e redefinição pelo link", 
   await page.goto(reset.url);
   await page.getByLabel(/^Nova senha/).fill("ResetBrowser123!");
   await page.getByLabel(/^Confirmar senha/).fill("ResetBrowser123!");
+  const resetResponse = page.waitForResponse(response =>
+    new URL(response.url()).pathname.startsWith("/api/v1/password/reset/") && response.ok());
   await page.locator(".resetPasswordBtn").click();
+  await assertSessionResponse(await resetResponse);
   await expect(page).toHaveURL(/\/account$/);
+  await assertBrowserSessionPrivacy(page);
   await page.context().clearCookies();
   await login(page, email, "ResetBrowser123!");
 });

@@ -100,7 +100,7 @@ destrutivos no banco real. Usar bancos temporários existentes para testes.
 
 Comandos obrigatórios: `npm.cmd test --prefix ecommerce`,
 `npm.cmd run build --prefix ecommerce/frontend` e
-`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 175 testes da
+`npm.cmd run test:e2e --prefix ecommerce`. A suíte atual contém 210 testes da
 API e 19 fluxos E2E, incluindo endereços e seleção na entrega em 360, 768 e
 1440 px e modo escuro.
 
@@ -189,14 +189,15 @@ implementada pela FET-SEC-005 abaixo; deployment TLS permanece em F023.
 
 F007 / FET-P0-007 corrigido em 08/10/2026. Início: main, HEAD
 `069e589d00572ec79af33159d1b2c218d13ef5e0`, worktree limpo e F010 commitada.
-Alterações SEC-005 permanecem sem commit; HEAD não mudou.
+SEC-005 foi posteriormente commitada em `5a9e4ec`.
 
 Política centralizada em authCookie: token host-only, HttpOnly, SameSite=Lax,
 Path=/ e Secure obrigatório em NODE_ENV=production. Development/test mantêm
 HTTP; ambiente desconhecido não é produção e precisa ser configurado exatamente.
 COOKIE_EXPIRE positivo/finito/data futura é validado no startup e emissão;
 7 dias preservados. Logout limpa atributos iguais via clearCookie e mantém
-revogação F006. Todos os emissores usam sendToken; JWT no JSON permanece.
+revogação F006. Todos os emissores usam sendToken; JWT no JSON foi posteriormente
+removido pela FET-SEC-006.
 
 TRUST_PROXY_HOPS ausente/0 mantém false; 1..5 exige topologia conhecida e
 headers saneados. Inválido impede startup. Default segue resistente a spoof;
@@ -212,6 +213,30 @@ logout expirado e replay 401. F006/F008/F009/F010 continuam corrigidos.
 Sem novas dependências/coleções/schema. Config.env, auditoria histórica e banco
 real preservados; testes somente em bancos temporários com teardown. Reiniciar
 todas as APIs para carregar a política; nenhum processo real reiniciado.
-F020/F021/F023/F036 continuam abertos. HTTPS/TLS/proxy real, HSTS/Helmet/CSP,
+Naquele encerramento F020/F021/F023/F036 permaneciam abertos. HTTPS/TLS/proxy real, HSTS/Helmet/CSP,
 CSRF explícito e validação completa de env não foram implementados.
-Próxima task: F021, remover JWT do JSON e no-store privado; não iniciada.
+F021 foi a próxima recomendação e está implementada na seção abaixo.
+
+## Respostas privadas — FET-SEC-006
+
+F021 / FET-P1-010 corrigido em 08/10/2026. Baseline main, HEAD
+`5a9e4ec41a10fe16630d41af355fac476f3bedb5`, worktree limpo, F007 commitada.
+Alterações SEC-006 sem commit e HEAD mantido. F006/F007/F008/F009/F010 preservados.
+
+JWT removido do JSON dos quatro emissores; sessão transportada pelo cookie
+HttpOnly. Frontend não depende de body.token/Bearer nem persiste JWT. No-store
+centralizado em auth (antes da validação), sendToken e logout. Todas as 30
+combinações protegidas herdam header, inclusive 401/403 e erros posteriores;
+rotas públicas preservadas, mesmo com cookie. ETag global mantido.
+Harness extrai JWT somente do Set-Cookie; helper reutilizável seleciona nome.
+Clientes externos dependentes de body.token precisam adaptar; sessões existentes
+não são revogadas apenas por esta alteração. Reiniciar APIs após deploy.
+
+35/35 testes focados, 210/210 API, build aprovado e 19/19 E2E.
+Probes confirmam ausência de body.token, cookies HttpOnly/Secure em produção
+simulada, no-store privado, replay 401 e sessão rotacionada 200. Catálogo público
+sem no-store com/sem cookie. Browser verifica respostas e storage sem expor JWT.
+
+Sem nova dependência/coleção/schema, banco real não alterado, config.env e
+auditoria histórica preservados. Nenhum processo real reiniciado. F020/F023/
+F025/F036 seguem abertos; próxima recomendação F020, não iniciada automaticamente.
