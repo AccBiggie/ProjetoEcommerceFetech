@@ -150,3 +150,11 @@ Fontes de versões/supply chain: [actions/checkout](https://github.com/actions/c
 [actions/setup-node](https://github.com/actions/setup-node),
 [actions/upload-artifact](https://github.com/actions/upload-artifact),
 [MongoDB Server Ubuntu tarball](https://www.mongodb.com/docs/v8.0/tutorial/install-mongodb-on-ubuntu-tarball/).
+# Gate F030 — privacidade
+
+privacyLifecycle, privacyAnonymization, privacyAudit e privacy.spec participam
+das suites obrigatórias, sem skips novos. Banco comercial, providers e migrations
+reais são proibidos nesta validação. F030 implementa baseline técnico; prazos
+formais de retenção permanecem UNDEFINED. F039 remoto/branch protection continuam
+não validados, F026/CD parcial e F024 mantém os quinze bloqueios existentes.
+[Contrato](PRIVACIDADE_E_RETENCAO.md).

@@ -179,3 +179,12 @@ A suite integral valida contratos, indices e explain somente nas databases
 temporarias do replica set de teste. Nenhum indice F022 foi aplicado ao fetech.
 Rollout comercial e restore validado F024 continuam pendentes.
 [Gate comercial](CI_E_GATES_COMERCIAIS.md).
+# Fila de privacidade F030
+
+GET /admin/privacy/requests usa page/limit F022 (default 25, teto 100), status
+REQUESTED/COMPLETED/CANCELLED, ordem createdAt/_id descendente, payload mínimo
+sem nome/email/Address. Lookup de User limitado à página e estados. Índices
+PrivacyRequest unique parcial ativo, user/latest e status/queue são necessários;
+Product.reviews.user foi adicionado ao manifesto para contagem/audit/anonimização.
+Nenhuma aplicação no fetech; índices F022/F037 e restore F024 seguem gates de
+rollout. [Contrato](PRIVACIDADE_E_RETENCAO.md).

@@ -4,7 +4,7 @@ const schema = new mongoose.Schema({
     kind: { type: String, enum: ['USER_AVATAR'], default: 'USER_AVATAR' },
     provider: { type: String, enum: ['CLOUDINARY'], default: 'CLOUDINARY' },
     publicId: { type: String, required: true },
-    reason: { type: String, enum: ['REPLACED_AVATAR', 'UNATTACHED_UPLOAD'], required: true },
+    reason: { type: String, enum: ['REPLACED_AVATAR', 'UNATTACHED_UPLOAD', 'ACCOUNT_ANONYMIZATION'], required: true },
     status: { type: String, enum: ['PENDING', 'COMPLETED', 'BLOCKED'], default: 'PENDING' },
     attempts: { type: Number, default: 0 },
     lastAttemptAt: { type: Date, default: null },

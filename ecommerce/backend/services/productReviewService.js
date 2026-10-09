@@ -36,6 +36,11 @@ function createProductReviewService(Model = Product) {
         require('../observability/logger').warn('product.review.data_inconsistent', { targetId: String(id) });
         throw error;
     }
-    return { upsert: args => mutate(args), remove: args => mutate(args) };
+    const guarded = async args => {
+        const privacy = require('./privacySensitiveWrite');
+        if (args.session) return mutate({ ...args, user: await privacy.fencePrivacySensitiveUser(args.user, args.session, Model.db) });
+        return privacy.withPrivacySensitiveWrite(args.user, (session, user) => mutate({ ...args, user, session }), { connection: Model.db });
+    };
+    return { upsert: guarded, remove: guarded };
 }
 module.exports = { createProductReviewService, ...createProductReviewService() };

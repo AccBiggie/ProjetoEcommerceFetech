@@ -109,3 +109,11 @@ sinaliza. Histórico inconsistente pode bloquear avaliações até revisão huma
 Reparo real exige backup/restore validado; F024 permanece parcial pela ausência
 de mongodump/mongorestore. F037 cobre outras coerências de Product; moderação e
 privacy estão fora do escopo. Pagamento F001 e frete F027 continuam adiados.
+# Privacidade do autor F030
+
+Anonimização troca somente reviews.name por `Usuário removido`, preservando
+review._id/user/rating/comment e agregados. Escritas autenticadas usam fencing
+transacional de User e nome reconsultado: request atrasado não reintroduz PII.
+Texto livre exige moderação específica, sem regex de apagamento. Índice
+reviews.user justifica contagem/audit/update seletivo; operação comercial
+pendente. [Contrato](PRIVACIDADE_E_RETENCAO.md).

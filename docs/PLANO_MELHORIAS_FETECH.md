@@ -1,5 +1,29 @@
 # Plano de melhorias Fetech
 
+## F030 — Privacidade e retenção — FET-PRIVACY-001
+
+**CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO.** Inventário/classificação, request
+persistente, fila admin paginada, confirmação forte, tombstone irreversível,
+fencing concorrente, cleanup F019 e evento F025 transacionais, auditoria somente
+leitura e UI. Shipping PII de Order, relações comerciais, ledger/claims e audit
+histórico preservados. Prazos formais UNDEFINED; sem certificação jurídica.
+[Contrato](PRIVACIDADE_E_RETENCAO.md), [testes](TESTES_FET_PRIVACY_001.md),
+[relatório](RELATORIO_FET_PRIVACY_001.md).
+
+Validação final: focados 85/85, API 1633 aprovados/15 skips F024,
+arquitetura 71/71, E2E 59/59 sem skips, build/diff/Commercial Gate aprovados,
+audits backend/frontend zero vulnerabilidades.
+
+F039 já commitada em 2d31aa2; esta implementação sem commit. F002–F018,
+F020/F021/F025/F031/F036 preservados; F019 novas substituições, F022/F037 índices
+comerciais pendentes; F039 validação remota/branch protection pendentes.
+F024 PARCIAL, F026 PARCIAL/CD pendente, F029 ABERTO; F001/F027 ADIADOS,
+NÃO INICIADOS. Banco real, providers, config.env e auditoria histórica intocados.
+Próxima recomendação **F040 — emails transacionais confiáveis com provider,
+eventos de conta/pedido, outbox persistente e retries**, sem SMTP em transações.
+Integração real continua F029. Não iniciar automaticamente. Este estado
+prevalece sobre registros históricos, inclusive menções à F030 aberta.
+
 ## F039 ? Gates comerciais de CI ? FET-CI-001
 
 **CORRIGIDO NO CODIGO / VALIDACAO REMOTA PENDENTE.** GitHub Actions, Node fixo,

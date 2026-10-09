@@ -54,3 +54,10 @@ git -c core.safecrlf=false diff --check
 ```
 
 O runner usa mongod real em replica set temporário, porta dinâmica e bancos de teste, preservando o MongoDB local existente. Pedidos apagados antes da correção não são recuperados. Pagamento real, backup/restore, audit trail, frete, refund/release e retenção legal permanecem em suas tarefas próprias. Próxima recomendação atual: F001; não iniciada aqui.
+# Retenção após anonimização F030
+
+Order.user continua apontando ao tombstone válido. A anonimização não modifica
+nenhum BSON de Order, inclusive shippingInfo, centavos, pagamento, archive e
+itens; ledger, claims e auditoria histórica permanecem exatos. ShippingInfo é
+PII histórica retida, prazo formal UNDEFINED. Remoção do catálogo Address não
+apaga snapshots de pedidos. [Contrato](PRIVACIDADE_E_RETENCAO.md).

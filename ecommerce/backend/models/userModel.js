@@ -47,6 +47,8 @@ const userSchema = new mongoose.Schema ( {
     resetPasswordToken: String,
     resetPasswordExpire: Date,
     accountStatus: { type: String, enum: ['ACTIVE', 'DEACTIVATED'], default: 'ACTIVE' },
+    privacyStatus: { type: String, enum: ['NORMAL', 'ANONYMIZATION_REQUESTED', 'ANONYMIZED'], default: 'NORMAL' },
+    privacyMutationVersion: { type: Number, default: 0, min: 0, validate: Number.isSafeInteger, select: false },
     deactivatedAt: { type: Date, default: null },
     deactivatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
     // Geração interna do lock administrativo; nunca aceita pelo body público.
@@ -71,17 +73,30 @@ userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.adminMutationFence;
     delete result.deactivatedBy;
     delete result.deactivatedAt;
+    delete result.privacyMutationVersion;
     return result;
 } });
 userSchema.pre('validate', function () {
+    if (this.privacyStatus === 'ANONYMIZED') {
+        const privacy = require('../utils/privacyContract');
+        if (this.accountStatus !== 'DEACTIVATED' || this.role !== 'user' || !privacy.aliasPattern.test(this.email) || this.name !== privacy.REMOVED_NAME || this.avatar?.public_id !== 'default-avatar' || this.avatar?.url !== '/Profile.png' || this.resetPasswordToken || this.resetPasswordExpire) this.invalidate('privacyStatus', 'Anonymized account state inconsistent');
+    }
     if (this.accountStatus === 'ACTIVE' && (this.deactivatedAt != null || this.deactivatedBy != null)) this.invalidate('accountStatus', 'Active account metadata must be null');
     if (this.accountStatus === 'DEACTIVATED' && (!(this.deactivatedAt instanceof Date) || !Number.isFinite(this.deactivatedAt.getTime()) || !this.deactivatedBy)) this.invalidate('accountStatus', 'Deactivation metadata required');
 });
 userSchema.pre("save", async function() {
+    if (!this.isNew) this.$where = { $and: [this.$where || {}, { privacyStatus: { $ne: 'ANONYMIZED' } }] };
     if (!this.isModified("password")) {
         return;
     }
     this.password = await bcrypt.hash(this.password, 10);
+});
+const privacyProtected = new Set(['name', 'email', 'password', 'avatar', 'role', 'accountStatus', 'privacyStatus', 'resetPasswordToken', 'resetPasswordExpire']);
+const privacyFields = update => Object.entries(update || {}).flatMap(([key, value]) => key.startsWith('$') ? [...Object.keys(value || {}), ...(key === '$rename' ? Object.values(value || {}).filter(value => typeof value === 'string') : [])] : [key]);
+for (const method of ['updateOne', 'updateMany', 'findOneAndUpdate']) userSchema.pre(method, function () {
+    const update = this.getUpdate() || {};
+    const fields = privacyFields(update);
+    if (Array.isArray(update) || fields.some(field => privacyProtected.has(field.split('.')[0]))) this.setQuery({ $and: [this.getQuery(), { privacyStatus: { $ne: 'ANONYMIZED' } }] });
 });
 //JWT TOKEN
 userSchema.methods.getJWTToken = function () {
@@ -127,8 +142,14 @@ userSchema.pre('aggregate', function () {
 const User = mongoose.model('User', userSchema);
 for (const operation of ['deleteOne', 'deleteMany', 'findOneAndDelete', 'replaceOne', 'findOneAndReplace']) User.collection[operation] = async () => forbidPhysicalDelete();
 const bulkWrite = User.collection.bulkWrite.bind(User.collection);
+const protectsPrivacy = update => Array.isArray(update) || privacyFields(update).some(field => privacyProtected.has(field.split('.')[0]));
+for (const operation of ['updateOne', 'updateMany', 'findOneAndUpdate']) {
+    const original = User.collection[operation].bind(User.collection);
+    User.collection[operation] = (filter, update, ...options) => original(protectsPrivacy(update) ? { $and: [filter, { privacyStatus: { $ne: 'ANONYMIZED' } }] } : filter, update, ...options);
+}
 User.collection.bulkWrite = async (operations, ...options) => {
     if (operations.some(operation => operation.deleteOne || operation.deleteMany || operation.replaceOne)) forbidPhysicalDelete();
+    if (operations.some(operation => protectsPrivacy(operation.updateOne?.update || operation.updateMany?.update))) require('../utils/privacyContract').fail('PRIVACY_BULK_WRITE_FORBIDDEN');
     return bulkWrite(operations, ...options);
 };
 module.exports = User;

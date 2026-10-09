@@ -33,6 +33,7 @@ app.use("/api/v1", require("./routes/categoryRoute"));
 app.use("/api/v1", require("./routes/addressRoute"));
 app.use('/api/v1', require('./routes/healthRoute'));
 app.use('/api/v1', require('./routes/adminAuditRoute'));
+app.use('/api/v1', require('./routes/privacyRoute'));
 //Middleware for Errors
 app.use((req, res, next) => next(new (require("./utils/errorHander"))("Rota não encontrada.", 404)));
 app.use(errorMiddleware);

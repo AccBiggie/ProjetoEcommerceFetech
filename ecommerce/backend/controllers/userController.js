@@ -171,7 +171,7 @@ exports.getAllUser = catchAsyncErrors (async (req, res, next) => {
     const status = req.query.status === undefined ? 'active' : req.query.status;
     if (typeof status !== 'string' || !['active', 'deactivated', 'all'].includes(status)) throw new ErrorHander('Filtro de status inválido.', 400);
     const result = await paging.collection(User, status === 'active' ? activeFilter() : status === 'deactivated' ? { accountStatus: 'DEACTIVATED' } : {}, pagination,
-        '_id name email role avatar createdAt accountStatus deactivatedAt deactivatedBy', paging.sort(req.query));
+        '_id name email role avatar createdAt accountStatus privacyStatus deactivatedAt deactivatedBy', paging.sort(req.query));
 
     res.status(200).json({
         success: true,

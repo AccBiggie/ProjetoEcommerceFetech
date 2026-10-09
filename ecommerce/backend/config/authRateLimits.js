@@ -11,4 +11,5 @@ module.exports = Object.freeze({
     reset: Object.freeze([rule('reset:ip', 'ip', 10)]),
     register: Object.freeze([rule('register:ip', 'ip', 10, 60 * minute)]),
     avatar: Object.freeze([rule('avatar:user', 'account', 10, 60 * minute)]),
+    privacy: Object.freeze([rule('privacy:user', 'account', 5, 60 * minute)]),
 });

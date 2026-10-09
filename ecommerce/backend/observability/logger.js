@@ -12,7 +12,7 @@ function fieldsForLog(input) {
     if (fields.errorName !== undefined && safe.errorName === undefined) safe.errorName = 'Error';
     if (typeof fields.route === 'string' && (fields.route === 'UNMATCHED' || /^\/api\/v1\/[A-Za-z0-9_/:.-]{1,160}$/.test(fields.route))) safe.route = fields.route;
     if (typeof fields.errorCode === 'number' && Number.isSafeInteger(fields.errorCode)) safe.errorCode = fields.errorCode;
-    if (typeof fields.errorCode === 'string' && /^(ORDER_[A-Z_]{1,60}|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_REVIEW_DATA_INCONSISTENT|HTTP_[45]\d\d|INTERNAL_ERROR)$/.test(fields.errorCode)) safe.errorCode = fields.errorCode;
+    if (typeof fields.errorCode === 'string' && /^(PRIVACY_[A-Z_]{1,60}|USER_ANONYMIZED|ORDER_[A-Z_]{1,60}|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_REVIEW_DATA_INCONSISTENT|HTTP_[45]\d\d|INTERNAL_ERROR)$/.test(fields.errorCode)) safe.errorCode = fields.errorCode;
     if (typeof fields.failureCode === 'string' && /^(MEDIA_[A-Z_]{1,60}|STILL_REFERENCED|LEGACY_UNMANAGED_AVATAR)$/.test(fields.failureCode)) safe.failureCode = fields.failureCode;
     if (fields.transactionCapable === true) safe.transactionCapable = true;
     if (Object.hasOwn(require('./auditContract').actions, fields.action)) safe.action = fields.action;

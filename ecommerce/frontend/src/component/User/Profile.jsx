@@ -72,6 +72,7 @@ export default function Profile() {
           <Button component={Link} to="/orders">
             Meus pedidos
           </Button>
+          <Button component={Link} to="/account/privacy">Privacidade</Button>
           <Button component={Link} to="/addresses">
             Meus endereços
           </Button>

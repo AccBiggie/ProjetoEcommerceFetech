@@ -292,3 +292,10 @@ audit de ambos os pacotes. Reprova no primeiro erro; somente quinze bloqueios
 F024 explicitamente allowlisted, zero skips E2E. Consulte
 [CI e gates comerciais](docs/CI_E_GATES_COMERCIAIS.md). Workflow GitHub Actions
 codificado; run remoto e enforcement ainda pendentes. Nenhum deploy automatico.
+# Auditoria de privacidade F030
+
+`npm.cmd run audit:privacy --prefix ecommerce`: exclusivamente leitura,
+configuração mínima NODE_ENV/DB_URI, sem SMTP/Cloudinary, migrations ou índices.
+Não aceita --apply nem outro argumento. Nesta task executado apenas em banco
+temporário de testes, nunca no fetech. Não imprime PII direta. Consulte
+[contrato e rollout](docs/PRIVACIDADE_E_RETENCAO.md).

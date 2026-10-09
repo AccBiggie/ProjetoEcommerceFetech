@@ -13,6 +13,7 @@ const LoginSignUp = lazy(() =>
   })),
 );
 const Profile = lazy(() => import("./component/User/Profile.jsx"));
+const Privacy = lazy(() => import('./component/User/Privacy.jsx'));
 const Addresses = lazy(() => import("./component/User/Addresses.jsx"));
 import ProtectedRoute from "./component/Route/ProtectedRoute.jsx";
 const UpdateProfile = lazy(() => import("./component/User/UpdateProfile.jsx"));
@@ -49,6 +50,7 @@ export default function MainRoutes() {
         />
         <Route element={<ProtectedRoute />}>
           <Route path="/account" element={<Profile />} />
+          <Route path="/account/privacy" element={<Privacy />} />
           <Route path="/addresses" element={<Addresses />} />
           <Route path="/me/update" element={<UpdateProfile />} />
           <Route path="/password/update" element={<UpdatePassword />} />

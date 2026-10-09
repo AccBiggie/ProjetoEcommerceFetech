@@ -63,3 +63,10 @@ Cadastro envia JSON e usa padrão. Perfil mantém File apenas em estado local, e
 Eventos seguros: user.avatar.updated, user.avatar.upload_failed, media.cleanup.pending, media.cleanup.completed e media.cleanup.blocked. Logs usam IDs técnicos e failureCode, sem bytes, filename, publicId, URL assinada ou resposta bruta. Monitorar PENDING antigo, BLOCKED, intent stale e tentativas sem conclusão; falhas externas permanecem sanitarizadas.
 
 Testes e evidências: [RELATORIO_FET_MEDIA_001.md](RELATORIO_FET_MEDIA_001.md). Assets históricos órfãos ainda podem existir; integração real continua F029, restore drill F024 permanece parcial, pagamento F001 e frete F027 permanecem adiados.
+# Integração de anonimização F030
+
+ACCOUNT_ANONYMIZATION cria MediaCleanupTask atomicamente com User, Address,
+reviews, PrivacyRequest e AuditEvent. Avatar passa ao padrão antes do destroy,
+executado fora da transação. Falha mantém PENDING; legado sem ownership ou
+referência compartilhada fica BLOCKED. Nenhum provider real foi chamado nesta
+task. [Contrato](PRIVACIDADE_E_RETENCAO.md).

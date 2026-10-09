@@ -32,6 +32,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
         if (body.role !== undefined && !['admin', 'user'].includes(body.role)) throw new ErrorHander('Perfil inválido.', 400);
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
+            if (require('../utils/privacyContract').isAnonymized(target)) require('../utils/privacyContract').fail('USER_ANONYMIZED');
             const reducing = isActive(target) && target.role === 'admin' && body.role === 'user';
             if (reducing && String(executorId) === target.id) {
                 throw new ErrorHander('Não é permitido remover sua própria permissão administrativa.', 403);
@@ -52,6 +53,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
     async function changeStatus(executorId, targetId, nextStatus, auditRequest) {
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
+            if (nextStatus === 'ACTIVE' && require('../utils/privacyContract').isAnonymized(target)) require('../utils/privacyContract').fail('USER_ANONYMIZED');
             if (nextStatus === 'DEACTIVATED' && String(executorId) === target.id) throw new ErrorHander('Não é permitido desativar sua própria conta administrativa.', 403);
             const previous = statusOf(target);
             if (!['ACTIVE', 'DEACTIVATED'].includes(previous)) throw new ErrorHander('Estado de conta inválido.', 409);

@@ -14,15 +14,15 @@ async function withAddressWrite(userId, work) {
     finally { if (userWrites.get(key) === current) userWrites.delete(key); }
 }
 
-async function saveAddress(address) {
+async function saveAddress(address, options = {}) {
     // Valida antes de remover o favorito anterior: entrada inválida não muda a conta.
     await address.validate();
-    if (!address.favorite) return address.save();
-    const previous = await Address.findOne({ user: address.user, favorite: true, _id: { $ne: address._id } });
-    await Address.updateMany({ user: address.user, favorite: true, _id: { $ne: address._id } }, { $set: { favorite: false } });
-    try { return await address.save(); }
+    if (!address.favorite) return address.save(options);
+    const previous = await Address.findOne({ user: address.user, favorite: true, _id: { $ne: address._id } }).session(options.session || null);
+    await Address.updateMany({ user: address.user, favorite: true, _id: { $ne: address._id } }, { $set: { favorite: false } }, options);
+    try { return await address.save(options); }
     catch (error) {
-        if (previous && !await Address.exists({ user: address.user, favorite: true })) {
+        if (!options.session && previous && !await Address.exists({ user: address.user, favorite: true })) {
             // Em outro processo pode haver um novo favorito; o índice protege o vínculo.
             await Address.updateOne({ _id: previous._id, user: address.user }, { $set: { favorite: true } }).catch(() => {});
         }

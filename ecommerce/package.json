@@ -32,7 +32,8 @@
     "ci:build": "node scripts/ci/run.js build",
     "ci:e2e": "node scripts/ci/run.js e2e",
     "ci:audit": "node scripts/ci/run.js audit",
-    "ci:commercial": "node scripts/ci/run.js commercial"
+    "ci:commercial": "node scripts/ci/run.js commercial",
+    "audit:privacy": "node backend/scripts/auditPrivacy.js"
   },
   "author": "",
   "license": "ISC",

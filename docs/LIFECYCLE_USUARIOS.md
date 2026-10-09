@@ -100,3 +100,10 @@ count. [Contrato](REVIEWS_CONCORRENCIA.md).
 # Atualização FET-MEDIA-001
 
 F016 permanece corrigido: desativação conserva avatar e referência, que também bloqueia cleanup. Upload revalida estado/tokenVersion dentro da transação de attach; corrida com desativação aborta attach e conserva o avatar anterior. Legados não gerenciados exigem revisão humana e não são apagados automaticamente. Erasure/retention continuam F030. [Ciclo de vida de mídia](AVATAR_E_MIDIA.md).
+# Privacidade F030 (09/10/2026)
+
+Desativação F016 mantém PII e permanece reversível. O eixo privacyStatus é
+independente: NORMAL, ANONYMIZATION_REQUESTED, ANONYMIZED. Apenas este último
+é irreversível; reativação/update administrativo retorna 409 USER_ANONYMIZED.
+User legado sem privacyStatus equivale a NORMAL sem migration. Não excluir User
+fisicamente. [Contrato de privacidade](PRIVACIDADE_E_RETENCAO.md).

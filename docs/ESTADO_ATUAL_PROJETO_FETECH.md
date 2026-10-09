@@ -1,5 +1,32 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F030 — baseline técnico de privacidade — FET-PRIVACY-001 (09/10/2026)
+
+**CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO.** privacyStatus separado de F016,
+PrivacyRequest mínima/única, fila paginada, execução administrativa com confirmação
+forte e transação: tombstone irreversível, Address removido, review.name canônico,
+credenciais revogadas, avatar F019 e AuditEvent atômicos. Orders/ledger/claims/
+auditoria histórica preservados exatamente. Audit:privacy somente leitura,
+registry, telas e testes. Não certifica conformidade jurídica: retenção histórica
+UNDEFINED, shipping PII permanece em Orders e comentários livres podem conter PII.
+[Contrato](PRIVACIDADE_E_RETENCAO.md), [testes](TESTES_FET_PRIVACY_001.md),
+[relatório](RELATORIO_FET_PRIVACY_001.md).
+
+Validação final: focados 85/85, respostas privadas 35/35, browser focado 2/2,
+API 1633 aprovados/15 skips exclusivos F024, arquitetura 71/71, E2E 59/59
+zero skips, build/diff/Commercial Gate aprovados e audit backend/frontend zero.
+
+Estado inicial: main, HEAD 2d31aa2, worktree limpo; F039 commitada. Esta task
+permanece sem commit/push. Banco fetech, processos reais, config.env, índices
+comerciais, providers e auditoria histórica não alterados. F002–F018, F020/F021,
+F025/F031/F036 continuam corrigidos; F019 novas substituições, F022/F037 no código
+com índices comerciais pendentes; F039 no código com validação remota pendente.
+F024 parcial (15 skips existentes), F026 parcial/CD pendente, F023 infraestrutura
+necessária e F029 integração real aberta. F001/F027 adiados e não iniciados.
+Próxima recomendação F040: emails transacionais com provider/outbox persistente,
+retries seguros e sem SMTP em transactions; não iniciada automaticamente.
+Esta seção prevalece sobre estados históricos abaixo, inclusive F030 aberta.
+
 ## F039 ? Gates comerciais de CI ? FET-CI-001
 
 **CORRIGIDO NO CODIGO / VALIDACAO REMOTA PENDENTE.** GitHub Actions, Node fixo,

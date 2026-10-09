@@ -4,6 +4,7 @@ const definitions = {
         [{ createdAt: -1, _id: -1 }, 'products_recent'],
         [{ category_id: 1, createdAt: -1, _id: -1 }, 'products_category_recent'],
         [{ category: 1, createdAt: -1, _id: -1 }, 'products_legacy_category_recent'],
+        [{ 'reviews.user': 1 }, 'products_reviewer'],
     ],
     orders: [
         [{ createdAt: -1, _id: -1 }, 'orders_recent'],

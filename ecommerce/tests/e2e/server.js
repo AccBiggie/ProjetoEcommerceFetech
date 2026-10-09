@@ -23,7 +23,7 @@ const mediaFake = require('../helpers/fakeMediaProvider').createFakeMediaProvide
     await mongoose.connect(testUri(database));
     await fixtures();
     await require('../../backend/config/mongoTransactions').requireTransactions();
-    for (const email of ['media@routes.example.com', 'idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com', 'lifecycle@routes.example.com', 'reviews-a@routes.example.com', 'reviews-b@routes.example.com']) {
+    for (const email of ['privacy@routes.example.com', 'privacy-cancel@routes.example.com', 'media@routes.example.com', 'idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com', 'lifecycle@routes.example.com', 'reviews-a@routes.example.com', 'reviews-b@routes.example.com']) {
         await require('../../backend/models/userModel').create({ name: 'Cliente Idempotência', email, password, role: 'user',
             avatar: { public_id: 'fixture-avatar', url: '/Profile.png' } });
     }

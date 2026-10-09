@@ -370,3 +370,21 @@ PUT /api/v1/admin/order/:id consome somente status. Mesmo estado200 sem escrita;
 # Avatar binário — FET-MEDIA-001
 
 PUT `/api/v1/me/avatar`: sessão ativa + CSRF + limite por conta antes do parser; multipart com um arquivo `avatar` JPEG/PNG/WebP até 5 MiB. Retorna User confirmado; 400 contrato inválido, 413 tamanho, 415 conteúdo, 409 conflito, 502 provider, 503 provider ausente. Cadastro e perfil textual recebem JSON e rejeitam campos de mídia. Cadastro usa avatar padrão. Detalhes: [Avatar e mídia](docs/AVATAR_E_MIDIA.md).
+# Privacidade F030
+
+Todas as rotas abaixo têm prefixo `/api/v1`, auth e no-store; mutações exigem
+CSRF F020. Solicitar/cancelar usa limiter HMAC por conta.
+
+| Método/rota | Body/query | Resultado |
+|---|---|---|
+| POST /me/privacy/anonymization-request | JSON {} | 201 nova; 200 solicitação ativa existente |
+| GET /me/privacy/anonymization-request | sem query | solicitação mais recente mínima ou null |
+| PATCH /me/privacy/anonymization-request/cancel | JSON {} | CANCELLED; sem ativa 409 |
+| GET /me/privacy/data-overview | sem query | somente contagens e historicalRetention=UNDEFINED |
+| GET /admin/privacy/requests | page/limit/status | fila paginada sem PII, só admin |
+| POST /admin/privacy/requests/:id/anonymize | confirmation: ANONIMIZAR userId | 200 applied true/false; alvo ativo/admin 409; texto incorreto 400 |
+
+Campos extras, arrays, operadores e filtros não previstos são rejeitados.
+Solicitar não desativa nem encerra sessão; execução requer DEACTIVATED/user.
+Reativação de ANONYMIZED retorna 409 USER_ANONYMIZED. Limites de retenção em
+[PRIVACIDADE_E_RETENCAO](docs/PRIVACIDADE_E_RETENCAO.md).

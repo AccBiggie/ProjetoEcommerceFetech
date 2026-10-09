@@ -76,8 +76,9 @@ test('PRV-21 produto público preservado', async () => publicReply(await h.reque
 test('PRV-22 cookie em catálogo não torna resposta privada', async () => publicReply(await h.request('GET', '/products', null, cookie, 200)));
 test('PRV-23 erro admin 403 preserva no-store', async () => noStore(await h.request('GET', '/admin/users', null, cookie, 403)));
 test('PRV-24 erro 500 posterior à autenticação mantém no-store sem stack', async () => {
-    const original = h.User.findById; let calls = 0;
-    h.User.findById = function (...args) { if (++calls === 2) throw new Error('Falha controlada'); return original.apply(this, args); };
+    // Authentication now uses a filtered findOne; findById belongs to /me only.
+    const original = h.User.findById;
+    h.User.findById = function () { throw new Error('Falha controlada'); };
     try { const reply = await h.request('GET', '/me', null, cookie, 500); noStore(reply); assert.ok(!('stack' in reply.result)); }
     finally { h.User.findById = original; }
 });

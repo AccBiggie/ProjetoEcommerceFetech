@@ -147,3 +147,12 @@ Contrato: [HIERARQUIA_CATEGORIAS.md](HIERARQUIA_CATEGORIAS.md).
 # Atualização FET-MEDIA-001
 
 Eventos user.avatar.updated/upload_failed e media.cleanup.pending/completed/blocked registram IDs técnicos e failureCode allowlisted. Bytes, filename, URLs/publicId e resposta bruta do provider não são logados. audit:media permite identificar intents stale e cleanup pendente/bloqueado sem provider nem mutação. Monitorar backlog e retries; apply requer operador com confirmação da database. [Operação](AVATAR_E_MIDIA.md).
+# Privacidade F030
+
+Novo action USER_ANONYMIZED: target USER e metadata allowlisted somente
+privacyRequestId; append participa da transação de anonimização. Solicitação/
+cancelamento mantêm trilha PrivacyRequest, preservando auditoria exclusiva de
+admin. Não registrar confirmação forte, alias, nome/email/endereço antigo,
+hash de senha/reset ou resposta bruta do provider. Request ID correlaciona
+API e evento. audit:privacy emite apenas contagens/códigos/IDs pseudônimos.
+[Contrato](PRIVACIDADE_E_RETENCAO.md).
