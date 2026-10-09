@@ -159,3 +159,4 @@ Detalhes: [Histórico de pedidos](docs/HISTORICO_PEDIDOS.md) e [Relatório FET-O
 
 
 Envio exige pagamento confirmado (FET-ORDER-004): novos pedidos nascem PENDING e permanecem bloqueados até F001. Não há endpoint/botão para marcar pago. Veja [Estados do pedido e pagamento](docs/ESTADOS_PEDIDO_PAGAMENTO.md).
+Persistência do frontend e recuperação de storage: [contratos, migrações e Error Boundary](docs/PERSISTENCIA_FRONTEND.md).

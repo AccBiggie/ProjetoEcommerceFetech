@@ -22,7 +22,7 @@ test('estoque: carrinho desatualizado recebe 409, preserva itens e encerra somen
     await page.getByRole('button',{name:'Criar pedido',exact:true}).click();const response=await rejected;
     expect((await response.json()).code).toBe('ORDER_INSUFFICIENT_STOCK');const oldKey=response.request().headers()['idempotency-key'];
     await expect(page.getByRole('alert').filter({hasText:'Estoque insuficiente'})).toContainText('Estoque insuficiente para um ou mais produtos.');
-    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('cartItems')))).toHaveLength(1);
+    expect(await page.evaluate(()=>JSON.parse(localStorage.getItem('cartItems')).data)).toHaveLength(1);
     expect(await page.evaluate(()=>sessionStorage.getItem('fetech.orderAttempt.v1'))).toBeNull();
     expect((await mutation(admin,'put','/api/v1/product/'+product._id,{data:{Stock:1}})).status()).toBe(200);
     const retried=page.waitForResponse(r=>r.url().endsWith('/api/v1/order/new')&&r.status()===201);

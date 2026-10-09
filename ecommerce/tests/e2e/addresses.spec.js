@@ -156,7 +156,7 @@ for (const width of [360, 768, 1440]) {
     await page.reload();
     await expect(work.getByText("Favorito", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("shippingInfo")))).toEqual(shipping);
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem("shippingInfo")).data)).toEqual(shipping);
     await home.getByRole("button", { name: "Excluir", exact: true }).click();
     const confirmation = page.getByRole("dialog", { name: "Excluir endereço?" });
     await confirmation.getByRole("button", { name: "Cancelar" }).click();

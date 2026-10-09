@@ -2,14 +2,14 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { CssBaseline, ThemeProvider, useMediaQuery } from "@mui/material";
 import { Toaster } from "react-hot-toast";
 import createAppTheme from "../theme";
+import { readStoredValue, writeStoredValue } from '../storage/safeStorage.mjs';
+import { storageRegistry } from '../storage/storageRegistry.mjs';
 
 const ColorModeContext = createContext(null);
-const storageKey = "fetech-color-mode";
-const validMode = value => value === "light" || value === "dark" ? value : null;
+const themeSpec = storageRegistry.theme;
 
 function savedMode() {
-  try { return validMode(localStorage.getItem(storageKey)); }
-  catch { return null; }
+  return readStoredValue(themeSpec).value;
 }
 
 export function ColorModeProvider({ children }) {
@@ -20,13 +20,12 @@ export function ColorModeProvider({ children }) {
   const toggleMode = () => {
     const next = mode === "light" ? "dark" : "light";
     setPreference(next);
-    try { localStorage.setItem(storageKey, next); }
-    catch { /* O tema continua funcionando quando o armazenamento está bloqueado. */ }
+    writeStoredValue(themeSpec, next);
   };
 
   useEffect(() => {
     const syncPreference = event => {
-      if (event.key === storageKey || event.key === null) setPreference(validMode(event.newValue));
+      if (event.key === themeSpec.key || event.key === null) setPreference(savedMode());
     };
     window.addEventListener("storage", syncPreference);
     return () => window.removeEventListener("storage", syncPreference);

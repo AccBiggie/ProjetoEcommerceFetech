@@ -43,6 +43,10 @@ const mediaFake = require('../helpers/fakeMediaProvider').createFakeMediaProvide
     server.use((req, res, next) => req.path.startsWith('/api/') ? app(req, res, next) : next());
     // Somente host estático de teste: não representa deployment produtivo.
     server.use(require('../../backend/config/securityHeaders').frontendSecurityHeaders());
+    // Harness exists only on this isolated test host, never in production routes/build.
+    const boundaryHarness = await import('../helpers/buildStorageHarness.mjs');
+    await boundaryHarness.buildStorageHarness();
+    server.use('/__test/boundary', express.static(boundaryHarness.output));
     server.use(express.static(path.join(__dirname, '../../frontend/build')));
     server.get('/{*path}', (req, res) => res.sendFile(path.join(__dirname, '../../frontend/build/index.html')));
     listener = server.listen(3300, '127.0.0.1', () => console.log('Servidor E2E pronto em 3300; banco temporário isolado.'));

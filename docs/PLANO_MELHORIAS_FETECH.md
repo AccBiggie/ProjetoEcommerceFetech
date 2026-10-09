@@ -1200,3 +1200,10 @@ Documentação: [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md) e [
 F018 **CORRIGIDO NO CÓDIGO**. F019 **CORRIGIDO NO CÓDIGO PARA NOVAS SUBSTITUIÇÕES**. Upload multipart validado, ledger durável, CAS e cleanup reconciliável substituem avatar string/upload sem compensação. Assets históricos fora do namespace não são removidos automaticamente. [Relatório](RELATORIO_FET_MEDIA_001.md).
 
 F002–F017, F020, F021, F025 e F036 continuam corrigidos. F024 continua parcial; F029 continua aberto sem validação Cloudinary real; F030 permanece aberto. F001/pagamento e F027/frete não iniciados. Auditoria histórica preservada. Próxima recomendação: F031, tolerância a corrupção/migração de localStorage e Error Boundary; não iniciar automaticamente.
+## F031 — Corrupção de storage derruba frontend
+
+Status: **CORRIGIDO NO CÓDIGO**, FET-FRONT-001 (09/10/2026).
+
+Inventário central de localStorage/sessionStorage, parsing seguro e validação estrutural pós-JSON; versões/migrações explícitas, defaults por key e ausência de clear genérico. F005 commercial recovery não é apagada genericamente: attempt deve ser persistida antes do POST; sessionStorage indisponível bloqueia compra. Corrupção exige revisão/confirmar, sem auto-submit ou nova key automática. Reducers puros; Error Boundary global e bootstrap defensivo mostram fallback sem stack, com reload e reset apenas de tema. E2E cobre corrupção anterior ao bootstrap.
+
+Limites: boundary não captura automaticamente handlers/async; estado local não substitui backend; sem monitoramento externo. [Documentação](PERSISTENCIA_FRONTEND.md) e [relatório](RELATORIO_FET_FRONT_001.md). F002–F018, F020/F021/F025/F036 continuam corrigidos; F019 corrigido para novas substituições. F024 parcial; F029/F030/F037 abertos; F001/F027 adiados. F033/F034 não tratados. Próxima recomendação F037, não iniciada automaticamente. Auditoria histórica intacta.

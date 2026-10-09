@@ -149,3 +149,6 @@ CEP/telefone strings e quantity Number inteiro, além da chave obrigatória de
 idempotência. F005 corrigido na FET-ORDER-001. Estoque insuficiente agora
 retorna 409, sem pedido parcial. [Reserva transacional](ESTOQUE_TRANSACIONAL.md).
 Próxima recomendação: F011; não iniciada automaticamente.
+## F031 — rascunho local seguro
+
+shippingInfo e carrinho são lidos pela camada segura/versionada; draft preserva CEP/phone/number como strings. Regras normalizeShippingAddress/F012 e money/F014 continuam obrigatórias antes do checkout. Falha de persistência local não quebra o formulário; tentativa F005 deve ser preservada com sucesso antes de enviar Order, ou o envio fica bloqueado. [Persistência frontend](PERSISTENCIA_FRONTEND.md).

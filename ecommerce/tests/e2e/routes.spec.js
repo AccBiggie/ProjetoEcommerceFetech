@@ -640,7 +640,7 @@ test("modo escuro: controle por teclado, persistência, sincronização e telas 
   await expect(root).toHaveAttribute("data-color-mode", "dark");
   await expect(page.locator("body")).toHaveCSS("background-color", "rgb(16, 23, 34)");
   for (const logo of await page.locator(".fetech-logo").all()) await expect(logo).toHaveCSS("filter", "invert(1)");
-  expect(await page.evaluate(() => localStorage.getItem("fetech-color-mode"))).toBe("dark");
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("fetech-color-mode")).data)).toBe("dark");
   await page.reload();
   await expect(page.getByRole("button", { name: "Ativar modo claro" })).toBeVisible();
   for (const width of [360, 768, 1440]) {

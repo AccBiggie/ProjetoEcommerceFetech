@@ -22,6 +22,9 @@ import { getErrorMessage } from "../../utils/api";
 import { money } from "../../utils/format";
 import SavedAddressPicker from "./SavedAddressPicker";
 import { getOrderAttempt, clearOrderAttempt } from '../../utils/orderAttempt.mjs';
+import { removeStoredValue, readStoredValue, acknowledgeCommercialRecovery } from '../../storage/safeStorage.mjs';
+import { storageRegistry } from '../../storage/storageRegistry.mjs';
+import { Link } from 'react-router';
 
 export default function Shipping() {
   const { cartItems, shippingInfo } = useSelector((state) => state.cart);
@@ -32,6 +35,10 @@ export default function Shipping() {
   const [pending, setPending] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [error, setError] = useState("");
+  const [reviewRequired, setReviewRequired] = useState(() => {
+    const stored = readStoredValue(storageRegistry.attempt);
+    return !stored.ok || stored.value?.recoveryRequired === true;
+  });
   const dispatch = useDispatch();
   const completedOrder = useRef(null);
   const submitting = useRef(false);
@@ -62,9 +69,10 @@ export default function Shipping() {
       if (!data.success || !/^[0-9a-f]{24}$/.test(data.order?._id || '')) throw new Error('Não foi possível confirmar o pedido. Repita a mesma solicitação.');
       completedOrder.current = data.order._id;
       dispatch({ type: CLEAR_CART });
-      localStorage.removeItem("cartItems");
+      removeStoredValue(storageRegistry.cart);
       clearOrderAttempt(attempt.key);
     } catch (error) {
+      if (error.commercialRecovery) setReviewRequired(true);
       if (error.response?.data?.code === 'ORDER_INSUFFICIENT_STOCK' && attempt) clearOrderAttempt(attempt.key);
       setError(getErrorMessage(error));
     } finally {
@@ -106,6 +114,13 @@ export default function Shipping() {
               {error}
             </Alert>
           )}
+          {reviewRequired && <Alert severity="warning" sx={{ mb: 3 }}>
+            A tentativa local não pôde ser recuperada. Isso não significa que o pedido anterior não foi criado. Confira seus pedidos antes de tentar novamente.
+            <Box><Button component={Link} to="/orders">Conferir meus pedidos</Button>
+              <Button onClick={() => {
+                if (window.confirm('Você conferiu seus pedidos? Iniciar outra tentativa pode criar um novo pedido se o anterior já existir.') && acknowledgeCommercialRecovery()) { setReviewRequired(false); setError(''); }
+              }}>Já conferi meus pedidos; iniciar outra tentativa</Button></Box>
+          </Alert>}
           <SavedAddressPicker selectedId={selectedAddressId} onSelect={selectAddress} disabled={pending} />
           <Box
             sx={{
@@ -153,7 +168,7 @@ export default function Shipping() {
           <Button
             variant="contained"
             type="submit"
-            disabled={pending}
+            disabled={pending || reviewRequired}
             sx={{ mt: 3 }}
           >
             {pending ? "Criando pedido..." : "Criar pedido"}

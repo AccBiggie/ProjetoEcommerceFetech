@@ -164,3 +164,6 @@ ausente. Próxima recomendação atual: F002, sem início automático.
 
 
 FET-ORDER-004: replay após transição confirmada retorna o mesmo Order com status/pagamento atuais, sem nova reserva nem escrita na claim. Transição comercial usa CAS e não altera idempotência. Novos pedidos PENDING não podem avançar para envio até F001. [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md).
+## F031 — storage comercial indisponível ou corrompido
+
+Tentativa session-scoped continua na key fetech.orderAttempt.v1 e preserva formato key/fingerprint, sem PII. Registry classifica como COMMERCIAL_RECOVERY/PRESERVE_COMMERCIAL. Recovery genérica nunca remove uma tentativa válida. Persistência precisa ter sucesso antes do POST, inclusive retry da mesma key; browser indisponível falha fechado. Corrupção gera bloqueio/marcador técnico na própria key, sem auto-submit/rotação. Usuário deve conferir pedidos e confirmar explicitamente antes de remover somente entrada inválida e habilitar outra tentativa. Sucesso/erro terminal conservam limpeza específica da key correspondente, sem clear genérico. [Contrato completo](PERSISTENCIA_FRONTEND.md).

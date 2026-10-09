@@ -1,4 +1,5 @@
-import { loadCartItems } from './utils/money';
+import { readStoredValue } from './storage/safeStorage.mjs';
+import { storageRegistry } from './storage/storageRegistry.mjs';
 import { legacy_createStore as createStore, combineReducers, applyMiddleware } from "redux";
 import { thunk } from "redux-thunk";
 import { composeWithDevTools } from "@redux-devtools/extension";
@@ -16,8 +17,8 @@ const reducer = combineReducers({
 });
 let initialState = {
     cart: {
-        cartItems: loadCartItems(localStorage),
-        shippingInfo: JSON.parse(localStorage.getItem("shippingInfo") || "{}"),
+        cartItems: readStoredValue(storageRegistry.cart).value,
+        shippingInfo: readStoredValue(storageRegistry.shipping).value,
     },
 };
 const midleWare = [thunk];
