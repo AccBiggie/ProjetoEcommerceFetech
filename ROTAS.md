@@ -72,6 +72,19 @@ O CRUD de categorias tem rotas próprias: `GET /categories` e
 em `parent_id` lista filhos diretos. A API rejeita ciclos, pais inexistentes
 e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 
+F017: create/update/delete de Category e Product create/atribuição por ID ou nome
+são coordenados pelo mesmo revision singleton dentro de Mongo transaction,
+com AuditEvent atômico e revalidação após retry. `parent_id` null/ausente é root;
+tipo/formato inválido retorna 400 `CATEGORY_INVALID_ID`; parent inexistente 409
+`CATEGORY_PARENT_NOT_FOUND`; self/ciclo direto ou indireto 409
+`CATEGORY_HIERARCHY_CYCLE`; cadeia histórica inválida 409
+`CATEGORY_HIERARCHY_DATA_INCONSISTENT`; delete com children 409
+`CATEGORY_HAS_CHILDREN`; em uso por Product (ID/nome) 409 `CATEGORY_IN_USE`.
+Sem cascade/reparent automático. Product com category_id inválido ou referência
+inexistente mantém 400; update sem categoria não toca singleton. State interno
+sem endpoint/revision de cliente. `audit:categories` é somente leitura.
+Detalhes: [Hierarquia](docs/HIERARQUIA_CATEGORIAS.md).
+
 | Metodo | Rota | Acesso |
 | --- | --- | --- |
 | GET | `/products`, `/product/:id`, `/reviews?id=:productId` | Publico |

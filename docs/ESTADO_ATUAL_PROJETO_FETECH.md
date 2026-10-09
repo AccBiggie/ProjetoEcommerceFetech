@@ -1,5 +1,20 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F017 — Hierarquia concorrente — FET-DATA-005
+
+**CORRIGIDO NO CÓDIGO.** Hierarchy mutations são serializadas via Mongo
+transaction/revision state comum entre processos, antes de validar ancestors.
+Category create/update/delete, Product create/atribuição de categoria, migração
+aditiva existente e seed participam. Sem write skew, cycles, parents inexistentes
+ou órfãos novos nos fluxos coordenados. Delete com children/Product retorna 409.
+Audit F025 atômico; `audit:categories` somente leitura; históricos legíveis,
+sem repair automático. Product update sem categoria/catalog/Order não são
+serializados. [Contrato](HIERARQUIA_CATEGORIAS.md) e
+[relatório](RELATORIO_FET_DATA_005.md). F015 commitada, esta tarefa sem commit.
+F024 PARCIAL; F037 aberto; F001/F027 adiados. Banco real/config.env/auditoria
+histórica preservados. Próxima recomendação F018+F019, sem início automático.
+Este status prevalece sobre recomendações históricas abaixo.
+
 ## F015 — Reviews concorrentes — FET-DATA-004
 
 **CORRIGIDO NO CÓDIGO.** Create/update/delete são atômicos no Product;

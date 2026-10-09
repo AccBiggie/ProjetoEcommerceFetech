@@ -1,5 +1,6 @@
 const Product = require("../models/productModel");
 const { runAuditedAdminMutation } = require('../services/adminAuditService');
+const { runHierarchyAdminMutation, validateBody } = require('../services/categoryHierarchyService');
 const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ApiFeatures = require("../utils/apiFeatures");
@@ -14,7 +15,8 @@ const productInput = body => {
     return result;
 };
 exports.createProduct = catchAsyncErrors(async (req, res) => {
-    const product = await runAuditedAdminMutation(req, async session => {
+    validateBody(req.body);
+    const product = await runHierarchyAdminMutation(req, async session => {
         const [value] = await Product.create([{ ...productInput(req.body), ...await resolveProductCategory(req.body, session), user: req.user._id }], { session });
         return { value, event: { action: 'PRODUCT_CREATED', targetId: value._id } };
     });
@@ -50,7 +52,9 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, product });
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
-    const product = await runAuditedAdminMutation(req, async session => {
+    validateBody(req.body);
+    const runMutation = req.body.category_id !== undefined || req.body.category !== undefined ? runHierarchyAdminMutation : runAuditedAdminMutation;
+    const product = await runMutation(req, async session => {
         const existing = await Product.findById(req.params.id).session(session);
         if (!existing) throw new ErrorHander('Produto não encontrado.', 404);
         const value = await Product.findByIdAndUpdate(req.params.id, { $set: { ...productMoney({ ...existing.toObject(), ...productInput(req.body) }), ...productInput(req.body), ...await resolveProductCategory(req.body, session) }, $unset: Object.fromEntries(moneyFields.map(field => [field, 1])) }, { returnDocument: 'after', runValidators: true, session });

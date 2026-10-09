@@ -239,7 +239,7 @@ test('categorias: CRUD separado, permissões, parent_id, ciclos e produtos vincu
     await request('POST', '/admin/category', { name: 'Negada' }, 'user', 403);
     for (const name of ['', '   ', 42, 'x'.repeat(81)]) await request('POST', '/admin/category', { name }, 'admin', 400);
     await request('POST', '/admin/category', { name: 'Pai inválido', parent_id: 'invalid' }, 'admin', 400);
-    await request('POST', '/admin/category', { name: 'Pai ausente', parent_id: missing }, 'admin', 400);
+    await request('POST', '/admin/category', { name: 'Pai ausente', parent_id: missing }, 'admin', 409);
     const parent = (await request('POST', '/admin/category', { name: '  Componentes   novos  ' }, 'admin', 201)).result.category;
     assert.equal(parent.name, 'Componentes novos'); assert.equal(parent.parent_id, null);
     assert.equal(parent.name_key, undefined);
@@ -258,8 +258,8 @@ test('categorias: CRUD separado, permissões, parent_id, ciclos e produtos vincu
         await request(method, '/admin/category/' + parent._id, { name: 'Negada' }, 'user', 403);
         await request(method, '/admin/category/' + missing, { name: 'Ausente' }, 'admin', 404);
     }
-    await request('PUT', '/admin/category/' + parent._id, { parent_id: parent._id }, 'admin', 400);
-    await request('PUT', '/admin/category/' + parent._id, { parent_id: leaf._id }, 'admin', 400);
+    await request('PUT', '/admin/category/' + parent._id, { parent_id: parent._id }, 'admin', 409);
+    await request('PUT', '/admin/category/' + parent._id, { parent_id: leaf._id }, 'admin', 409);
     await request('PUT', '/admin/category/' + child._id, { name: 'Hardware' }, 'admin', 400);
     await request('DELETE', '/admin/category/' + parent._id, null, 'admin', 409);
     await request('POST', '/product/new', productData({ category_id: missing }), 'admin', 400);

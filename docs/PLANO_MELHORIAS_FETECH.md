@@ -1,5 +1,24 @@
 # Plano de melhorias Fetech
 
+## F017 — Concorrência na hierarquia de categorias — FET-DATA-005
+
+**Status: CORRIGIDO NO CÓDIGO.** Parent existente; self e ciclos diretos/indiretos
+proibidos. Toda mutação Category e Product create/atribuição de categoria por
+ID ou nome escreve o singleton revision comum dentro de Mongo transaction,
+antes da validação. Retries revalidam o estado; coordenação entre processos
+elimina write skew. Category com children ou Product por ID/nome não é removida;
+delete concorrente com child/reparent/Product assignment não cria órfãos.
+AuditEvent F025 participa atomicamente. Migração aditiva existente e seed
+também coordenados. `audit:categories` detecta inconsistências somente em leitura.
+
+Históricos não são reparados; repair comercial exige revisão humana e F024.
+F024 continua PARCIAL, F037 aberto e F001/F027 adiados e não iniciados.
+Banco real/config.env/auditoria histórica preservados. F015 já commitada;
+esta task sem commit. [Contrato](HIERARQUIA_CATEGORIAS.md),
+[relatório e validações](RELATORIO_FET_DATA_005.md).
+Próxima recomendação **F018 + F019 — upload/avatar**, sem início automático.
+Este status prevalece sobre recomendações históricas abaixo.
+
 ## F015 — Agregação concorrente de reviews
 
 **Status: CORRIGIDO NO CÓDIGO — FET-DATA-004.**

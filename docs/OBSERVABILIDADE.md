@@ -116,3 +116,15 @@ Product. Erro 409 `PRODUCT_REVIEW_DATA_INCONSISTENT`. Logs nunca incluem textos
 das reviews. Admin delete conserva `PRODUCT_REVIEW_DELETED` em transação com
 Product; metadata somente reviewId. Cliente comum permanece fora do audit
 administrativo. [Contrato](REVIEWS_CONCORRENCIA.md).
+
+## F017 — correlação e atomicidade da hierarquia
+
+CATEGORY_CREATED/UPDATED/DELETED e PRODUCT_CREATED/UPDATED preservam o contrato
+F025, Request ID e metadata permitida; parent_id/category_id em changedFields.
+Singleton revision, mutação e AuditEvent commitam juntos. Retry abortado não
+persiste revision/evento; falha no audit reverte o domínio. Nenhum nome/descritivo
+de Category/Product foi acrescentado aos logs. Erros CATEGORY_INVALID_ID,
+CATEGORY_PARENT_NOT_FOUND, CATEGORY_HIERARCHY_CYCLE,
+CATEGORY_HIERARCHY_DATA_INCONSISTENT, CATEGORY_HAS_CHILDREN e CATEGORY_IN_USE
+são códigos estáveis nos logs/responses. Nenhum audit para leitura da árvore.
+Contrato: [HIERARQUIA_CATEGORIAS.md](HIERARQUIA_CATEGORIAS.md).

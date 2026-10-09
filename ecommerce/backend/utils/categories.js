@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Category = require("../models/categoryModel");
 const Product = require("../models/productModel");
 const ErrorHander = require("./errorHander");
@@ -12,9 +11,10 @@ const categoryName = value => {
 const categoryKey = name => categoryName(name).toLocaleLowerCase("pt-BR");
 
 async function resolveProductCategory(body, session) {
+    const { isId } = require('../services/categoryHierarchyService');
     let category;
     if (body.category_id !== undefined) {
-        if (!mongoose.isObjectIdOrHexString(body.category_id)) throw new ErrorHander("Identificador de categoria inválido.", 400);
+        if (!isId(body.category_id)) throw new ErrorHander("Identificador de categoria inválido.", 400);
         category = await Category.findById(body.category_id).session(session || null);
     } else if (body.category !== undefined) {
         category = await Category.findOne({ name_key: categoryKey(body.category) }).session(session || null);
@@ -33,9 +33,11 @@ async function migrateLegacyCategories() {
     const names = await Product.distinct("category", legacy);
     for (const value of names) {
         const name = categoryName(value);
-        const category = await Category.findOneAndUpdate({ name_key: categoryKey(name) },
-            { $setOnInsert: { name, parent_id: null } }, { upsert: true, returnDocument: "after", runValidators: true });
-        await Product.updateMany({ ...legacy, category: value }, { $set: { category_id: category._id, category: category.name } });
+        await require('../services/categoryHierarchyService').runHierarchyMutation(async session => {
+            const category = await Category.findOneAndUpdate({ name_key: categoryKey(name) },
+                { $setOnInsert: { name, parent_id: null } }, { upsert: true, returnDocument: "after", runValidators: true, session });
+            await Product.updateMany({ ...legacy, category: value }, { $set: { category_id: category._id, category: category.name } }, { session });
+        });
     }
 }
 

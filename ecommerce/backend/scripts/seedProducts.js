@@ -48,12 +48,10 @@ async function seed() {
         const countDown = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         let created = 0;
         for (const [category, name, price, oldPrice, image, description] of examples) {
-            const categoryRecord = await Category.findOneAndUpdate({ name_key: categoryKey(category) }, { $setOnInsert: { name: category, parent_id: null } }, { upsert: true, returnDocument: "after" });
-            if (await Product.exists({ name, category })) {
-                console.log(`Já cadastrado: ${category}`);
-                continue;
-            }
-            await Product.create({
+            const inserted = await require('../services/categoryHierarchyService').runHierarchyMutation(async session => {
+                const categoryRecord = await Category.findOneAndUpdate({ name_key: categoryKey(category) }, { $setOnInsert: { name: category, parent_id: null } }, { upsert: true, returnDocument: "after", session });
+                if (await Product.exists({ name, category }).session(session)) return false;
+                await Product.create([{
                 name, category, category_id: categoryRecord._id, description, countDown,
                 priceCents: parseMoneyToCents(price),
                 oldPriceCents: parseMoneyToCents(oldPrice),
@@ -66,7 +64,10 @@ async function seed() {
                     banner: `/demo-products/${image}`,
                 }],
                 user: admin._id,
+                }], { session });
+                return true;
             });
+            if (!inserted) { console.log(`Já cadastrado: ${category}`); continue; }
             created++;
             console.log(`Criado: ${category} — ${name}`);
         }

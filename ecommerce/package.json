@@ -18,7 +18,8 @@
     "backup:db": "node backend/scripts/backupDatabase.js",
     "restore:db": "node backend/scripts/restoreDatabase.js",
     "verify:backup": "node backend/scripts/verifyBackup.js",
-    "audit:reviews": "node backend/scripts/auditReviews.js"
+    "audit:reviews": "node backend/scripts/auditReviews.js",
+    "audit:categories": "node backend/scripts/auditCategories.js"
   },
   "author": "",
   "license": "ISC",
