@@ -1,4 +1,4 @@
-const { parseMoneyToCents, splitInstallments } = require('../utils/money');
+const mutations = require('../services/productMutationService');
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
@@ -45,26 +45,23 @@ async function seed() {
         const admin = await User.findOne({ role: "admin" }).sort({ _id: 1 });
         if (!admin) throw new Error("Crie primeiro o administrador usando admin:bootstrap.");
         await migrateLegacyCategories();
+        await mutations.prepareStockLedger();
         const countDown = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
         let created = 0;
         for (const [category, name, price, oldPrice, image, description] of examples) {
             const inserted = await require('../services/categoryHierarchyService').runHierarchyMutation(async session => {
                 const categoryRecord = await Category.findOneAndUpdate({ name_key: categoryKey(category) }, { $setOnInsert: { name: category, parent_id: null } }, { upsert: true, returnDocument: "after", session });
                 if (await Product.exists({ name, category }).session(session)) return false;
-                await Product.create([{
+                await mutations.create({
                 name, category, category_id: categoryRecord._id, description, countDown,
-                priceCents: parseMoneyToCents(price),
-                oldPriceCents: parseMoneyToCents(oldPrice),
-                installmmentPriceCents: splitInstallments(parseMoneyToCents(price), 12)[0],
-                off: Math.round((1 - price / oldPrice) * 100),
+                price, oldPrice,
                 Stock: 10,
                 images: [{
                     public_id: `local-demo-${image}`,
                     url: `/demo-products/${image}`,
                     banner: `/demo-products/${image}`,
                 }],
-                user: admin._id,
-                }], { session });
+                }, admin._id, session);
                 return true;
             });
             if (!inserted) { console.log(`Já cadastrado: ${category}`); continue; }

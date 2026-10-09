@@ -59,13 +59,13 @@ test('HIER Product create sem Category e ID inexistente não persistem', async (
     await t.request('POST', '/product/new', { ...require('./fixtures').productData(), category: undefined }, 400);
     assert.equal(await Product.countDocuments(), n);
 });
-test('HIER Product create/update por ID e nome coordena, update sem categoria não incrementa', async () => {
+test('HIER Product create/update revalida categoria e coordena inclusive update parcial', async () => {
     const a = await t.root(), b = await t.root(); let rev = await t.revision();
     const r = await t.createProduct(a._id, 201), id = r.result.product._id; assert.equal(await t.revision(), ++rev);
     const changed = await t.request('PUT', '/product/' + id, { category_id: b._id }, 200); assert.equal(await t.revision(), ++rev);
     assert.ok((await t.event(changed)).metadata.changedFields.includes('category_id'));
     await t.request('PUT', '/product/' + id, { category: a.name }, 200); assert.equal(await t.revision(), ++rev);
-    await t.request('PUT', '/product/' + id, { description: 'Safe update' }, 200); assert.equal(await t.revision(), rev);
+    await t.request('PUT', '/product/' + id, { description: 'Safe update' }, 200); assert.equal(await t.revision(), ++rev);
     await t.request('PUT', '/product/' + id, { category_id: missing }, 400); assert.equal(await t.revision(), rev);
     assert.equal(String((await Product.findById(id)).category_id), a._id);
 });

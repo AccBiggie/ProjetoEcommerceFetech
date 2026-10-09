@@ -13,8 +13,11 @@ function orderMoney(record) {
     return { orderItems, ...totals };
 }
 function presentProduct(record) {
-    const cents = productMoney(record);
-    return { ...record, ...cents, ...Object.fromEntries(productFields.map(f => [f, money.formatCentsToDecimal(cents[f+'Cents'])])), moneyLegacy: productFields.some(f => record[f+'Cents'] == null) };
+    // Nullable reference price belongs to the new catalogue contract. Keep the
+    // historical migration's productMoney conversion unchanged.
+    const cents = record.oldPriceCents === null
+        ? { ...productMoney({ ...record, oldPriceCents: 0 }), oldPriceCents: null } : productMoney(record);
+    return { ...record, ...cents, ...Object.fromEntries(productFields.map(f => [f, cents[f+'Cents'] === null ? null : money.formatCentsToDecimal(cents[f+'Cents'])])), moneyLegacy: productFields.some(f => record[f+'Cents'] === undefined) };
 }
 function presentOrder(record) {
     record = require('./orderPayment').presentPayment(record);

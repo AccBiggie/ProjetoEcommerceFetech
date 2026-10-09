@@ -1,5 +1,17 @@
 # Hierarquia de categorias — FET-DATA-005 / F017
 
+## Extensão F037 — coerência integral de Product
+
+Create/update/delete de Product agora coordenam a revisão F017. Updates parciais
+também revalidam a categoria atual, em vez de aceitar uma cópia desnormalizada
+divergente. ID e nome enviados simultaneamente precisam resolver a mesma Category
+ou retornam 400 PRODUCT_CATEGORY_MISMATCH. Rename já sincronizava Products na
+transação existente; essa proteção foi preservada e validada contra create,
+update de categoria e update de nome concorrentes, incluindo falha de sync.
+Essa extensão prevalece sobre a descrição histórica abaixo de updates sem
+categoria/delete. Leituras, reviews e reservas continuam sem adquirir o state.
+[Contrato](COERENCIA_PRODUTOS.md).
+
 Category representa uma floresta. `parent_id` é ObjectId opcional referenciando
 Category, com default `null`. Campo ausente também é root legado válido.
 Não existem slug/path/materialized ancestors. Nomes normalizados usam `name_key`

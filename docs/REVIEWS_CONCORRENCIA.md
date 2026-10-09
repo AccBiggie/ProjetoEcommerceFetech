@@ -1,5 +1,16 @@
 # Avaliações e concorrência — FET-DATA-004 / F015
 
+## Extensão F037 — mutações genéricas de Product
+
+Create/update administrativos rejeitam reviews, ratings e numOfReviews com
+400 PRODUCT_FIELD_NOT_MUTABLE. Anteriormente a allowlist já ignorava esses campos;
+o erro explícito endurece o contrato. Só o serviço F015 altera o array/agregados.
+Updates de catálogo escrevem campos permitidos com $set, sem save stale dos
+arrays; preço concorrente com 20 reviews preserva as duas mudanças. Históricos
+inconsistentes impedem update genérico com 409, sem reparar reviews.
+audit:products reutiliza assessReviews, sem uma segunda fórmula de rating.
+[Contrato](COERENCIA_PRODUTOS.md).
+
 `Product.reviews` é a fonte de verdade. `numOfReviews` é o tamanho do array final;
 `ratings` é a soma das notas dividida pelo tamanho, sem arredondamento. Array vazio
 produz contagem e média zero. A comparação de integridade aceita diferença de

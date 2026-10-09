@@ -22,6 +22,9 @@ async function resolveProductCategory(body, session) {
         return {};
     }
     if (!category) throw new ErrorHander("Selecione uma categoria cadastrada.", 400);
+    if (body.category_id !== undefined && body.category !== undefined && categoryKey(body.category) !== category.name_key) {
+        require('./productDomain').fail('PRODUCT_CATEGORY_MISMATCH');
+    }
     return { category_id: category._id, category: category.name };
 }
 

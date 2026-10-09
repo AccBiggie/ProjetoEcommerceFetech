@@ -100,9 +100,9 @@ real('BACKUP mongodump/mongorestore reais, archive completo, manifesto e source 
 });
 real('BACKUP collections, contagens, índices e dados BSON restaurados iguais', async () => {
     assert.equal(canonical(await snapshotDatabase(connection.getClient().db(target))), canonical(sourceSnapshot));
-    for (const [collection, index] of [['orders','one_order_per_key'],['orderidempotencies','one_order_intent'],['stockmovements','one_order_product_movement'],['addresses','one_favorite_per_user'],['users','email_1'],['categories','name_key_1']]) {
+    for (const [collection, index] of [['orders','one_order_per_key'],['orderidempotencies','one_order_intent'],['stockmovements','one_order_product_reserve'],['addresses','one_favorite_per_user'],['users','email_1'],['categories','name_key_1']]) {
         const row = (await connection.getClient().db(target).collection(collection).listIndexes().toArray()).find(row => row.name === index); assert.equal(row.unique,true);
-        if (['orders','addresses'].includes(collection)) assert.ok(row.partialFilterExpression);
+        if (['orders','addresses','stockmovements'].includes(collection)) assert.ok(row.partialFilterExpression);
     }
 });
 real('BACKUP cents, shipping strings, payment, archive, tokenVersion e hashes preservados', async () => {
@@ -117,7 +117,7 @@ real('BACKUP cents, shipping strings, payment, archive, tokenVersion e hashes pr
 real('BACKUP claims e movements mantêm relações e reserva transacional', async () => {
     const restored = connection.getClient().db(target);
     for (const claim of await restored.collection('orderidempotencies').find({status:'COMPLETED'}).toArray()) assert.ok(await restored.collection('orders').findOne({_id:claim.order}));
-    for (const movement of await restored.collection('stockmovements').find({}).toArray()) { assert.ok(await restored.collection('orders').findOne({_id:movement.order})); assert.ok(await restored.collection('products').findOne({_id:movement.product})); }
+    for (const movement of await restored.collection('stockmovements').find({}).toArray()) { if(movement.type==='RESERVE')assert.ok(await restored.collection('orders').findOne({_id:movement.order})); assert.ok(await restored.collection('products').findOne({_id:movement.product})); }
     assert.equal(Object.keys(backup.manifest.invariants).length,0);
 });
 real('BACKUP leitura funcional de Order/Product/User no alvo sem criar índices', async () => {

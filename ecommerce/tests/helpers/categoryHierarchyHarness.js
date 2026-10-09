@@ -13,7 +13,7 @@ async function start() {
     const root = async (parent_id = null) => (await request('POST', '/admin/category', { name: 'Hierarchy ' + ++sequence, parent_id }, 201)).result.category;
     const update = (id, body, expected) => request('PUT', '/admin/category/' + id, body, expected);
     const remove = (id, expected) => request('DELETE', '/admin/category/' + id, null, expected);
-    const createProduct = (id, expected) => request('POST', '/product/new', { ...require('../fixtures').productData(), category_id: id }, expected);
+    const createProduct = (id, expected) => request('POST', '/product/new', { ...require('../fixtures').productData(), category: undefined, category_id: id }, expected);
     const revision = async () => (await State.findById('category-hierarchy').lean())?.revision || 0;
     const healthy = async () => {
         const report = await auditCategories(Category.db, { write() {} }); assert.deepEqual(report.issues, []); return report;

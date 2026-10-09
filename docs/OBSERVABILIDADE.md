@@ -1,5 +1,16 @@
 # Observabilidade operacional — FET-OPS-002
 
+## Product — extensão F037
+
+PRODUCT_CREATED/PRODUCT_UPDATED/PRODUCT_DELETED permanecem; PRODUCT_UPDATED
+registra somente changedFields, incluindo derivados recalculados quando mudam.
+Product, StockMovement e evento commitam juntos; falhas e retries não deixam
+commit parcial ou eventos duplicados. Código de erro PRODUCT_* é permitido no
+boundary seguro, com X-Request-Id, sem request body/description/URL no log.
+audit:products usa perfil mínimo, driver bruto e snapshot consistente somente
+leitura, sem SMTP/HTTP/provider; rejeita --apply/--repair e imprime só IDs/códigos.
+[Códigos e implantação](COERENCIA_PRODUTOS.md).
+
 ## Lifecycle de User — extensão FET-DATA-003
 
 Eventos USER_DEACTIVATED/USER_REACTIVATED usam actor/target autenticados, metadata fromStatus/toStatus e transaction compartilhada com User. Nenhuma PII/JWT/reset token é copiada. Header, log e audit mantêm correlação. USER_DELETED permanece somente como ação histórica legível; DELETE HTTP é 405 e não cria evento. User/actor histórico é preservado após desativação. [Lifecycle](LIFECYCLE_USUARIOS.md).

@@ -7,7 +7,7 @@ async function auditInventory(connection, { write = console.log } = {}) {
     const orders = await connection.collection('orders').find({}, { projection: { _id: 1, inventoryStatus: 1, inventoryVersion: 1,
         inventoryReservedAt: 1, 'orderItems.product': 1, 'orderItems.quantity': 1 } }).toArray();
     const movements = await connection.collection('stockmovements').find({}, { projection: { _id: 1, product: 1, order: 1, type: 1,
-        quantity: 1, stockBefore: 1, stockAfter: 1 } }).toArray();
+        quantity: 1, stockBefore: 1, stockAfter: 1, delta: 1, actorUserId: 1, reason: 1 } }).toArray();
     const claims = await connection.collection('orderidempotencies').find({ status: 'COMPLETED' }, { projection: { _id: 1, order: 1 } }).toArray();
     const byOrder = new Map(orders.map(order => [String(order._id), order])), seen = new Set();
     for (const product of products) if (!validStock(product.Stock)) add('INVALID_STOCK', 'product', product._id);
@@ -21,6 +21,11 @@ async function auditInventory(connection, { write = console.log } = {}) {
         }
     }
     for (const movement of movements) {
+        if (movement.type !== 'RESERVE') {
+            if (!require('./stockMovementContract').validMovement(movement)) add('INCOHERENT_MOVEMENT', 'movement', movement._id);
+            if (!products.some(p => String(p._id) === String(movement.product))) add('ORPHAN_MOVEMENT', 'movement', movement._id);
+            continue;
+        }
         const order = byOrder.get(String(movement.order));
         if (!order) add('ORPHAN_MOVEMENT', 'movement', movement._id);
         else if (!(order.orderItems || []).some(item => String(item.product) === String(movement.product))) add('UNEXPECTED_MOVEMENT', 'movement', movement._id);

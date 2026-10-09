@@ -1,0 +1,41 @@
+const { test, expect } = require('@playwright/test');
+const { password } = require('../fixtures');
+const { mutation, installSecurityChecks } = require('./securityChecks');
+installSecurityChecks(test, expect);
+test('catálogo: coerência persiste após reload, alteração e recusa comercial', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByRole('textbox',{name:'E-mail',exact:true}).fill('admin@routes.example.com');
+    await page.locator('.loginForm input[type=password]').fill(password);
+    await page.getByRole('button',{name:'Entrar',exact:true}).click();
+    await expect(page).not.toHaveURL(/\/login/);await page.goto('/dashboard');
+    const name='Catálogo coerente E2E';
+    await page.getByRole('textbox',{name:'Nome',exact:true}).fill(name);
+    await page.getByRole('textbox',{name:'Descrição',exact:true}).fill('Produto temporário do catálogo');
+    await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('75.00');
+    await page.getByRole('spinbutton',{name:'Preço anterior',exact:true}).fill('100.00');
+    await page.getByRole('spinbutton',{name:'Estoque',exact:true}).fill('0');
+    await page.getByRole('combobox',{name:'Categoria',exact:true}).selectOption({label:'Hardware'});
+    const created=page.waitForResponse(r=>r.url().endsWith('/api/v1/product/new')&&r.request().method()==='POST');
+    await page.getByRole('button',{name:'Salvar produto',exact:true}).click();
+    const response=await created;expect(response.status()).toBe(201);
+    const body=response.request().postDataJSON();expect(body).not.toHaveProperty('off');expect(body).not.toHaveProperty('installmmentPrice');expect(body).not.toHaveProperty('priceCents');
+    const p=(await response.json()).product;expect(p.off).toBe(25);expect(p.installmmentPriceCents).toBe(625);expect(p.Stock).toBe(0);
+    try {
+        expect((await mutation(page,'put','/api/v1/review',{data:{productId:p._id,rating:5,comment:'Review preservada E2E'}})).status()).toBe(200);
+        await page.reload();const row=page.getByRole('row').filter({hasText:name});await expect(row).toContainText('75,00');
+        await row.getByRole('button',{name:'Editar',exact:true}).click();
+        await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('50.00');
+        await page.getByRole('spinbutton',{name:'Estoque',exact:true}).fill('7');
+        await page.getByRole('combobox',{name:'Categoria',exact:true}).selectOption({label:'Notebooks'});
+        const updated=page.waitForResponse(r=>r.url().endsWith('/api/v1/product/'+p._id)&&r.request().method()==='PUT');
+        await page.getByRole('button',{name:'Salvar produto',exact:true}).click();
+        expect((await updated).status()).toBe(200);await expect(row).toContainText('50,00');await page.reload();await expect(row).toContainText('Notebooks');
+        let current=(await (await page.request.get('/api/v1/product/'+p._id)).json()).product;
+        expect(current.off).toBe(50);expect(current.installmmentPriceCents).toBe(417);expect(current.Stock).toBe(7);expect(current.numOfReviews).toBe(1);expect(current.ratings).toBe(5);expect(current.reviews[0].comment).toBe('Review preservada E2E');
+        await row.getByRole('button',{name:'Editar',exact:true}).click();await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('110.00');
+        await page.getByRole('button',{name:'Salvar produto',exact:true}).click();await expect(page.getByRole('alert')).toContainText('preço anterior deve ser maior ou igual');
+        current=(await (await page.request.get('/api/v1/product/'+p._id)).json()).product;expect(current.priceCents).toBe(5000);expect(current.Stock).toBe(7);
+        await page.getByRole('button',{name:'Cancelar edição',exact:true}).click();await row.getByRole('button',{name:'Excluir',exact:true}).click();await page.getByRole('button',{name:'Confirmar exclusão',exact:true}).click();
+        await expect(page.getByRole('alert')).toContainText('histórico de estoque ou pedidos');await expect(row).toBeVisible();
+    } finally { await require('../helpers/productE2EFixture').removeE2EProductFixtures([p._id]); }
+});

@@ -22,7 +22,7 @@ async function auditOrders(connection, { write = console.log } = {}) {
         }
     }
     for (const claim of claims) if (!ids.has(String(claim.order))) add('COMPLETED_WITHOUT_ORDER', claim._id);
-    for (const movement of movements) if (!ids.has(String(movement.order))) add('ORPHAN_MOVEMENT', movement._id);
+    for (const movement of movements) if (movement.type === 'RESERVE' && !ids.has(String(movement.order))) add('ORPHAN_MOVEMENT', movement._id);
     const summary = { mode: 'READ_ONLY', orders: orders.length, active: orders.length - archived, archived, issues: issues.length };
     write(JSON.stringify(summary)); issues.forEach(issue => write(JSON.stringify(issue)));
     return { summary, issues };

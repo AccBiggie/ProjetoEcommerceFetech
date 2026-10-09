@@ -5,19 +5,15 @@ const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ApiFeatures = require("../utils/apiFeatures");
 const Category = require("../models/categoryModel");
-const { categoryKey, resolveProductCategory } = require("../utils/categories");
-const productFields = ["name", "description", "category", "price", "oldPrice", "installmmentPrice", "off", "countDown", "Stock", "images"];
-const { productMoney, productFields: moneyFields, parseMoneyToCents } = require('../utils/money');
-const productInput = body => {
-    if (body.Stock !== undefined) require('../utils/inventory').validateStock(body.Stock);
-    const result = Object.fromEntries(productFields.filter(key => body[key] !== undefined && !moneyFields.includes(key)).map(key => [key, body[key]]));
-    for (const field of moneyFields) if (body[field] !== undefined) result[field+'Cents'] = parseMoneyToCents(body[field]);
-    return result;
-};
+const { categoryKey } = require("../utils/categories");
+const mutations = require('../services/productMutationService');
+const domain = require('../utils/productDomain');
 exports.createProduct = catchAsyncErrors(async (req, res) => {
     validateBody(req.body);
+    domain.input(req.body);
+    await mutations.prepareStockLedger();
     const product = await runHierarchyAdminMutation(req, async session => {
-        const [value] = await Product.create([{ ...productInput(req.body), ...await resolveProductCategory(req.body, session), user: req.user._id }], { session });
+        const value = await mutations.create(req.body, req.user._id, session);
         return { value, event: { action: 'PRODUCT_CREATED', targetId: value._id } };
     });
     res.status(201).json({ success: true, product });
@@ -53,21 +49,17 @@ exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
 });
 exports.updateProduct = catchAsyncErrors(async (req, res, next) => {
     validateBody(req.body);
-    const runMutation = req.body.category_id !== undefined || req.body.category !== undefined ? runHierarchyAdminMutation : runAuditedAdminMutation;
-    const product = await runMutation(req, async session => {
-        const existing = await Product.findById(req.params.id).session(session);
-        if (!existing) throw new ErrorHander('Produto não encontrado.', 404);
-        const value = await Product.findByIdAndUpdate(req.params.id, { $set: { ...productMoney({ ...existing.toObject(), ...productInput(req.body) }), ...productInput(req.body), ...await resolveProductCategory(req.body, session) }, $unset: Object.fromEntries(moneyFields.map(field => [field, 1])) }, { returnDocument: 'after', runValidators: true, session });
-        if (!value) throw new ErrorHander('Produto não encontrado.', 404);
-        const changedFields = [...productFields.filter(key => !moneyFields.includes(key)), 'category_id', ...moneyFields.map(field => field + 'Cents')].filter(key => JSON.stringify(existing[key]) !== JSON.stringify(value[key]));
+    domain.input(req.body);
+    if (Object.hasOwn(req.body, 'Stock')) await mutations.prepareStockLedger();
+    const product = await runHierarchyAdminMutation(req, async session => {
+        const { value, changedFields } = await mutations.update(req.params.id, req.body, req.user._id, session);
         return { value, event: { action: 'PRODUCT_UPDATED', targetId: value._id, metadata: { changedFields } } };
     });
     res.json({ success: true, product });
 });
 exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
-    await runAuditedAdminMutation(req, async session => {
-        const product = await Product.findByIdAndDelete(req.params.id, { session });
-        if (!product) throw new ErrorHander('Produto não encontrado.', 404);
+    await runHierarchyAdminMutation(req, async session => {
+        const product = await mutations.remove(req.params.id, session);
         return { event: { action: 'PRODUCT_DELETED', targetId: product._id } };
     });
     res.json({ success: true, message: "Produto removido." });

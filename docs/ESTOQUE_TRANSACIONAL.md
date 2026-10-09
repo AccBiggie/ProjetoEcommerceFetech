@@ -1,5 +1,19 @@
 # Estoque transacional — FET-ORDER-002
 
+## Extensão F037 — estoque administrativo
+
+O catálogo usa INITIAL_STOCK para baseline positivo de novos produtos e
+ADMIN_ADJUSTMENT para target absoluto solicitado pelo admin, além do RESERVE
+existente. Product, delta, actor técnico, revisão F017 e AuditEvent são atômicos.
+Stock zero inicial ou target sem mudança não gera movimento. Snapshot/retry
+recalcula o delta se uma reserva concorrente escrever Product; Stock continua
+available-to-sell. Legados não declaram ledger histórico completo. DELETE com
+ledger/Order é 409. audit:inventory reconhece os novos tipos sem exigir Order
+para ajustes; audit:products compara o ledger completo dos novos produtos.
+A implantação requer atualização explícita do índice antigo, testada somente em
+database temporária. [Contrato e procedimento](COERENCIA_PRODUTOS.md).
+Esta atualização substitui a referência histórica abaixo à F037 como aberta.
+
 Recuperação FET-OPS-001: a cópia deve preservar conjuntamente Product.Stock, Order.inventoryStatus, StockMovement e claims COMPLETED, incluindo índices únicos. O verificador compara conteúdo e relações; não refaz reservas nem reexecuta checkout. Antes de restaurar/promover dados comerciais, seguir [BACKUP_RESTORE.md](BACKUP_RESTORE.md). F003/F004 continuam corrigidos; F024 está parcial, sem restore real comprovado. Nenhum estoque comercial foi alterado nesta tarefa.
 
 ## Disponibilidade e reserva

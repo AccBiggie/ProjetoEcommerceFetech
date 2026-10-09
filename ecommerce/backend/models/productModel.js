@@ -25,7 +25,7 @@ const productSchema = mongoose.Schema( {
     oldPrice: String,
     installmmentPrice: String,
     priceCents: require('../utils/money').centsSchema(),
-    oldPriceCents: require('../utils/money').centsSchema(),
+    oldPriceCents: { ...require('../utils/money').centsSchema(), required: false, set: value => value == null ? value : require('../utils/money').assertCents(value), validate: value => value == null || Number.isSafeInteger(value) && value >= 0 },
     installmmentPriceCents: require('../utils/money').centsSchema(),
     ratings: {
         type: Number,
@@ -73,6 +73,7 @@ const productSchema = mongoose.Schema( {
         type: Number,
         default: 0,
     },
+    stockLedgerVersion: { type: Number, enum: [1], immutable: true },
     reviews: [
         {
             user: {
@@ -105,9 +106,9 @@ const productSchema = mongoose.Schema( {
     },
 });
 productSchema.pre('validate', function () {
-    const { productMoney, productFields, MoneyError } = require('../utils/money');
+    const { productFields, MoneyError } = require('../utils/money');
     if (Object.keys(this.$errors || {}).some(path => path.endsWith('Cents'))) throw new MoneyError();
-    Object.assign(this, productMoney(this));
+    Object.assign(this, require('../utils/productDomain').commercial(this));
     for (const field of productFields) this[field] = undefined;
 });
 productSchema.set('toJSON', { transform: (_doc, ret) => require('../utils/money').presentProduct(ret) });

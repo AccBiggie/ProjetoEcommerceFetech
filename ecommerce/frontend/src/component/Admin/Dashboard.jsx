@@ -1,4 +1,4 @@
-import { parseMoneyToCents, formatCentsToDecimal, splitInstallments } from '../../utils/money';
+import { parseMoneyToCents } from '../../utils/money';
 import {
   Alert,
   Box,
@@ -82,18 +82,15 @@ export default function Dashboard() {
   };
   const saveProduct = (event) => {
     event.preventDefault();
-    let price, oldPrice;
-    try { price = parseMoneyToCents(draft.price); oldPrice = parseMoneyToCents(draft.oldPrice || draft.price); }
+    try { parseMoneyToCents(draft.price); if (draft.oldPrice) parseMoneyToCents(draft.oldPrice); }
     catch (error) { setError(error.message); return; }
     const payload = {
       name: draft.name,
       description: draft.description,
       category_id: draft.category_id,
       price: draft.price,
-      oldPrice: draft.oldPrice || draft.price,
+      oldPrice: draft.oldPrice || null,
       Stock: Number(draft.Stock),
-      off: Math.max(0, Math.round((1 - price / oldPrice) * 100)),
-      installmmentPrice: formatCentsToDecimal(splitInstallments(price, 12)[0]),
       countDown:
         draft.countDown || new Date(Date.now() + 30 * 86400000).toISOString(),
       images: [
@@ -201,7 +198,7 @@ export default function Dashboard() {
                       ? "number"
                       : "text"
                   }
-                  value={draft[key]}
+                  value={draft[key] ?? ""}
                   slotProps={{
                     htmlInput: {
                       min: key === "Stock" ? 0 : 0.01,

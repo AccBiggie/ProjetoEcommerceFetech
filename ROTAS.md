@@ -1,5 +1,21 @@
 # Revisao das rotas e dos fluxos
 
+## Product — contrato F037
+
+POST /api/v1/product/new (201) e PUT /api/v1/product/:id (200) exigem admin,
+cookie/CSRF e aceitam somente name, description, price, oldPrice, Stock, category,
+category_id, images e countDown. Campos derivados, reviews e internos são 400
+PRODUCT_FIELD_NOT_MUTABLE. Preço inválido: PRODUCT_PRICE_INVALID; referência
+inválida: PRODUCT_OLD_PRICE_INVALID; relação: PRODUCT_PRICE_RELATION_INVALID;
+estoque: PRODUCT_STOCK_INVALID; categoria divergente: PRODUCT_CATEGORY_MISMATCH;
+imagens: PRODUCT_IMAGE_INVALID/PRODUCT_IMAGE_DUPLICATE. Histórico de reviews
+inconsistente: 409 PRODUCT_REVIEW_DATA_INCONSISTENT. DELETE retorna 409
+PRODUCT_IN_USE com referência de Order/StockMovement, 404 quando ausente e 200
+somente sem essas referências. Índice antigo impede create/ajuste com 503
+PRODUCT_STOCK_LEDGER_INDEX_REQUIRED, sem escrita parcial. Responses preservam
+X-Request-Id; mutações são no-store e transacionais com audit.
+[Contrato completo](docs/COERENCIA_PRODUTOS.md).
+
 ## Lifecycle de User — FET-DATA-003
 
 DELETE físico de User é 405 (Allow: PATCH). Admin usa PATCH `/api/v1/admin/user/:id/deactivate` ou `/reactivate`, com no-store/Request ID/CSRF e auditoria atômica. GET `/api/v1/admin/users?status=active|deactivated|all` filtra contas; padrão active. Campos administrativos aparecem apenas no DTO admin. [Contrato completo](docs/LIFECYCLE_USUARIOS.md).

@@ -1,5 +1,25 @@
 # Plano de melhorias Fetech
 
+## F037 — Coerência integral de Product
+
+Status: **CORRIGIDO NO CÓDIGO** — FET-CATALOG-001.
+
+Implementado: allowlist explícita em create/update; campos derivados/internos
+rejeitados; cents F014 e relação price/oldPrice; desconto inteiro e parcela
+ilustrativa centralizados; Stock safe integer >=0; ledger de criação/ajuste,
+hierarquia F017 e auditoria F025 atômicos; sem lost update com reservas/reviews;
+category/category_id coerentes e rename preservado; images validadas; delete
+com Order/ledger bloqueado; audit:products somente leitura com snapshot.
+
+Limites: histórico sem repair automático; ledger legado incompleto identificado;
+ownership de imagens/provider real F029 aberto; privacy F030 aberto; lifecycle
+mais amplo de Product separado; deploy requer índice parcial de RESERVE, sem
+migração do banco real nesta tarefa. F024 segue PARCIAL e reparos comerciais
+aguardam backup/restore comprovado. F001/F027 continuam adiados.
+[Contrato](COERENCIA_PRODUTOS.md), [relatório](RELATORIO_FET_CATALOG_001.md).
+Próxima recomendação: F022 — performance/paginação. Não iniciada automaticamente.
+Este status substitui referências históricas abaixo à F037 aberta.
+
 ## F017 — Concorrência na hierarquia de categorias — FET-DATA-005
 
 **Status: CORRIGIDO NO CÓDIGO.** Parent existente; self e ciclos diretos/indiretos

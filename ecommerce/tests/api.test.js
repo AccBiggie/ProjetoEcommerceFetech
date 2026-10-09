@@ -139,7 +139,7 @@ test('produtos e usuários: operações administrativas, validação e permissõ
     }
     await request('POST', '/product/new', productData(), 'user', 403);
     await request('POST', '/product/new', productData({ price: 'invalid' }), 'admin', 400);
-    const product = (await request('POST', '/product/new', productData(), 'admin', 201)).result.product;
+    const product = (await request('POST', '/product/new', productData({Stock:0}), 'admin', 201)).result.product;
     await request('PUT', '/product/' + product._id, { price: '125.00' }, 'admin');
     assert.equal((await request('GET', '/product/' + product._id)).result.product.price, '125.00');
     await request('PUT', '/product/' + missing, { name: 'Missing' }, 'admin', 404);
@@ -264,7 +264,7 @@ test('categorias: CRUD separado, permissões, parent_id, ciclos e produtos vincu
     await request('POST', '/product/new', productData({ category_id: missing }), 'admin', 400);
     await request('POST', '/product/new', productData({ category_id: 'invalid' }), 'admin', 400);
     await request('POST', '/product/new', productData({ category: 'Não cadastrada' }), 'admin', 400);
-    const product = (await request('POST', '/product/new', productData({ category: undefined, category_id: leaf._id }), 'admin', 201)).result.product;
+    const product = (await request('POST', '/product/new', productData({ category: undefined, category_id: leaf._id, Stock: 0 }), 'admin', 201)).result.product;
     assert.equal(product.category, leaf.name); assert.equal(product.category_id, leaf._id);
     assert.equal((await request('GET', '/products?category=' + parent._id)).result.products[0]._id, product._id);
     assert.equal((await request('GET', '/products?category=' + encodeURIComponent(parent.name))).result.filteredProductsCount, 1);

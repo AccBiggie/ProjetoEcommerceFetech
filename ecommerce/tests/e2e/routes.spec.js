@@ -320,6 +320,7 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   await page
     .getByRole("spinbutton", { name: "Preço", exact: true })
     .fill("150");
+  await page.getByRole("spinbutton", {name: "Estoque", exact:true}).fill("0");
   await page.getByRole("combobox", { name: "Categoria", exact: true }).selectOption({ label: "Hardware" });
   await page.getByRole("button", { name: "Salvar produto" }).click();
   const row = page
@@ -427,7 +428,7 @@ test("carrossel atualizado: imagens, controles e título do produto", async ({
   await login(page, "admin@routes.example.com");
   const response = await mutation(page, "post", "/api/v1/product/new", {
     data: productData({
-      name: "Produto com duas imagens",
+      name: "Produto com duas imagens", Stock: 0,
       images: [
         { public_id: "first", url: "/Profile.png", banner: "/Profile.png" },
         { public_id: "second", url: "/logo192.png", banner: "/logo192.png" },
@@ -501,6 +502,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole("tab", { name: "Produtos", exact: true }).click();
   await page.getByRole("textbox", { name: "Nome", exact: true }).fill("Produto da subcategoria E2E");
+  await page.getByRole("spinbutton", {name: "Estoque", exact:true}).fill("0");
   await page.getByRole("textbox", { name: "Descrição", exact: true }).fill("Produto vinculado por referência");
   await page.getByRole("spinbutton", { name: "Preço", exact: true }).fill("200");
   await page.getByRole("combobox", { name: "Categoria", exact: true }).selectOption({ label: "Departamento E2E / Subcategoria E2E" });

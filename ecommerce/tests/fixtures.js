@@ -7,11 +7,12 @@ const categories = require('../frontend/src/data/categories.json');
 
 const password = 'RouteTest123!';
 const productData = (overrides = {}) => ({
-    name: 'Produto de teste de rotas', description: 'Produto temporário para testes.', category: 'Hardware',
-    price: '100.00', oldPrice: '120.00', installmmentPrice: '8.33', off: 17,
+    name: 'Produto de teste de rotas', description: 'Produto temporário para testes.', category: overrides.category_id ? undefined : 'Hardware',
+    price: '100.00', oldPrice: null,
     countDown: new Date(Date.now() + 86400000).toISOString(), Stock: 20,
     images: [{ public_id: 'test-image', url: '/demo-products/R5.png', banner: '/demo-products/R5.png' }], ...overrides,
 });
+const legacyProductData = (overrides = {}) => ({ ...productData(), oldPrice: '120.00', installmmentPrice: '8.33', off: 17, ...overrides });
 async function fixtures() {
     const users = {};
     for (const role of ['admin', 'user', 'other']) users[role] = await User.create({
@@ -30,4 +31,4 @@ async function fixtures() {
     }
     return { users, products };
 }
-module.exports = { fixtures, password, productData, categories };
+module.exports = { fixtures, password, productData, legacyProductData, categories };

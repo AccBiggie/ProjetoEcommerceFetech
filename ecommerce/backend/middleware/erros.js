@@ -32,13 +32,13 @@ module.exports = (err,req,res,next) => {
     const status = Number.isInteger(err.statusCode) && err.statusCode >= 400 && err.statusCode <= 599 ? err.statusCode : 500;
     require('../observability/logger')[status >= 500 ? 'error' : 'warn']('http.request.error', {
         route: require('./requestContext').safeRoute(req), method: req.method, status,
-        errorCode: typeof original.code === 'string' && /^(ORDER_[A-Z_]{1,60}|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_REVIEW_DATA_INCONSISTENT)$/.test(original.code) ? original.code : Number.isSafeInteger(original.code) ? original.code : 'HTTP_' + status,
+        errorCode: typeof original.code === 'string' && /^(ORDER_[A-Z_]{1,60}|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_[A-Z_]{1,60})$/.test(original.code) ? original.code : Number.isSafeInteger(original.code) ? original.code : 'HTTP_' + status,
         errorName: original.name
     });
     if (res.headersSent) return next(err);
     res.status(status).json({
         success: false,
-        ...(typeof err.code === "string" && /^(ORDER_[A-Z_]+|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_REVIEW_DATA_INCONSISTENT)$/.test(err.code) ? { code: err.code } : {}),
+        ...(typeof err.code === "string" && /^(ORDER_[A-Z_]+|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_[A-Z_]{1,60})$/.test(err.code) ? { code: err.code } : {}),
         message: status >= 500 ? 'Não foi possível concluir a operação.' : err.message,
     });
 };

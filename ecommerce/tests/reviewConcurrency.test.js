@@ -132,11 +132,11 @@ test('REV remoção parcial recalcula a média dos sobreviventes', async () => {
 for (const rating of [1, 5]) test(`REV HTTP aceita nota limite ${rating}`, async () => {
     const p = await fresh(), reply = await put(p, rating); assert.equal(reply.status, 200); checkResponse(reply.result.product); assert.equal(reply.result.product.ratings, rating);
 });
-test('REV create genérico admin ignora avaliações e agregados', async () => {
+test('REV create genérico admin rejeita avaliações e agregados', async () => {
     const Category = require('../backend/models/categoryModel');
     const category = await Category.create({ name: 'Categoria Reviews', name_key: 'categoria reviews' });
     const reply = await h.request('POST', '/product/new', productData({ category_id: String(category._id), reviews: [{ user: String(users[0]._id), name: 'Forjado', rating: 5, comment: 'Forjado' }], ratings: 5, numOfReviews: 999 }), adminCookie);
-    assert.equal(reply.status, 201); assert.deepEqual(reply.result.product.reviews, []); assert.equal(reply.result.product.ratings, 0); assert.equal(reply.result.product.numOfReviews, 0);
+    assert.equal(reply.status, 400); assert.equal(reply.result.code, 'PRODUCT_FIELD_NOT_MUTABLE');
 });
 test('REV update concorrente com delete da mesma avaliação mantém consistência', async () => {
     const p = await fresh(), initial = await submit(p, users[0], 2);
@@ -179,10 +179,10 @@ test('REV usuário desativado mantém histórico, perde acesso e reativação pr
     const updated = await put(p, 5, {}, await h.login(await h.User.findById(user._id))); assert.equal(updated.status, 200);
     assert.equal(updated.result.product.reviews[0]._id, String(initial.reviews[0]._id));
 });
-test('REV endpoint genérico admin ignora reviews e agregados', async () => {
+test('REV endpoint genérico admin rejeita reviews e agregados', async () => {
     const p = await fresh(); await submit(p, users[0], 2);
     const reply = await h.request('PUT', `/product/${p._id}`, { reviews: [], ratings: 5, numOfReviews: 500 }, adminCookie);
-    assert.equal(reply.status, 200); const final = await Product.findById(p._id).lean(); check(final); assert.equal(final.numOfReviews, 1); assert.equal(final.ratings, 2);
+    assert.equal(reply.status, 400); assert.equal(reply.result.code, 'PRODUCT_FIELD_NOT_MUTABLE'); const final = await Product.findById(p._id).lean(); check(final); assert.equal(final.numOfReviews, 1); assert.equal(final.ratings, 2);
 });
 for (const kind of ['count', 'average', 'nanAverage', 'infiniteAverage', 'duplicate', 'invalidRating', 'invalidUser', 'nullArray', 'badRow']) test(`REV histórico ${kind} é bloqueado sem reparo`, async () => {
     const p = await fresh(), initial = await submit(p, users[0], 2);

@@ -40,8 +40,8 @@ async function criticalInvariants(db) {
         }
     }
     for (const movement of movements) {
-        if (!orderIds.has(String(movement.order)) || !productIds.has(String(movement.product))) add('MOVEMENT_RELATION_INVALID');
-        if (movement.type === 'RESERVE' && movement.stockAfter !== movement.stockBefore - movement.quantity) add('MOVEMENT_STOCK_INVALID');
+        if (!productIds.has(String(movement.product)) || movement.type === 'RESERVE' && !orderIds.has(String(movement.order)) || movement.type !== 'RESERVE' && !userIds.has(String(movement.actorUserId))) add('MOVEMENT_RELATION_INVALID');
+        if (!require('./stockMovementContract').validMovement(movement)) add('MOVEMENT_STOCK_INVALID');
     }
     for (const claim of claims) if (!orderIds.has(String(claim.order))) add('IDEMPOTENCY_RELATION_INVALID');
     return issues;

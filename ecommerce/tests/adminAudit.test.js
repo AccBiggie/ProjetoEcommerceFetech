@@ -53,8 +53,9 @@ test('AUD-06 User role, update e desativação preservam IDs sem PII',async()=>{
 });
 test('AUD-07 Product CRUD audita campos de centavos e Stock sem valores',async()=>{
     let r=await h.request('POST','/product/new',require('./fixtures').productData({name:'PRIVATE_PRODUCT_SENTINEL',category_id:data.products[0].category_id}),admin,201);const id=r.result.product._id;await checkEvent(r,'PRODUCT_CREATED',id);
-    r=await h.request('PUT','/product/'+id,{price:'127.99',Stock:13},admin,200);const event=await checkEvent(r,'PRODUCT_UPDATED',id);assert.deepEqual(event.metadata,{changedFields:['Stock','priceCents']});
-    r=await h.request('DELETE','/product/'+id,null,admin,200);await checkEvent(r,'PRODUCT_DELETED',id);assert.doesNotMatch(JSON.stringify(await Audit.find().lean()),/PRIVATE_PRODUCT_SENTINEL|12799/);
+    r=await h.request('PUT','/product/'+id,{price:'127.99',Stock:13},admin,200);const event=await checkEvent(r,'PRODUCT_UPDATED',id);assert.deepEqual(event.metadata,{changedFields:['Stock','installmmentPriceCents','priceCents']});
+    await h.request('DELETE','/product/'+id,null,admin,409);
+    const removable=await h.request('POST','/product/new',require('./fixtures').productData({Stock:0}),admin,201);r=await h.request('DELETE','/product/'+removable.result.product._id,null,admin,200);await checkEvent(r,'PRODUCT_DELETED',removable.result.product._id);assert.doesNotMatch(JSON.stringify(await Audit.find().lean()),/PRIVATE_PRODUCT_SENTINEL|12799/);
 });
 test('AUD-08 Category CRUD e parent_id auditados sem nome',async()=>{
     let r=await category();const id=r.result.category._id;await checkEvent(r,'CATEGORY_CREATED',id);
@@ -84,7 +85,7 @@ for(const operation of ['archive','status','user-update','user-deactivate','prod
     }else if(operation==='product-create'){
         const name='Rollback product '+(++sequence);request=()=>h.request('POST','/product/new',require('./fixtures').productData({name,category_id:data.products[0].category_id}),admin,500);verify=async()=>assert.equal(await Product.countDocuments({name}),0);
     }else if(operation==='product-update'||operation==='product-delete'){
-        const r=await h.request('POST','/product/new',require('./fixtures').productData({category_id:data.products[0].category_id}),admin,201),id=r.result.product._id;
+        const r=await h.request('POST','/product/new',require('./fixtures').productData({category_id:data.products[0].category_id,Stock:operation==='product-delete'?0:20}),admin,201),id=r.result.product._id;
         request=()=>h.request(operation==='product-delete'?'DELETE':'PUT','/product/'+id,operation==='product-delete'?null:{Stock:37},admin,500);verify=async()=>{const row=await Product.findById(id);assert.ok(row);assert.equal(row.Stock,r.result.product.Stock);};
     }else if(operation==='category-create'){
         const name='Rollback category '+(++sequence);request=()=>h.request('POST','/admin/category',{name},admin,500);verify=async()=>assert.equal(await Category.countDocuments({name}),0);

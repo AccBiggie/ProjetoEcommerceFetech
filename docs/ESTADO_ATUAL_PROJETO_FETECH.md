@@ -1,5 +1,21 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F037 — coerência integral de Product — FET-CATALOG-001
+
+**CORRIGIDO NO CÓDIGO.** productDomain/productMutationService centralizam a
+allowlist, F014 cents, relação de preços, desconto/parcela, Stock, metadata de
+imagens e resolução F017. Ledger INITIAL_STOCK/ADMIN_ADJUSTMENT e AuditEvent são
+atômicos; reservas/reviews concorrentes preservadas. DELETE com ledger/Order
+retorna 409. audit:products é somente leitura em snapshot, sem repair/provider.
+O rollout exige atualização explícita do índice de movimentos; operação foi
+testada somente em database temporária e o fetech em execução foi preservado.
+[Contrato](COERENCIA_PRODUTOS.md), [relatório](RELATORIO_FET_CATALOG_001.md).
+F031 estava commitada; esta task permanece sem commit. F002–F018,
+F020/F021/F025/F031/F036 continuam corrigidos; F019 cobre novas substituições.
+F024 PARCIAL (Tools/drill ausentes); F029/F030 abertos; F001/F027 adiados.
+Próxima recomendação F022 — performance/paginação, sem início automático.
+Este status prevalece sobre referências históricas abaixo à F037 aberta.
+
 ## F017 — Hierarquia concorrente — FET-DATA-005
 
 **CORRIGIDO NO CÓDIGO.** Hierarchy mutations são serializadas via Mongo

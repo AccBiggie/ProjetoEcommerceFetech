@@ -44,7 +44,7 @@ for (const count of [1, 20]) test('HIER concurrent ' + count + ' child create/de
 for (const kind of ['createId', 'createName', 'updateId', 'updateName']) test('HIER Product ' + kind + '/Category delete nunca cria órfão', async () => {
     const p = await t.root(), old = await t.root();
     const existing = kind.startsWith('update') ? (await t.createProduct(old._id, 201)).result.product : null;
-    const body = kind.endsWith('Id') ? { category_id: p._id } : { category: p.name };
+    const body = kind.endsWith('Id') ? { category_id: p._id, category: undefined } : { category: p.name };
     const results = await Promise.all([t.remove(p._id), existing ? t.request('PUT', '/product/' + existing._id, body) : t.request('POST', '/product/new', { ...require('./fixtures').productData(), ...body })]);
     assert.ok([200, 409].includes(results[0].status)); assert.ok([200, 201, 400].includes(results[1].status));
     const parent = await Category.exists({ _id: p._id }), refs = await Product.countDocuments({ category_id: p._id }); assert.ok(parent || refs === 0);
