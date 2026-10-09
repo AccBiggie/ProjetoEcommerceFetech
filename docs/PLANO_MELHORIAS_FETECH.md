@@ -1,5 +1,25 @@
 # Plano de melhorias Fetech
 
+## F039 ? Gates comerciais de CI ? FET-CI-001
+
+**CORRIGIDO NO CODIGO / VALIDACAO REMOTA PENDENTE.** GitHub Actions, Node fixo,
+npm ci e locks separados, MongoDB Server temporario com replica set/transacoes,
+guarda contra fetech/URI externa, API/build/E2E obrigatorios, arquitetura,
+repository safety/diff e audit de ambos os pacotes. Commercial Gate agrega
+os seis jobs sem soft fail. F024: quinze bloqueios allowlisted; E2E: zero skips.
+Enforcement remoto: **NAO VALIDADO / DESCONHECIDO**. Sem push, run remoto ou
+alteracao de branch protection. [Contrato](CI_E_GATES_COMERCIAIS.md),
+[testes](TESTES_FET_CI_001.md), [relatorio](RELATORIO_FET_CI_001.md).
+
+**F026 PARCIAL:** CI implementado no codigo; CD/deployment pendente sem target.
+F022 esta commitada em 2d51203, superando mencoes anteriores a worktree sujo.
+Nenhuma migration comercial; indices F022/F037 pendentes, F024 parcial,
+F023 infraestrutura necessaria, F029/F030 abertos, F001/F027 adiados.
+Proxima recomendacao: **F030 ? baseline tecnico de privacidade e retencao**,
+sem inventar prazos legais ou destruir Orders/audit/ledger; nao iniciada.
+Este estado prevalece sobre registros anteriores abaixo.
+
+
 ## F022 — Paginação e consultas previsíveis
 
 **CORRIGIDO NO CÓDIGO.** API 1484 aprovados/15 skips F024, E2E 57/57, build/diff/audit aprovados. Resultados no [relatório](RELATORIO_FET_PERF_001.md). Paginação central, query allowlists, summaries, frontend e índice/manifesto/migration dry-run protegida. F037 commitada em 68cb9b3; esta task sem commit. Índices comerciais não aplicados, ledger F037 continua gate; F024 parcial. Search substring/legacy/count/cursor de escala permanecem residual F038. Próxima recomendação **F039: inventariar e completar gates de CI**, sem início automático. F001/F027 adiados; F029/F030 abertos. [Contrato](PAGINACAO_E_PERFORMANCE_API.md). Este status prevalece sobre registros históricos abaixo.

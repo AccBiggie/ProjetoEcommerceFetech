@@ -94,11 +94,3 @@ test('HISTORY arquivado permite transições existentes e preserva referência a
     assert.equal((await h.User.findById(actor.id)).accountStatus, 'DEACTIVATED');
     assert.equal(reply.result.order.orderStatus, 'Delivered');
 });
-test('HISTORY arquitetura não permite deletes ou acesso bruto a orders em controllers/services', () => {
-    const fs = require('node:fs'), path = require('node:path');
-    for (const folder of ['controllers', 'services']) for (const file of fs.readdirSync(path.join(__dirname, '../backend', folder))) {
-        if (!file.endsWith('.js')) continue;
-        const source = fs.readFileSync(path.join(__dirname, '../backend', folder, file), 'utf8');
-        assert.equal(/Order\.(?:deleteOne|deleteMany|findOneAndDelete|findByIdAndDelete|findOneAndRemove|collection)\b|collection\(['"]orders['"]\)/.test(source), false, file);
-    }
-});

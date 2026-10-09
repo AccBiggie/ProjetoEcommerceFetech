@@ -139,3 +139,10 @@ Históricos sem baseline são contados separadamente. Reparos reais aguardam F02
 F002–F018, F020/F021/F025/F031/F036 continuam protegidos; F019 cobre novas
 substituições de avatar. F024 PARCIAL, F029/F030 abertos, F001/F027 adiados.
 [Validação e relatório](RELATORIO_FET_CATALOG_001.md).
+
+## CI F039 e indice F037
+
+Os testes comerciais/concorrentes e do indice de ledger fazem parte da API
+integral obrigatoria em database temporaria. O indice do ledger F037 continua
+pre-requisito de deployment; nao foi aplicado ao banco comercial nesta task.
+[Gate comercial](CI_E_GATES_COMERCIAIS.md).

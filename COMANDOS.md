@@ -278,3 +278,17 @@ O perfil `shipping-audit` exige somente configuração operacional NODE_ENV/DB_U
 Não há --apply, migração ou reconstrução de zeros históricos. F024 continua
 pendente antes de futuras ações sobre o histórico real.
 Veja [docs/VALIDACAO_CHECKOUT.md](docs/VALIDACAO_CHECKOUT.md).
+
+## Gate comercial de CI ? F039
+
+Na raiz, depois de npm ci em ecommerce e ecommerce/frontend:
+
+```powershell
+npm.cmd run ci:commercial --prefix ecommerce
+```
+
+Executa repository safety/diff, arquitetura, API integral, build, E2E integral e
+audit de ambos os pacotes. Reprova no primeiro erro; somente quinze bloqueios
+F024 explicitamente allowlisted, zero skips E2E. Consulte
+[CI e gates comerciais](docs/CI_E_GATES_COMERCIAIS.md). Workflow GitHub Actions
+codificado; run remoto e enforcement ainda pendentes. Nenhum deploy automatico.

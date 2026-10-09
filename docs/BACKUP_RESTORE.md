@@ -85,3 +85,11 @@ Para desastre real: abrir change procedure, preservar origem/evidências, escolh
 Logs próprios contêm apenas operação, database/host sem credenciais, caminho de saída, contagens, tamanho e duração. Saída bruta das tools é suprimida para evitar vazamento. A conexão é passada por arquivo YAML temporário fora do bundle, removido em `finally`; credenciais não entram nos argumentos do processo. Garantir proteção do diretório temporário e armazenamento fora do alcance de outros usuários.
 
 Artefatos não são versionados: `.local/`, `backups/`, `*.archive.gz`, manifesto e sidecar estão no `.gitignore`. Isso não impede anexação manual a serviços externos: tratar todo bundle como dado comercial sensível.
+
+## CI F039
+
+F024 continua **PARCIAL**. O CI instala somente MongoDB Server, sem Database
+Tools, e admite exclusivamente os quinze bloqueios atuais com arquivo/nome/
+motivo exatos. Nao executa drill comercial, backup real ou migration de indice
+no fetech. Gate verde com essa excecao nao comprova restore.
+[Politica](CI_E_GATES_COMERCIAIS.md).

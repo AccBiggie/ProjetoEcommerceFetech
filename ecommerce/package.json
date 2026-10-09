@@ -25,7 +25,14 @@
     "audit:reviews": "node backend/scripts/auditReviews.js",
     "audit:categories": "node backend/scripts/auditCategories.js",
     "audit:media": "node backend/scripts/auditMedia.js",
-    "reconcile:media": "node backend/scripts/reconcileMedia.js"
+    "reconcile:media": "node backend/scripts/reconcileMedia.js",
+    "ci:repo-safety": "node scripts/ci/run.js repo-safety",
+    "ci:architecture": "node scripts/ci/run.js architecture",
+    "ci:api": "node scripts/ci/run.js api",
+    "ci:build": "node scripts/ci/run.js build",
+    "ci:e2e": "node scripts/ci/run.js e2e",
+    "ci:audit": "node scripts/ci/run.js audit",
+    "ci:commercial": "node scripts/ci/run.js commercial"
   },
   "author": "",
   "license": "ISC",

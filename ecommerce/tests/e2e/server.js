@@ -1,3 +1,4 @@
+const { origin, port, state } = require('../helpers/e2eContext').context();
 const { testUri } = require('../replicaSetHarness');
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +10,7 @@ const Product = require('../../backend/models/productModel');
 const nodemailer = require('nodemailer');
 const database = `fetech_e2e_${process.pid}_${Date.now()}`;
 Object.assign(process.env, { NODE_ENV: 'test', PORT: '4000', TRUST_PROXY_HOPS: '0' });
-Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: 'http://127.0.0.1:3300', PORTEMAIL: '587', EMAIL_SECURE: 'false', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
+Object.assign(process.env, { AUTH_FORGOT_MIN_RESPONSE_MS: '20', JWT_SECRET: crypto.randomBytes(32).toString('hex'), JWT_EXPIRE: '7d', COOKIE_EXPIRE: '7', FRONTEND_URL: origin, PORTEMAIL: '587', EMAIL_SECURE: 'false', HOST: 'smtp.test', USER: 'test', PASSWORD: 'test', CLOUDINARY_NAME: '', CLOUDINARY_API_KEY: '', CLOUDINARY_API_SECRET: '' });
 // O envio externo é substituído somente neste servidor isolado de testes.
 const resetLinks = {};
 nodemailer.createTransport = () => ({ sendMail: async mail => { resetLinks[mail.to] = mail.text.match(/http[^\s]+\/password\/reset\/[a-f0-9]+/)[0]; } });
@@ -29,7 +30,7 @@ const mediaFake = require('../helpers/fakeMediaProvider').createFakeMediaProvide
     await Product.create(productData({ name: 'Teste & / Pesquisa' }));
     await Product.create(productData({ name: 'Produto extra para paginação' }));
     await require('../../backend/utils/categories').migrateLegacyCategories();
-    fs.writeFileSync(path.join(__dirname, '../../.test-state.json'), JSON.stringify({ database, uri: process.env.DB_URI }));
+    fs.writeFileSync(state, JSON.stringify({ database, uri: process.env.DB_URI }));
     const server = express();
     let listener;
     server.post('/__test/shutdown', (req, res) => {
@@ -49,5 +50,6 @@ const mediaFake = require('../helpers/fakeMediaProvider').createFakeMediaProvide
     server.use('/__test/boundary', express.static(boundaryHarness.output));
     server.use(express.static(path.join(__dirname, '../../frontend/build')));
     server.get('/{*path}', (req, res) => res.sendFile(path.join(__dirname, '../../frontend/build/index.html')));
-    listener = server.listen(3300, '127.0.0.1', () => console.log('Servidor E2E pronto em 3300; banco temporário isolado.'));
-})().catch(error => { console.error(error.message); process.exit(1); });
+    listener = server.listen(port, '127.0.0.1', () => console.log('Servidor E2E pronto; banco temporario isolado.'));
+    for (const signal of ['SIGTERM', 'SIGINT']) process.once(signal, () => { listener.close(); listener.closeAllConnections(); mongoose.disconnect().finally(() => process.exit(1)); });
+})().catch(error => { console.error('Servidor E2E isolado falhou.'); process.exit(1); });

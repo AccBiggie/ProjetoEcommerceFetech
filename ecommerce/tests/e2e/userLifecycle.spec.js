@@ -12,7 +12,7 @@ async function login(page, email) {
 test('lifecycle: status/filtros, desativar revoga sessão, reativar exige login novo e audita', async ({ page, browser }) => {
     // Dedicated seeded fixture avoids sharing the suite's public registration quota.
     const email = 'lifecycle@routes.example.com';
-    const customerContext = await browser.newContext({ baseURL: 'http://127.0.0.1:3300' });
+    const customerContext = await browser.newContext({ baseURL: require('../helpers/e2eContext').context().origin });
     try {
         const customer = await customerContext.newPage();
         await login(customer, email);

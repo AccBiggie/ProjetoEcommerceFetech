@@ -8,7 +8,7 @@ async function markOrderPaidFixture(id, connection = mongoose.connection) {
     return connection.db.collection('orders').updateOne({ _id: new mongoose.Types.ObjectId(id) }, { $set: { paymentStatus: 'PAID', paidAt: new Date() } });
 }
 async function markE2EOrderPaidFixture(id) {
-    const state = JSON.parse(require('node:fs').readFileSync(require('node:path').resolve(__dirname, '../../.test-state.json'), 'utf8'));
+    const state = JSON.parse(require('node:fs').readFileSync(require('./e2eContext').context().state, 'utf8'));
     if (!/^fetech_e2e_\d+_\d+$/.test(state.database) || state.uri !== testUri(state.database)) throw new Error('Fixture fora do replica set isolado.');
     const connection = await mongoose.createConnection(state.uri).asPromise();
     try { return await markOrderPaidFixture(id, connection); } finally { await connection.close(); }

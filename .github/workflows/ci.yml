@@ -1,0 +1,310 @@
+{
+  "name": "Fetech Commercial CI",
+  "on": {
+    "pull_request": {},
+    "push": {
+      "branches": [
+        "main"
+      ]
+    }
+  },
+  "permissions": {
+    "contents": "read"
+  },
+  "concurrency": {
+    "group": "fetech-ci-${{ github.event_name }}-${{ github.event.pull_request.number || github.sha }}",
+    "cancel-in-progress": "${{ github.event_name == 'pull_request' }}"
+  },
+  "jobs": {
+    "repository": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Gate obrigat?rio: repo-safety",
+          "run": "npm run ci:repo-safety --prefix ecommerce"
+        }
+      ]
+    },
+    "architecture": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Gate obrigat?rio: architecture",
+          "run": "npm run ci:architecture --prefix ecommerce"
+        }
+      ]
+    },
+    "api": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Bibliotecas do MongoDB Server (Ubuntu 24.04)",
+          "run": "sudo apt-get update\nsudo apt-get install --no-install-recommends -y libcurl4 libgssapi-krb5-2 libldap2 libwrap0 libsasl2-2 libsasl2-modules libsasl2-modules-gssapi-mit openssl liblzma5"
+        },
+        {
+          "name": "MongoDB Server isolado, sem Database Tools",
+          "run": "node ecommerce/scripts/ci/installMongo.js"
+        },
+        {
+          "name": "Gate obrigat?rio: api",
+          "run": "npm run ci:api --prefix ecommerce"
+        }
+      ]
+    },
+    "build": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Gate obrigat?rio: build",
+          "run": "npm run ci:build --prefix ecommerce"
+        }
+      ]
+    },
+    "e2e": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Bibliotecas do MongoDB Server (Ubuntu 24.04)",
+          "run": "sudo apt-get update\nsudo apt-get install --no-install-recommends -y libcurl4 libgssapi-krb5-2 libldap2 libwrap0 libsasl2-2 libsasl2-modules libsasl2-modules-gssapi-mit openssl liblzma5"
+        },
+        {
+          "name": "MongoDB Server isolado, sem Database Tools",
+          "run": "node ecommerce/scripts/ci/installMongo.js"
+        },
+        {
+          "name": "Chromium da vers?o fixada pelo lockfile",
+          "run": "npx --no-install playwright install --with-deps chromium",
+          "working-directory": "ecommerce"
+        },
+        {
+          "name": "Build para o host E2E tempor?rio",
+          "run": "npm run ci:build --prefix ecommerce"
+        },
+        {
+          "name": "Gate obrigat?rio: e2e",
+          "run": "npm run ci:e2e --prefix ecommerce"
+        },
+        {
+          "name": "Diagn?stico E2E em falha",
+          "if": "failure()",
+          "uses": "actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f",
+          "with": {
+            "name": "e2e-failure-${{ github.run_id }}-${{ github.run_attempt }}",
+            "path": "ecommerce/test-results/\necommerce/playwright-report/",
+            "retention-days": 7,
+            "if-no-files-found": "ignore"
+          }
+        }
+      ]
+    },
+    "audit": {
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 30,
+      "env": {
+        "FETECH_TEST_MONGOD": "${{ github.workspace }}/.local/mongod"
+      },
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Depend?ncias do backend (lockfile)",
+          "run": "npm ci --prefix ecommerce"
+        },
+        {
+          "name": "Depend?ncias do frontend (lockfile)",
+          "run": "npm ci --prefix ecommerce/frontend"
+        },
+        {
+          "name": "Gate obrigat?rio: audit",
+          "run": "npm run ci:audit --prefix ecommerce"
+        }
+      ]
+    },
+    "commercial": {
+      "name": "Commercial Gate",
+      "runs-on": "ubuntu-24.04",
+      "timeout-minutes": 5,
+      "if": "${{ always() }}",
+      "needs": [
+        "repository",
+        "architecture",
+        "api",
+        "build",
+        "e2e",
+        "audit"
+      ],
+      "steps": [
+        {
+          "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "with": {
+            "fetch-depth": 0,
+            "persist-credentials": false
+          }
+        },
+        {
+          "uses": "actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+          "with": {
+            "node-version": "24.19.0",
+            "cache": "npm",
+            "cache-dependency-path": "ecommerce/package-lock.json\necommerce/frontend/package-lock.json"
+          }
+        },
+        {
+          "name": "Todas as depend?ncias precisam de sucesso",
+          "env": {
+            "NEEDS_JSON": "${{ toJSON(needs) }}"
+          },
+          "run": "node ecommerce/scripts/ci/aggregate.js"
+        }
+      ]
+    }
+  }
+}

@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { testUri } = require('../replicaSetHarness');
 const { shippingInfo } = require('./productHarness');
 async function connection() {
-    const state = JSON.parse(require('node:fs').readFileSync(require('node:path').resolve(__dirname, '../../.test-state.json'), 'utf8'));
+    const state = JSON.parse(require('node:fs').readFileSync(require('./e2eContext').context().state, 'utf8'));
     if (!/^fetech_e2e_\d+_\d+$/.test(state.database) || state.uri !== testUri(state.database)) throw new Error('Isolated runner required');
     return mongoose.createConnection(state.uri, { autoCreate: false, autoIndex: false }).asPromise();
 }

@@ -122,11 +122,3 @@ test('STATE rollback transacional não deixa Order PENDING parcial', async t => 
     await h.request('POST', '/order/new', { shippingInfo: shipping, orderItems: [{ product: data.products[0].id, quantity: 1 }] }, customer, 503, { 'Idempotency-Key': crypto.randomUUID() });
     assert.equal(await Order.countDocuments(), count); assert.equal((await Product.findById(data.products[0].id)).Stock, stock);
 });
-test('STATE arquitetura sem confirmação produtiva, helpers ou escrita de estoque na transição', () => {
-    const fs = require('node:fs'), path = require('node:path');
-    const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? walk(path.join(dir, entry.name)) : /\.(js|jsx|mjs)$/.test(entry.name) ? [path.join(dir, entry.name)] : []);
-    for (const file of [...walk(path.join(__dirname, '../backend')), ...walk(path.join(__dirname, '../frontend/src'))]) {
-        const source = fs.readFileSync(file, 'utf8'); assert.equal(/orderPaymentFixture|markOrderPaidFixture|markE2EOrderPaidFixture|\/test\/mark-paid|confirm-payment|mark-paid/.test(source), false, file);
-    }
-    const service = fs.readFileSync(path.join(__dirname, '../backend/services/orderStateMachine.js'), 'utf8'); assert.equal(/Product|StockMovement|\.save\(/.test(service), false);
-});

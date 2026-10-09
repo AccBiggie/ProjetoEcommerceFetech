@@ -9,7 +9,7 @@ test('histórico do cliente mantém pedido arquivado e snapshot sem metadata adm
         shippingInfo: { recipientName: 'Cliente Histórico', address: 'Rua Histórico', number: '01A', complement: '', neighborhood: 'Centro', city: 'Curitiba', state: 'PR', country: 'Brasil', pinCode: '01234567', phoneNo: '04123456789' }, orderItems: [{ product: product._id, quantity: 1 }],
     } });
     expect(response.status()).toBe(201); const order = (await response.json()).order;
-    const admin = await playwright.request.newContext({ baseURL: 'http://127.0.0.1:3300' });
+    const admin = await playwright.request.newContext({ baseURL: require('../helpers/e2eContext').context().origin });
     try {
         expect((await admin.post('/api/v1/login', { headers: { 'X-Fetech-CSRF': '1' }, data: { email: 'admin@routes.example.com', password } })).status()).toBe(200);
         expect((await admin.patch(`/api/v1/admin/order/${order._id}/archive`, { headers: { 'X-Fetech-CSRF': '1' } })).status()).toBe(200);

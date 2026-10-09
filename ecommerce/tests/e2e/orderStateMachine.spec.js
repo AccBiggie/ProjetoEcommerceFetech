@@ -11,7 +11,7 @@ test('pagamento: cliente vê Pendente e admin não pode enviar nem forçar confi
     } });
     expect(response.status()).toBe(201); const order = (await response.json()).order;
     await page.goto('/order/' + order._id); await expect(page.getByText('Pagamento: Pendente', { exact: true })).toBeVisible();
-    const context = await browser.newContext({ baseURL: 'http://127.0.0.1:3300' }), admin = await context.newPage();
+    const context = await browser.newContext({ baseURL: require('../helpers/e2eContext').context().origin }), admin = await context.newPage();
     try {
         expect((await mutation(admin, 'post', '/api/v1/login', { data: { email: 'admin@routes.example.com', password } })).status()).toBe(200);
         await admin.goto('/order/' + order._id); await expect(admin.getByText('Pagamento: Pendente', { exact: true })).toBeVisible();

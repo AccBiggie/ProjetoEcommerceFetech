@@ -8,11 +8,12 @@ const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 function testUri(database) {
     if (!/^fetech_[a-z][a-z0-9_]*_\d+_\d+$/.test(database)) throw new Error('Database de teste inválida.');
     if (!process.env.FETECH_TEST_MONGO_BASE) throw new Error('Use o runner de replica set isolado.');
-    const url = new URL(process.env.FETECH_TEST_MONGO_BASE);
+    const url = require('../scripts/ci/policy').assertTestBase(process.env.FETECH_TEST_MONGO_BASE, process.env.FETECH_TEST_RUN_ID);
     url.pathname = '/' + database;
     return url.toString();
 }
 async function startReplicaSet({ standalone = false } = {}) {
+    await fs.mkdir(path.join(root, '.local'), { recursive: true });
     const directory = await fs.mkdtemp(path.join(root, '.local/test-mongo-rs-'));
     const port = await new Promise(resolve => { const server = net.createServer(); server.listen(0, '127.0.0.1', () => { const port = server.address().port; server.close(() => resolve(port)); }); });
     const executable = process.env.FETECH_TEST_MONGOD || (process.platform === 'win32' ? path.join(root, '.local/mongod.exe') : 'mongod');
@@ -41,7 +42,7 @@ async function startReplicaSet({ standalone = false } = {}) {
             while (!(await direct.db().command({ hello: 1 })).isWritablePrimary) { if (Date.now() > deadline) throw new Error('Primary indisponível.'); await sleep(150); }
         }
         await direct.close();
-        return { base: `mongodb://127.0.0.1:${port}/admin${standalone ? '' : '?replicaSet=fetech_test_rs'}`, port, stop };
+        return { base: `mongodb://127.0.0.1:${port}/admin${standalone ? '' : '?replicaSet=fetech_test_rs'}`, port, directory, stop };
     } catch (error) { await stop(); throw error; }
 }
 module.exports = { startReplicaSet, testUri };

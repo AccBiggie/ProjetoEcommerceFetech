@@ -35,10 +35,7 @@ test('MEDIA-AUD exact snapshot unchanged and provider calls zero', async () => {
 test('MEDIA-AUD minimal F036 profiles and partial Cloudinary fail-fast', () => {
     const { loadConfig } = require('../backend/config/runtimeConfig'); assert.equal(loadConfig({ DB_URI: process.env.DB_URI }, { profile: 'media-audit' }).profile, 'media-audit'); assert.equal(loadConfig({ DB_URI: process.env.DB_URI }, { profile: 'media-reconcile' }).cloudinary.enabled, false); assert.throws(() => loadConfig({ DB_URI: process.env.DB_URI, CLOUDINARY_NAME: 'partial' }, { profile: 'media-reconcile' }));
 });
-test('MEDIA-AUD runtime never imports test fake and controllers have no Cloudinary calls', () => {
-    const fs = require('node:fs'), root = path.join(__dirname, '../backend');
-    function walk(dir) { for (const entry of fs.readdirSync(dir, { withFileTypes: true })) { const file = path.join(dir, entry.name); if (entry.isDirectory()) walk(file); else if (entry.name.endsWith('.js')) { const source = fs.readFileSync(file, 'utf8'); assert.doesNotMatch(source, /fakeMediaProvider|tests\/helpers/); if (dir.endsWith('controllers')) assert.doesNotMatch(source, /cloudinary|uploader\./); } } } walk(root);
-});
+
 test('MEDIA-AUD CLI audit and reconcile default are read-only on temp DB', async () => {
     const before = await snapshot();
     async function run(script, args = []) { return new Promise((resolve, reject) => { const child = spawn(process.execPath, [path.join(__dirname, '../backend/scripts/' + script), ...args], { windowsHide: true, env: { ...process.env, DB_URI: process.env.DB_URI }, stdio: ['ignore','pipe','pipe'] }); let output = ''; child.stdout.on('data', b => { output += b; }); child.stderr.on('data', b => { output += b; }); child.once('error', reject); child.once('exit', code => resolve({ code, output })); }); }

@@ -172,3 +172,10 @@ ocultado por afirmação de ausência de COLLSCAN literal no plano.
 Não há timeout global novo, busca textual/tokenização ou mudança em pagamento,
 frete, estoque, idempotência, hierarquia ou writes comerciais. Banco fetech,
 config.env, auditoria histórica e índice F037 reais preservados.
+
+## CI F039 e rollout
+
+A suite integral valida contratos, indices e explain somente nas databases
+temporarias do replica set de teste. Nenhum indice F022 foi aplicado ao fetech.
+Rollout comercial e restore validado F024 continuam pendentes.
+[Gate comercial](CI_E_GATES_COMERCIAIS.md).

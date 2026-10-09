@@ -246,12 +246,7 @@ for (const method of ['findOneAndDelete', 'findByIdAndDelete', 'deleteOne', 'del
     else operation = () => h.User[method]({ _id: user._id }, { name: 'Replacement' });
     await assert.rejects(operation, error => error.code === 'USER_PHYSICAL_DELETE_FORBIDDEN'); assert.ok(await h.User.exists({ _id: user._id }));
 });
-test('UL-74/75 controllers/services/seeds não usam User delete/raw users collection', () => {
-    for (const directory of ['controllers', 'services', 'scripts']) for (const name of fs.readdirSync(path.join(__dirname, '../backend', directory))) {
-        if (!name.endsWith('.js')) continue; const source = fs.readFileSync(path.join(__dirname, '../backend', directory, name), 'utf8');
-        assert.doesNotMatch(source, /User\.(?:deleteOne|deleteMany|findOneAndDelete|findByIdAndDelete|findOneAndRemove|collection)\b|collection\(['"]users['"]\).*delete/, name);
-    }
-});
+
 test('UL cadastro/perfil/admin update ignoram injeção de lifecycle', async () => {
     const body = { accountStatus: 'DEACTIVATED', deactivatedAt: new Date().toISOString(), deactivatedBy: admin.id };
     await h.request('PUT', '/me/update', { ...body, name: user.name, email: user.email }, cookie, 200);

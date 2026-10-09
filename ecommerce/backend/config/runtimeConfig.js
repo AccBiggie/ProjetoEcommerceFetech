@@ -106,5 +106,12 @@ function loadConfig(env, { profile = 'server' } = {}) {
 let runtime;
 function initializeConfig(env, options) { const validated = loadConfig(env, options); runtime = validated; return validated; }
 function getRuntimeConfig() { return runtime || initializeConfig(process.env); }
-function loadEnvironment() { require('dotenv').config({ path: require('node:path').join(__dirname, 'config.env'), quiet: true }); }
+function loadEnvironment() {
+    if (process.env.FETECH_TEST_RUN_ID !== undefined) {
+        if (!/^[a-f0-9]{32}$/.test(process.env.FETECH_TEST_RUN_ID)) throw new ConfigurationError([{ variable: 'FETECH_TEST_RUN_ID', reason: 'identidade isolada inválida' }]);
+        return;
+    }
+    if (process.env.CI) throw new ConfigurationError([{ variable: 'FETECH_TEST_RUN_ID', reason: 'CI exige configuração sintética do runner' }]);
+    require('dotenv').config({ path: require('node:path').join(__dirname, 'config.env'), quiet: true });
+}
 module.exports = { ConfigurationError, loadConfig, initializeConfig, getRuntimeConfig, loadEnvironment };

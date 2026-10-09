@@ -14,8 +14,8 @@ test('reviews: criação, atualização e segundo usuário exibem agregados do b
     await login(page, 'admin@routes.example.com');
     const created = await mutation(page, 'post', '/api/v1/product/new', { data: productData({ name: 'Produto E2E Reviews', Stock: 0 }) });
     expect(created.status()).toBe(201); const id = (await created.json()).product._id;
-    const adminContext = await browser.newContext({ baseURL: 'http://127.0.0.1:3300', storageState: await page.context().storageState() });
-    const context = await browser.newContext({ baseURL: 'http://127.0.0.1:3300' });
+    const adminContext = await browser.newContext({ baseURL: require('../helpers/e2eContext').context().origin, storageState: await page.context().storageState() });
+    const context = await browser.newContext({ baseURL: require('../helpers/e2eContext').context().origin });
     try {
         const customer = await context.newPage(); await login(customer, 'reviews-a@routes.example.com'); await customer.goto('/product/' + id);
         const send = async (rating, comment) => {
