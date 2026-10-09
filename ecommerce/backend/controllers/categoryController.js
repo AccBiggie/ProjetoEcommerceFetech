@@ -21,13 +21,15 @@ async function categoryInput(body, current, session) {
 }
 
 exports.getCategories = catchAsyncErrors(async (req, res, next) => {
+    const paging = require('../utils/pagination');
+    paging.queryContract(req, ['parent_id']);
     const filter = {};
     if (req.query.parent_id !== undefined) {
         if (req.query.parent_id === "null") filter.parent_id = null;
         else if (mongoose.isObjectIdOrHexString(req.query.parent_id)) filter.parent_id = req.query.parent_id;
         else return next(new ErrorHander("Identificador da categoria pai inválido.", 400));
     }
-    res.json({ success: true, categories: await Category.find(filter).sort({ createdAt: 1, _id: 1 }) });
+    res.json({ success: true, categories: await paging.reference(Category, filter, { createdAt: 1, _id: 1 }, 1000, '_id name parent_id createdAt') });
 });
 exports.getCategory = catchAsyncErrors(async (req, res, next) => {
     const category = await Category.findById(req.params.id);

@@ -1,5 +1,10 @@
 # Lifecycle seguro de usuários — FET-DATA-003 / F016
 
+## Listagem paginada — F022
+
+GET admin/users default 25/max 100, createdAt/_id estável, status active/deactivated/all preserva legado sem accountStatus. Projeção inclui metadata admin e exclui password/reset/tokenVersion/avatarRevision/fence. Metadata.pagination informa total; filtro reseta página 1 no painel. Lifecycle F016 e revogação de sessões preservados. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).
+
+
 Contrato em 08/10/2026. Contas são desativadas e reativadas; a identidade histórica permanece no MongoDB. Não há exclusão física nem cascata no runtime comercial.
 
 ## Estado e campos controlados pelo servidor

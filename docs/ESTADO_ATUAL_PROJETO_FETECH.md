@@ -1,5 +1,10 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F022 — Paginação e performance — FET-PERF-001
+
+**CORRIGIDO NO CÓDIGO.** Contrato central, coleções crescentes paginadas, referências com teto integral, filtros/sorts estritos, payloads projetados, índices justificados e tooling protegido/read-only. Frontend pagina de fato e descarta respostas antigas. Validação final: API 1484 aprovados/15 skips F024; E2E 57/57, build/diff aprovados e audit zero. Resultados no [relatório](RELATORIO_FET_PERF_001.md). F037 **já commitada em 68cb9b3**; F022 permanece sem commit. **PENDING PRODUCTION INDEX OPERATIONS:** índices F022 e atualização explícita do ledger F037 não aplicados; F024 backup/restore é gate. Banco fetech/config.env/auditoria histórica preservados. Substring/legacy/count mantêm custo residual F038. F024 parcial, F029/F030 abertos, F001/F027 adiados. Próxima recomendação F039, não iniciada automaticamente. [Contrato](PAGINACAO_E_PERFORMANCE_API.md). Este status prevalece sobre registros históricos abaixo.
+
+
 ## F037 — coerência integral de Product — FET-CATALOG-001
 
 **CORRIGIDO NO CÓDIGO.** productDomain/productMutationService centralizam a
@@ -10,10 +15,10 @@ retorna 409. audit:products é somente leitura em snapshot, sem repair/provider.
 O rollout exige atualização explícita do índice de movimentos; operação foi
 testada somente em database temporária e o fetech em execução foi preservado.
 [Contrato](COERENCIA_PRODUTOS.md), [relatório](RELATORIO_FET_CATALOG_001.md).
-F031 estava commitada; esta task permanece sem commit. F002–F018,
+F031 já estava commitada; F037 foi commitada em 68cb9b3. F022 acima permanece sem commit. F002–F018,
 F020/F021/F025/F031/F036 continuam corrigidos; F019 cobre novas substituições.
 F024 PARCIAL (Tools/drill ausentes); F029/F030 abertos; F001/F027 adiados.
-Próxima recomendação F022 — performance/paginação, sem início automático.
+F022 — performance/paginação foi tratada na seção corrente acima.
 Este status prevalece sobre referências históricas abaixo à F037 aberta.
 
 ## F017 — Hierarquia concorrente — FET-DATA-005

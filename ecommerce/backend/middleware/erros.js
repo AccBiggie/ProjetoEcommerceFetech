@@ -38,7 +38,7 @@ module.exports = (err,req,res,next) => {
     if (res.headersSent) return next(err);
     res.status(status).json({
         success: false,
-        ...(typeof err.code === "string" && /^(ORDER_[A-Z_]+|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_[A-Z_]{1,60})$/.test(err.code) ? { code: err.code } : {}),
+        ...(typeof err.code === "string" && /^(ORDER_[A-Z_]+|CATEGORY_[A-Z_]{1,60}|AVATAR_[A-Z_]{1,60}|MEDIA_[A-Z_]{1,60}|PRODUCT_[A-Z_]{1,60}|INVALID_QUERY|INVALID_PAGINATION|PAGINATION_RANGE_TOO_LARGE|REFERENCE_SET_TOO_LARGE|KEYWORD_TOO_LONG)$/.test(err.code) ? { code: err.code } : {}),
         message: status >= 500 ? 'Não foi possível concluir a operação.' : err.message,
     });
 };

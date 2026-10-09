@@ -11,6 +11,7 @@ import {
   DialogContentText,
   DialogTitle,
   LinearProgress,
+  Pagination,
   Link as MuiLink,
   Stack,
   Tab,
@@ -22,7 +23,7 @@ import {
 } from "@mui/material";
 import DataTable from "../layout/DataTable";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
@@ -50,23 +51,31 @@ export default function Dashboard() {
   const [archived, setArchived] = useState('active');
   const [tab, setTab] = useState("products");
   const [data, setData] = useState({ products: [], users: [], orders: [] });
+  const [pages, setPages] = useState({ products: 1, users: 1, orders: 1 });
+  const [pagination, setPagination] = useState({});
+  const requestSequence = useRef(0);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState(emptyProduct);
-  const load = useCallback(async () => {
+  const load = useCallback(async (signal) => {
+    const sequence = ++requestSequence.current;
     const [products, users, orders] = await Promise.all([
-      axios.get("/api/v1/admin/products"),
-      axios.get("/api/v1/admin/users", { params: { status: userStatus } }),
-      axios.get("/api/v1/admin/orders", { params: { archived } }),
+      axios.get("/api/v1/admin/products", { signal, params: { page: pages.products, limit: 25 } }),
+      axios.get("/api/v1/admin/users", { signal, params: { status: userStatus, page: pages.users, limit: 25 } }),
+      axios.get("/api/v1/admin/orders", { signal, params: { archived, page: pages.orders, limit: 25 } }),
     ]);
+    if (sequence !== requestSequence.current || signal?.aborted) return;
+    setPagination({ products: products.data.pagination, users: users.data.pagination, orders: orders.data.pagination });
     setData({
       products: products.data.products,
       users: users.data.users,
       orders: orders.data.orders,
     });
-  }, [archived, userStatus]);
+  }, [archived, userStatus, pages]);
   useEffect(() => {
-    load().catch((error) => setError(getErrorMessage(error)));
+    const controller = new AbortController();
+    load(controller.signal).catch((error) => { if (!axios.isCancel(error) && !controller.signal.aborted) setError(getErrorMessage(error)); });
+    return () => controller.abort();
   }, [load]);
   const mutate = async (action) => {
     setError("");
@@ -121,9 +130,9 @@ export default function Dashboard() {
         }}
       >
         {[
-          ["Produtos", data.products.length],
-          ["Usuários", data.users.length],
-          ["Pedidos", data.orders.length],
+          ["Produtos", pagination.products?.total ?? 0],
+          ["Usuários", pagination.users?.total ?? 0],
+          ["Pedidos", pagination.orders?.total ?? 0],
         ].map(([label, value]) => (
           <Card key={label} sx={{ p: 3 }}>
             <Typography color="textSecondary">{label}</Typography>
@@ -261,12 +270,10 @@ export default function Dashboard() {
                     <Button
                       size="small"
                       disabled={pending}
-                      onClick={() =>
-                        setDraft({
-                          ...product,
-                          imageUrl: product.images[0]?.url || "/Profile.png",
-                        })
-                      }
+                      onClick={() => mutate(async () => {
+                        const { data } = await axios.get('/api/v1/product/' + product._id);
+                        setDraft({ ...data.product, imageUrl: data.product.images[0]?.url || '/Profile.png' });
+                      })}
                     >
                       Editar
                     </Button>
@@ -294,7 +301,7 @@ export default function Dashboard() {
       {tab === "users" && (
         <Box>
         <TextField select label="Filtrar usuários" value={userStatus} disabled={pending}
-          slotProps={{ select: { native: true } }} onChange={event => setUserStatus(event.target.value)} sx={{ mb: 2 }}>
+          slotProps={{ select: { native: true } }} onChange={event => { setUserStatus(event.target.value); setPages(value => ({ ...value, users: 1 })); }} sx={{ mb: 2 }}>
           <option value="active">Ativos</option><option value="deactivated">Desativados</option><option value="all">Todos</option>
         </TextField>
         <DataTable
@@ -353,7 +360,7 @@ export default function Dashboard() {
       {tab === "orders" && (
         <Box>
         <TextField select label="Filtrar pedidos" value={archived} disabled={pending}
-          slotProps={{ select: { native: true } }} onChange={event => setArchived(event.target.value)} sx={{ mb: 2 }}>
+          slotProps={{ select: { native: true } }} onChange={event => { setArchived(event.target.value); setPages(value => ({ ...value, orders: 1 })); }} sx={{ mb: 2 }}>
           <option value="active">Ativos</option><option value="archived">Arquivados</option><option value="all">Todos</option>
         </TextField>
         <DataTable
@@ -429,6 +436,8 @@ export default function Dashboard() {
         </DataTable>
         </Box>
       )}
+      {pagination[tab]?.pages > 1 && <Pagination aria-label={'Paginação de ' + tab} sx={{ mt: 3 }} count={pagination[tab].pages} page={pages[tab]} disabled={pending}
+        onChange={(_, page) => setPages(value => ({ ...value, [tab]: page }))} />}
       <Dialog
         open={Boolean(confirmation)}
         onClose={() => setConfirmation(null)}

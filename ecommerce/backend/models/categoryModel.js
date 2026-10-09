@@ -5,7 +5,7 @@ const categorySchema = new mongoose.Schema({
     name_key: { type: String, required: true, unique: true, select: false },
     parent_id: { type: mongoose.Schema.Types.ObjectId, ref: "Category", default: null },
 }, { timestamps: true });
-categorySchema.index({ parent_id: 1 });
+require('../utils/queryIndexes').add(categorySchema, 'categories');
 categorySchema.set("toJSON", { transform: (doc, result) => { delete result.name_key; return result; } });
 
 module.exports = mongoose.model("Category", categorySchema);

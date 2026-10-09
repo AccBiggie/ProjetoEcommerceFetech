@@ -26,7 +26,7 @@ schema.index({ createdAt: -1, _id: -1 });
 schema.index({ action: 1, createdAt: -1, _id: -1 });
 schema.index({ targetType: 1, targetId: 1, createdAt: -1, _id: -1 });
 schema.index({ actorUserId: 1, createdAt: -1, _id: -1 });
-schema.index({ requestId: 1 });
+require('../utils/queryIndexes').add(schema, 'adminauditevents');
 const Model = mongoose.model('AdminAuditEvent', schema);
 // Bulk APIs can disable middleware; reject them before that option is considered.
 for (const method of ['bulkWrite','bulkSave']) Model[method] = async () => immutable();

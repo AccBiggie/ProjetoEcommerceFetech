@@ -152,6 +152,8 @@ test('CHECKOUT CSRF, tipos admin e privacidade preservados', async () => {
     assert.match(reply.response.headers.get('cache-control'), /no-store/);
     assert.equal(reply.result.token, undefined);
     const admin = await h.request('GET', '/admin/orders', null, cookie, 200);
-    const order = admin.result.orders.find(o => o._id === reply.result.order._id);
+    const summary = admin.result.orders.find(o => o._id === reply.result.order._id);
+    assert.equal(summary.shippingInfo, undefined);
+    const order = (await h.request('GET', '/order/' + summary._id, null, cookie, 200)).result.order;
     for (const value of Object.values(order.shippingInfo)) assert.equal(typeof value, 'string');
 });

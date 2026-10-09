@@ -13,6 +13,6 @@ const addressSchema = new mongoose.Schema({
 
 // A unicidade também vale para escritas concorrentes e outros processos.
 addressSchema.index({ user: 1 }, { unique: true, partialFilterExpression: { favorite: true }, name: "one_favorite_per_user" });
-addressSchema.index({ user: 1, favorite: -1, createdAt: -1 });
+require('../utils/queryIndexes').add(addressSchema, 'addresses');
 
 module.exports = mongoose.model("Address", addressSchema);

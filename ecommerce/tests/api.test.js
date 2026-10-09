@@ -321,7 +321,8 @@ test('endereços: múltiplos registros, CRUD privado, dados string e proprietár
     const second = (await request('POST', '/address/new', addressData({ label: 'Trabalho', country: undefined, favorite: true }), 'addressOwner', 201)).result.address;
     assert.equal(second.country, 'Brasil');
     const foreign = (await request('POST', '/address/new', addressData({ label: 'Outro usuário', favorite: true }), 'addressOther', 201)).result.address;
-    const list = (await request('GET', '/addresses?user=' + accounts.addressOther._id, null, 'addressOwner')).result.addresses;
+    await request('GET', '/addresses?user=' + accounts.addressOther._id, null, 'addressOwner', 400);
+    const list = (await request('GET', '/addresses', null, 'addressOwner')).result.addresses;
     assert.equal(list.length, 2); assert.equal(list[0]._id, second._id);
     assert.ok(list.every(address => address.user === accounts.addressOwner._id));
     assert.equal((await request('GET', '/addresses', null, 'addressOther')).result.addresses.length, 1);

@@ -113,7 +113,7 @@ test('AUD audit model sem TTL e índices de consultas definidos',async()=>{
 test('AUD sem endpoints para criar ou remover eventos',async()=>{await h.request('POST','/admin/audit-events',{},admin,404);await h.request('DELETE','/admin/audit-events',null,admin,404);});
 test('AUD read API exige admin e usa no-store',async()=>{
     await h.request('GET','/admin/audit-events',null,null,401);await h.request('GET','/admin/audit-events',null,customer,403);
-    const r=await h.request('GET','/admin/audit-events',null,admin,200);assert.match(r.response.headers.get('cache-control'),/no-store/);assert.deepEqual(r.result.pagination,{page:1,limit:25,total:0,pages:0});
+    const r=await h.request('GET','/admin/audit-events',null,admin,200);assert.match(r.response.headers.get('cache-control'),/no-store/);assert.deepEqual(r.result.pagination,{page:1,limit:25,total:0,pages:0,hasNext:false,hasPrevious:false});
 });
 test('AUD paginação real estável, default 25, máximo 100 e segunda página',async()=>{
     for(let i=0;i<28;i++)await category();const a=await h.request('GET','/admin/audit-events',null,admin,200),b=await h.request('GET','/admin/audit-events?page=2',null,admin,200);

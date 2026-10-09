@@ -11,7 +11,9 @@ async function ownAddress(req) {
 }
 
 exports.getAddresses = catchAsyncErrors(async (req, res) => {
-    const addresses = await Address.find({ user: req.user._id }).sort({ favorite: -1, createdAt: -1, _id: -1 });
+    const paging = require('../utils/pagination');
+    paging.queryContract(req, []);
+    const addresses = await paging.reference(Address, { user: req.user._id }, { favorite: -1, createdAt: -1, _id: -1 }, 100, '-__v');
     res.json({ success: true, addresses });
 });
 exports.getAddress = catchAsyncErrors(async (req, res) => {

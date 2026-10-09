@@ -7,6 +7,7 @@ import {
   TableCell,
   TableRow,
   Typography,
+  Pagination,
 } from "@mui/material";
 import DataTable from "../layout/DataTable";
 import Loader from "../layout/Loader/Loader";
@@ -22,17 +23,20 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState(null);
   useEffect(() => {
     const controller = new AbortController();
+    setLoading(true); setError('');
     axios
-      .get("/api/v1/orders/me", { signal: controller.signal })
-      .then(({ data }) => setOrders(data.orders))
+      .get("/api/v1/orders/me", { signal: controller.signal, params: { page, limit: 25 } })
+      .then(({ data }) => { if (!controller.signal.aborted) { setOrders(data.orders); setPagination(data.pagination); } })
       .catch((error) => {
         if (!axios.isCancel(error)) setError(getErrorMessage(error));
       })
-      .finally(() => setLoading(false));
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, []);
+  }, [page]);
   return (
     <Page
       title="Meus pedidos"
@@ -79,6 +83,7 @@ export default function Orders() {
           ))}
         </DataTable>
       )}
+      {pagination?.pages > 1 && <Pagination aria-label="Paginação dos meus pedidos" sx={{ mt: 3 }} count={pagination.pages} page={page} disabled={loading} onChange={(_, value) => setPage(value)} />}
       <Button component={Link} to="/products" sx={{ mt: 2 }}>
         Continuar comprando
       </Button>

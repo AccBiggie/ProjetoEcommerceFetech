@@ -62,6 +62,7 @@ const userSchema = new mongoose.Schema ( {
         },
     },
 });
+require('../utils/queryIndexes').add(userSchema, 'users');
 userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.password;
     delete result.avatarRevision;

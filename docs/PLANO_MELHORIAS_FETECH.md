@@ -1,5 +1,10 @@
 # Plano de melhorias Fetech
 
+## F022 — Paginação e consultas previsíveis
+
+**CORRIGIDO NO CÓDIGO.** API 1484 aprovados/15 skips F024, E2E 57/57, build/diff/audit aprovados. Resultados no [relatório](RELATORIO_FET_PERF_001.md). Paginação central, query allowlists, summaries, frontend e índice/manifesto/migration dry-run protegida. F037 commitada em 68cb9b3; esta task sem commit. Índices comerciais não aplicados, ledger F037 continua gate; F024 parcial. Search substring/legacy/count/cursor de escala permanecem residual F038. Próxima recomendação **F039: inventariar e completar gates de CI**, sem início automático. F001/F027 adiados; F029/F030 abertos. [Contrato](PAGINACAO_E_PERFORMANCE_API.md). Este status prevalece sobre registros históricos abaixo.
+
+
 ## F037 — Coerência integral de Product
 
 Status: **CORRIGIDO NO CÓDIGO** — FET-CATALOG-001.
@@ -17,7 +22,7 @@ mais amplo de Product separado; deploy requer índice parcial de RESERVE, sem
 migração do banco real nesta tarefa. F024 segue PARCIAL e reparos comerciais
 aguardam backup/restore comprovado. F001/F027 continuam adiados.
 [Contrato](COERENCIA_PRODUTOS.md), [relatório](RELATORIO_FET_CATALOG_001.md).
-Próxima recomendação: F022 — performance/paginação. Não iniciada automaticamente.
+F022 foi tratada na seção corrente acima; F037 está commitada em 68cb9b3.
 Este status substitui referências históricas abaixo à F037 aberta.
 
 ## F017 — Concorrência na hierarquia de categorias — FET-DATA-005

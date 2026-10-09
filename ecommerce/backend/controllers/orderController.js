@@ -3,10 +3,12 @@ const { runAuditedAdminMutation } = require('../services/adminAuditService');
 const Order = require('../models/orderModel');
 const ErrorHander = require('../utils/errorHander');
 const catchAsyncErrors = require('../middleware/catchAsyncErrors');
-const { readCents, sumCents, formatCentsToDecimal } = require('../utils/money');
+const { formatCentsToDecimal } = require('../utils/money');
 const { canonicalCheckout, serializeOrderIntent } = require('../../shared/orderIntent.mjs');
 const { createOrderIdempotencyService, requestKey } = require('../services/orderIdempotencyService');
 const inventory = require('../services/orderInventoryService').createOrderInventoryService();
+const paging = require('../utils/pagination');
+const list = require('../utils/orderList');
 const idempotency = createOrderIdempotencyService();
 exports.newOrder = catchAsyncErrors(async (req, res) => {
     const intent = canonicalCheckout(req.body), key = requestKey(req);
@@ -26,15 +28,29 @@ exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
     res.json({ success: true, order: req.user.role === 'admin' ? history.adminOrder(order) : history.customerOrder(order) });
 });
 exports.myOrders = catchAsyncErrors(async (req, res) => {
-    const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 }).lean();
-    res.json({ success: true, orders: orders.map(history.customerOrder) });
+    paging.queryContract(req, ['page','limit','sort','status']);
+    const filter = { user: req.user._id, ...statusFilter(req.query.status) };
+    const result = await paging.collection(Order, filter, paging.parsePagination(req.query), list.fields, paging.sort(req.query));
+    res.json({ success: true, orders: result.items.map(order => list.summary(order)), pagination: result.pagination });
 });
+function statusFilter(status) {
+    if (status === undefined) return {};
+    if (!['Processing','Shipped','Delivered'].includes(status)) paging.bad();
+    return { orderStatus: status };
+}
 exports.getAllOrders = catchAsyncErrors(async (req, res) => {
-    const params = new URL(req.originalUrl, 'http://localhost').searchParams;
-    if (params.getAll('archived').length > 1 || [...params.keys()].some(key => key.startsWith('archived['))) throw new ErrorHander('Filtro de arquivamento inválido.', 400);
-    const orders = await Order.find(history.archiveFilter(req.query.archived)).select(history.fields).sort({ createdAt: -1 }).lean();
-    const totalAmountCents = sumCents(orders.map(order => readCents(order, 'totalPrice')));
-    res.json({ success: true, totalAmountCents, totalAmount: formatCentsToDecimal(totalAmountCents), orders: orders.map(history.adminOrder) });
+    paging.queryContract(req, ['page','limit','sort','archived','status']);
+    const filter = { ...history.archiveFilter(req.query.archived), ...statusFilter(req.query.status) };
+    const [result, totals] = await Promise.all([
+        paging.collection(Order, filter, paging.parsePagination(req.query), list.fields + ' ' + history.fields, paging.sort(req.query)),
+        Order.aggregate([{ $match: filter }, { $project: { cents: require('../utils/apiFeatures').priceExpression('totalPrice') } },
+            { $group: { _id: null, total: { $sum: '$cents' }, invalid: { $sum: { $cond: [
+                { $cond: [{ $isNumber: '$cents' }, { $and: [{ $gte: ['$cents', 0] }, { $lte: ['$cents', Number.MAX_SAFE_INTEGER] }, { $eq: ['$cents', { $trunc: '$cents' }] }] }, false] }, 0, 1,
+            ] } } } }]),
+    ]);
+    if (totals[0]?.invalid) throw new (require('../utils/money').MoneyError)();
+    const totalAmountCents = require('../utils/money').assertCents(Number(totals[0]?.total ?? 0));
+    res.json({ success: true, totalAmountCents, totalAmount: formatCentsToDecimal(totalAmountCents), orders: result.items.map(order => list.summary(order, true)), pagination: result.pagination });
 });
 exports.updateOrder = catchAsyncErrors(async (req, res) => {
     const order = await runAuditedAdminMutation(req, async session => {

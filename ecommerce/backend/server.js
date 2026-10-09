@@ -11,6 +11,7 @@ async function startServer(env, dependencies = {}) {
     await (dependencies.connect || require('./config/database'))(config);
     await (dependencies.requireTransactions || require('./config/mongoTransactions').requireTransactions)();
     await (dependencies.prepare || (async () => {
+        await require('./utils/indexOperations').assertInvariants(require('mongoose').connection.db);
         await require('./models/addressModel').init();
         await require('./models/orderModel').init();
         await require('./models/orderIdempotencyModel').init();

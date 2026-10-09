@@ -3,9 +3,9 @@ const { runAuditedAdminMutation } = require('../services/adminAuditService');
 const { runHierarchyAdminMutation, validateBody } = require('../services/categoryHierarchyService');
 const ErrorHander = require("../utils/errorHander");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
-const ApiFeatures = require("../utils/apiFeatures");
-const Category = require("../models/categoryModel");
-const { categoryKey } = require("../utils/categories");
+const paging = require('../utils/pagination');
+const { productFilter, productProjection } = require('../utils/listQueries');
+const { presentProduct } = require('../utils/money');
 const mutations = require('../services/productMutationService');
 const domain = require('../utils/productDomain');
 exports.createProduct = catchAsyncErrors(async (req, res) => {
@@ -19,28 +19,19 @@ exports.createProduct = catchAsyncErrors(async (req, res) => {
     res.status(201).json({ success: true, product });
 });
 exports.getAllProducts = catchAsyncErrors(async (req, res) => {
-    const resultPerPage = 12;
-    const feature = new ApiFeatures(Product.find(), { ...req.query, category: undefined }).search().filter();
-    if (typeof req.query.category === "string" && req.query.category) {
-        const categories = await Category.find().lean();
-        const selected = categories.find(category => String(category._id) === req.query.category || categoryKey(category.name) === categoryKey(req.query.category));
-        if (selected) {
-            const ids = new Set([String(selected._id)]);
-            let previousSize;
-            do {
-                previousSize = ids.size;
-                for (const category of categories) if (ids.has(String(category.parent_id))) ids.add(String(category._id));
-            } while (previousSize !== ids.size);
-            feature.query = feature.query.find({ category_id: { $in: [...ids] } });
-        } else feature.query = feature.query.find({ category: req.query.category });
-    }
-    const filteredProductsCount = await Product.countDocuments(feature.query.getFilter());
-    const productsCount = await Product.countDocuments();
-    const products = await feature.pagination(resultPerPage).query;
-    res.json({ success: true, products, productsCount, filteredProductsCount, resultPerPage });
+    const pagination = paging.parsePagination(req.query, 12);
+    const { filter, query } = await productFilter(req, Product);
+    const [result, productsCount] = await Promise.all([
+        paging.collection(Product, filter, pagination, productProjection, paging.sort(query)), Product.countDocuments(),
+    ]);
+    res.json({ success: true, products: result.items.map(presentProduct), pagination: result.pagination,
+        productsCount, filteredProductsCount: result.pagination.total, resultPerPage: pagination.limit });
 });
 exports.getAdminProducts = catchAsyncErrors(async (req, res) => {
-    res.json({ success: true, products: await Product.find().sort({ createdAt: -1 }) });
+    const pagination = paging.parsePagination(req.query);
+    const { filter, query } = await productFilter(req, Product);
+    const result = await paging.collection(Product, filter, pagination, productProjection, paging.sort(query));
+    res.json({ success: true, products: result.items.map(presentProduct), pagination: result.pagination });
 });
 exports.getProductDetails = catchAsyncErrors(async (req, res, next) => {
     const product = await Product.findById(req.params.id);
@@ -71,9 +62,16 @@ exports.createProductReview = catchAsyncErrors(async (req, res) => {
     res.json({ success: true, product });
 });
 exports.getProductReviews = catchAsyncErrors(async (req, res) => {
-    const product = await Product.findById(objectId(req.query.productId || req.query.id));
+    const query = paging.queryContract(req, ['page','limit','productId','id']);
+    if (query.productId !== undefined && query.id !== undefined) paging.bad();
+    const pagination = paging.parsePagination(query);
+    const id = objectId(query.productId || query.id);
+    const [product] = await Product.aggregate([
+        { $match: { _id: id } },
+        { $project: { total: { $size: { $ifNull: ['$reviews', []] } }, reviews: { $slice: [{ $ifNull: ['$reviews', []] }, pagination.skip, pagination.limit] } } },
+    ]);
     if (!product) throw new ErrorHander('Produto não encontrado.', 404);
-    res.json({ success: true, reviews: product.reviews });
+    res.json({ success: true, reviews: product.reviews, pagination: paging.metadata(pagination, product.total) });
 });
 exports.deleteReview = catchAsyncErrors(async (req, res) => {
     // Validate before entering the administrative transaction.

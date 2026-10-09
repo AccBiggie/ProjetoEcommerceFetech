@@ -19,6 +19,8 @@
     "restore:db": "node backend/scripts/restoreDatabase.js",
     "verify:backup": "node backend/scripts/verifyBackup.js",
     "audit:products": "node backend/scripts/auditProducts.js",
+    "audit:indexes": "node backend/scripts/auditIndexes.js",
+    "migrate:indexes": "node backend/scripts/indexes.js",
     "upgrade:stock-index": "node backend/scripts/upgradeStockLedgerIndex.js",
     "audit:reviews": "node backend/scripts/auditReviews.js",
     "audit:categories": "node backend/scripts/auditCategories.js",

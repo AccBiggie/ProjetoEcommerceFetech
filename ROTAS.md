@@ -1,5 +1,10 @@
 # Revisao das rotas e dos fluxos
 
+## Paginação — F022
+
+Coleções Products/Orders/Users/Audit/Reviews paginadas; page=1, limite padrão 25 (catálogo 12), máximo 100, skip máximo 100000. Query params desconhecidos, duplicados ou estruturados são 400. Categories são referência integral com teto 1000; addresses proprietário com teto 100; overflow 503 sem truncamento. Novos summaries exigem detalhe para snapshot/edição. [Inventário e contrato](docs/PAGINACAO_E_PERFORMANCE_API.md).
+
+
 ## Product — contrato F037
 
 POST /api/v1/product/new (201) e PUT /api/v1/product/:id (200) exigem admin,

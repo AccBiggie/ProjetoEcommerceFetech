@@ -51,8 +51,10 @@ test('idempotência: duplo submit, resposta perdida e reload recuperam um único
     expect(await attempt(page)).toBeNull();
     const orders = (await (await page.request.get('/api/v1/orders/me')).json()).orders;
     expect(orders).toHaveLength(1);
-    expect(orders[0].shippingInfo.pinCode).toBe('01234567');
-    expect(orders[0].shippingInfo.phoneNo).toBe('04123456789');
+    expect(orders[0].shippingInfo).toBeUndefined();
+    const detail = (await (await page.request.get('/api/v1/order/' + orders[0]._id)).json()).order;
+    expect(detail.shippingInfo.pinCode).toBe('01234567');
+    expect(detail.shippingInfo.phoneNo).toBe('04123456789');
     const finalStock = (await (await page.request.get('/api/v1/product/' + cart[0].product)).json()).product.Stock;
     expect(finalStock).toBe(initialStock - cart[0].quantity);
 });

@@ -1,5 +1,10 @@
 # Observabilidade operacional — FET-OPS-002
 
+## Integração de paginação — F022
+
+Audit API usa parser central page/limit com skip máximo 100000 e booleans hasNext/hasPrevious. Filtros/DTO F025, imutabilidade, Request ID e no-store preservados; count/list em paralelo. audit:indexes separado é somente leitura, sem dados/URI ou import de models. Sem logging de query bruta, timeout global ou nova telemetria. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).
+
+
 ## Product — extensão F037
 
 PRODUCT_CREATED/PRODUCT_UPDATED/PRODUCT_DELETED permanecem; PRODUCT_UPDATED

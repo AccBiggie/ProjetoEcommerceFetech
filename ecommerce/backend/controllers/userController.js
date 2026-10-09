@@ -165,13 +165,17 @@ exports.updateAvatar = catchAsyncErrors(async (req, res) => {
 });
 //GET ALL USERS (Admin)
 exports.getAllUser = catchAsyncErrors (async (req, res, next) => {
+    const paging = require('../utils/pagination');
+    paging.queryContract(req, ['page','limit','sort','status']);
+    const pagination = paging.parsePagination(req.query);
     const status = req.query.status === undefined ? 'active' : req.query.status;
     if (typeof status !== 'string' || !['active', 'deactivated', 'all'].includes(status)) throw new ErrorHander('Filtro de status inválido.', 400);
-    const users = await User.find(status === 'active' ? activeFilter() : status === 'deactivated' ? { accountStatus: 'DEACTIVATED' } : {});
+    const result = await paging.collection(User, status === 'active' ? activeFilter() : status === 'deactivated' ? { accountStatus: 'DEACTIVATED' } : {}, pagination,
+        '_id name email role avatar createdAt accountStatus deactivatedAt deactivatedBy', paging.sort(req.query));
 
     res.status(200).json({
         success: true,
-        users: users.map(adminUser),
+        users: result.items.map(adminUser), pagination: result.pagination,
     });
 });
 //GET SINGLE USER (Admin)

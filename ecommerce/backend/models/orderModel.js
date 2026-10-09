@@ -74,6 +74,7 @@ const orderSchema = new mongoose.Schema({
 }, { optimisticConcurrency: true });
 
 orderSchema.index({ user: 1, idempotencyKeyHash: 1 }, { unique: true, name: 'one_order_per_key', partialFilterExpression: { idempotencyKeyHash: { $type: 'string' } } });
+require('../utils/queryIndexes').add(orderSchema, 'orders');
 
 orderSchema.pre('validate', function () {
   if (this.shippingInfoVersion === 2) {

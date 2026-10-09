@@ -54,7 +54,6 @@ const productSchema = mongoose.Schema( {
     category_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
-        index: true,
     },
     Stock: {
         type: Number,
@@ -112,6 +111,7 @@ productSchema.pre('validate', function () {
     for (const field of productFields) this[field] = undefined;
 });
 productSchema.set('toJSON', { transform: (_doc, ret) => require('../utils/money').presentProduct(ret) });
+require('../utils/queryIndexes').add(productSchema, 'products');
 module.exports = mongoose.model("Product", productSchema);
 
 

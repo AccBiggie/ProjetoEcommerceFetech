@@ -1,5 +1,10 @@
 # Coerência de Product — FET-CATALOG-001 / F037
 
+## Listagens — F022
+
+Catálogo default 12; admin products default 25; máximo 100, sort createdAt/_id com limites centrais. Summaries usam cents/decimais explícitos F014, uma imagem, sem description/reviews; edição busca GET product/:id antes de montar body F037. Domínio, mutações, estoque e auditoria transacional preservados. **Índice F037 continua pré-requisito de deployment**, não aplicado no fetech. [Paginação/índices](PAGINACAO_E_PERFORMANCE_API.md).
+
+
 Create, update e seed passam por `backend/utils/productDomain.js` e
 `backend/services/productMutationService.js`. O backend decide o estado comercial;
 o formulário envia somente uma solicitação. Não há reparo automático de históricos.

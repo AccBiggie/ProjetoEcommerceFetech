@@ -1,5 +1,10 @@
 # Hierarquia de categorias — FET-DATA-005 / F017
 
+## Leitura limitada — F022
+
+GET categories público/admin retorna árvore integral até 1000 registros em ordem createdAt/_id ASC; somente parent_id é permitido. Overflow503 REFERENCE_SET_TOO_LARGE, sem árvore incompleta. Catálogo usa o mesmo teto para descendentes. Mutações/coordenador F017 preservados. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).
+
+
 ## Extensão F037 — coerência integral de Product
 
 Create/update/delete de Product agora coordenam a revisão F017. Updates parciais

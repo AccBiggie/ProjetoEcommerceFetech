@@ -10,7 +10,12 @@ import {
     CLEAR_ERRORS,
 }from "../constants/productConstants";
 
+let productRequest = 0;
+let productController;
 export const getProduct = (keyword = "", currentPage = 1, category) => async (dispatch) => {
+    const request = ++productRequest;
+    productController?.abort();
+    const controller = productController = new AbortController();
     try {
         dispatch({ type: ALL_PRODUCT_REQUEST });
         
@@ -18,13 +23,15 @@ export const getProduct = (keyword = "", currentPage = 1, category) => async (di
         if (category) params.set("category", category);
         const link = `/api/v1/products?${params}`;
 
-        const { data } = await axios.get(link);
+        const { data } = await axios.get(link, { signal: controller.signal });
+        if (request !== productRequest || controller.signal.aborted) return;
 
         dispatch({
             type: ALL_PRODUCT_SUCCESS,
             payload:data,
         });
     } catch (error) {
+        if (request !== productRequest || axios.isCancel(error)) return;
         dispatch ({
             type: ALL_PRODUCT_FAIL,
             payload: getErrorMessage(error),

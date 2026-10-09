@@ -1,5 +1,10 @@
 # Histórico comercial e arquivamento administrativo
 
+## Listagens paginadas — F022
+
+GET orders/me e admin/orders: default 25/max 100, page 1, skip máximo 100000, createdAt/_id estável. Customer mantém arquivados e ownership. Listas contêm resumo sem shippingInfo/orderItems; GET order/:id mantém snapshot completo e DTO privado. Admin totalAmount continua global do filtro via aggregate. Filtros archived/status allowlisted; painel/histórico possuem controles de página e proteção de respostas obsoletas. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).
+
+
 FET-OPS-002: archive/unarchive efetivos agora geram `ORDER_ARCHIVED`/`ORDER_UNARCHIVED` na mesma transaction da mutação. Metadata somente archived; ator admin e Request ID internos. Repetição é no-op sem evento fictício. Falha do insert de audit aborta archive/unarchive; Orders continuam sem exclusão física. [Observabilidade](OBSERVABILIDADE.md).
 
 Recuperação FET-OPS-001: archive BSON deve preservar pedidos ativos/arquivados, metadata administrativa, centavos, entrega, PAID/paidAt, ledger e idempotência sem excluir históricos. Verificação de conteúdo não confirma pagamento nem corrige legados. F011 permanece corrigido; F024 parcial, drill real bloqueado. [Procedimento de backup e recuperação](BACKUP_RESTORE.md).
