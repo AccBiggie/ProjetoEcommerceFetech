@@ -1,5 +1,27 @@
 # Plano de melhorias Fetech
 
+## F015 — Agregação concorrente de reviews
+
+**Status: CORRIGIDO NO CÓDIGO — FET-DATA-004.**
+
+- Mutations atômicas no documento Product, entre processos/conexões.
+- Uma review por User/Product; criações distintas preservam todas as avaliações.
+- Update preserva ID/posição e count; delete recalcula agregados atomicamente.
+- Count e média sem arredondamento derivam do array final.
+- Mass assignment não controla reviews/ratings/count.
+- Histórico inconsistente é sinalizado com 409, sem reparo arbitrário.
+- `audit:reviews` detecta divergências e órfãos somente em leitura.
+- F016 mantém reviews de desativados; F025 conserva audit administrativo transacional.
+
+Limites: histórico não reparado automaticamente; revisão humana e F024 validado
+antes de reparo real; moderação/privacy e outras coerências de Product (F037)
+fora do escopo. F024 continua **PARCIAL**, F001/F027 adiados e não iniciados.
+Banco real/config.env/auditoria histórica preservados. F016 já commitada;
+esta tarefa sem commit. [Contrato](REVIEWS_CONCORRENCIA.md) e
+[evidências](RELATORIO_FET_DATA_004.md). Próxima recomendação **F017 — hierarquia
+de categorias sob concorrência**, sem início automático. Este status prevalece
+sobre recomendações históricas abaixo.
+
 ## F016 — Lifecycle seguro de User — FET-DATA-003
 
 **CORRIGIDO NO CÓDIGO** (08/10/2026): DELETE físico de User retorna 405; model/runtime bloqueia deletes. Lifecycle ACTIVE/DEACTIVATED com metadata técnica; desativação revoga sessões/recuperação e mantém identidade/referências, reativação exige novo login. Auth verifica status e versão; F010/CLI contam somente admins ativos. Transições e eventos F025 são atômicos. Dashboard oferece status, filtros e desativar/reativar. Auditoria audit:users é somente leitura.

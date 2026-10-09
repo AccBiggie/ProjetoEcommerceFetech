@@ -85,3 +85,10 @@ Não recria usuários, apaga dependentes, altera referências ou aplica migratio
 ## Limites e continuidade
 
 Desativação **não é anonimização nem apagamento de PII**. F030 permanece aberto para retenção, erasure e privacy. Mídia/avatar continuam F018/F019. Pagamento F001 e frete F027 permanecem adiados; próxima recomendação F015 (consistência concorrente de reviews), sem início automático. Evidências: [relatório final](RELATORIO_FET_DATA_003.md) e [testes individuais](TESTES_FET_DATA_003.md).
+
+## Reviews (FET-DATA-004)
+
+Desativação não apaga reviews e mantém suas referências. DEACTIVATED recebe 401
+antes do controller; audit:reviews considera o User existente, sem finding de
+referência ausente. Ao reativar e fazer login novo, a review conserva seu ID e
+count. [Contrato](REVIEWS_CONCORRENCIA.md).

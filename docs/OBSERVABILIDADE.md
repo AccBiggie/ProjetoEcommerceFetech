@@ -108,3 +108,11 @@ LOG_LEVEL=error suprime completion informativo; para correlacionar ações bem-s
 F025 fecha a camada de código, não provisiona coleta/persistência/rotação/alertas externos. F023 deve configurar stdout/stderr, acesso, load balancer e alarmes. F030 deve definir retenção/privacy dos logs/audit; não foi criado TTL. F034 analytics comercial permanece separado. Crescimento/consulta de audit em datasets produtivos requer observação e ajustes de infraestrutura. Readiness não prova disponibilidade de todas as integrações.
 
 F024 continua **PARCIAL / AGUARDANDO MONGODUMP + MONGORESTORE**: nenhum download nesta task, restore real pendente. F001 pagamento e F027 frete continuam adiados. Banco real, config.env e auditoria histórica não foram alterados; fixtures são isoladas e sintéticas.
+
+## Reviews (FET-DATA-004)
+
+Evento `product.review.data_inconsistent`: warn com requestId e targetId do
+Product. Erro 409 `PRODUCT_REVIEW_DATA_INCONSISTENT`. Logs nunca incluem textos
+das reviews. Admin delete conserva `PRODUCT_REVIEW_DELETED` em transação com
+Product; metadata somente reviewId. Cliente comum permanece fora do audit
+administrativo. [Contrato](REVIEWS_CONCORRENCIA.md).

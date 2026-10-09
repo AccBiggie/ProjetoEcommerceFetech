@@ -1,5 +1,23 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F015 — Reviews concorrentes — FET-DATA-004
+
+**CORRIGIDO NO CÓDIGO.** Create/update/delete são atômicos no Product;
+`numOfReviews` e `ratings` derivam do array final. Uma review por usuário/produto
+sob concorrência entre processos, com ID e posição preservados em update.
+Mass assignment não controla reviews/agregados. Histórico inconsistente retorna
+409, sem reparo arbitrário; `audit:reviews` detecta divergências/órfãos em modo
+somente leitura. F016 mantém histórico de desativados; F025 mantém audit
+administrativo transacional e logs sem comentários.
+
+Detalhes: [Reviews](REVIEWS_CONCORRENCIA.md), [relatório](RELATORIO_FET_DATA_004.md).
+F016 já commitada; esta tarefa sem commit. Banco real/config.env e auditoria
+histórica preservados. F024 permanece **PARCIAL**, sem Database Tools/drill;
+F001/F027 adiados e não iniciados. Histórico exige revisão humana e backup
+validado antes de reparo real; moderação/privacy e F037 fora do escopo.
+Próxima recomendação **F017 — hierarquia de categorias sob concorrência**,
+sem início automático. Este status prevalece sobre recomendações históricas abaixo.
+
 ## F016 — Lifecycle seguro de User — FET-DATA-003
 
 **CORRIGIDO NO CÓDIGO** (08/10/2026): DELETE físico de User retorna 405; model/runtime bloqueia deletes. Lifecycle ACTIVE/DEACTIVATED com metadata técnica; desativação revoga sessões/recuperação e mantém identidade/referências, reativação exige novo login. Auth verifica status e versão; F010/CLI contam somente admins ativos. Transições e eventos F025 são atômicos. Dashboard oferece status, filtros e desativar/reativar. Auditoria audit:users é somente leitura.

@@ -68,42 +68,24 @@ exports.deleteProduct = catchAsyncErrors(async (req, res, next) => {
     });
     res.json({ success: true, message: "Produto removido." });
 });
-function recalculateReviews(product) {
-    product.numOfReviews = product.reviews.length;
-    product.ratings = product.reviews.length ? product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length : 0;
-}
-exports.createProductReview = catchAsyncErrors(async (req, res, next) => {
-    const { comment, productId } = req.body;
-    const rating = Number(req.body.rating);
-    if (!Number.isFinite(rating) || rating < 1 || rating > 5 || !String(comment || "").trim()) return next(new ErrorHander("Informe uma nota de 1 a 5 e um comentário.", 400));
-    const product = await Product.findById(productId);
-    if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
-    const existing = product.reviews.find(review => review.user.toString() === req.user.id);
-    const review = { user: req.user._id, name: req.user.name, rating, comment: String(comment).trim() };
-    if (existing) Object.assign(existing, review);
-    else product.reviews.push(review);
-    recalculateReviews(product);
-    await product.save();
-    res.json({ success: true });
+const reviews = require('../services/productReviewService');
+const { objectId } = require('../utils/reviewContract');
+exports.createProductReview = catchAsyncErrors(async (req, res) => {
+    const product = await reviews.upsert({ productId: req.body?.productId, user: req.user, body: req.body });
+    res.json({ success: true, product });
 });
-exports.getProductReviews = catchAsyncErrors(async (req, res, next) => {
-    const product = await Product.findById(req.query.productId || req.query.id);
-    if (!product) return next(new ErrorHander("Produto não encontrado.", 404));
+exports.getProductReviews = catchAsyncErrors(async (req, res) => {
+    const product = await Product.findById(objectId(req.query.productId || req.query.id));
+    if (!product) throw new ErrorHander('Produto não encontrado.', 404);
     res.json({ success: true, reviews: product.reviews });
 });
-exports.deleteReview = catchAsyncErrors(async (req, res, next) => {
+exports.deleteReview = catchAsyncErrors(async (req, res) => {
+    // Validate before entering the administrative transaction.
+    const productId = objectId(req.query.productId), reviewId = objectId(req.query.id);
     const mutate = async session => {
-        const product = await Product.findById(req.query.productId).session(session || null);
-        if (!product) throw new ErrorHander('Produto não encontrado.', 404);
-        const review = product.reviews.id(req.query.id);
-        if (!review) throw new ErrorHander('Avaliação não encontrada.', 404);
-        if (req.user.role !== 'admin' && review.user.toString() !== req.user.id) throw new ErrorHander('Você não pode remover esta avaliação.', 403);
-        product.reviews = product.reviews.filter(item => item.id !== review.id);
-        recalculateReviews(product);
-        await product.save({ session });
-        return { event: { action: 'PRODUCT_REVIEW_DELETED', targetId: product._id, metadata: { reviewId: review.id } } };
+        const value = await reviews.remove({ productId, reviewId, user: req.user, session });
+        return { value, event: { action: 'PRODUCT_REVIEW_DELETED', targetId: value._id, metadata: { reviewId: String(reviewId) } } };
     };
-    if (req.user.role === 'admin') await runAuditedAdminMutation(req, mutate);
-    else await mutate();
-    res.json({ success: true });
+    const product = req.user.role === 'admin' ? await runAuditedAdminMutation(req, mutate) : (await mutate()).value;
+    res.json({ success: true, product });
 });

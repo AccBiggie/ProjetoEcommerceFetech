@@ -1,7 +1,7 @@
 const { current } = require('./context');
 const { redact } = require('./redact');
 const levels = { debug: 0, info: 1, warn: 2, error: 3 };
-const events = new Set(['http.request.completed','http.request.aborted','http.request.error','auth.login.failed','auth.rate_limited','csrf.rejected','password.recovery.email.failed','admin.action.completed','admin.action.failed','order.transaction.failed','order.idempotency.replayed','app.started','app.shutdown.requested','app.shutdown.completed','app.startup.failed','app.uncaught_exception','app.unhandled_rejection','database.connected']);
+const events = new Set(['http.request.completed','http.request.aborted','http.request.error','auth.login.failed','auth.rate_limited','csrf.rejected','password.recovery.email.failed','admin.action.completed','admin.action.failed','order.transaction.failed','order.idempotency.replayed','app.started','app.shutdown.requested','app.shutdown.completed','app.startup.failed','app.uncaught_exception','app.unhandled_rejection','database.connected','product.review.data_inconsistent']);
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const objectId = /^[a-f0-9]{24}$/i;
 function fieldsForLog(input) {
@@ -12,7 +12,7 @@ function fieldsForLog(input) {
     if (fields.errorName !== undefined && safe.errorName === undefined) safe.errorName = 'Error';
     if (typeof fields.route === 'string' && (fields.route === 'UNMATCHED' || /^\/api\/v1\/[A-Za-z0-9_/:.-]{1,160}$/.test(fields.route))) safe.route = fields.route;
     if (typeof fields.errorCode === 'number' && Number.isSafeInteger(fields.errorCode)) safe.errorCode = fields.errorCode;
-    if (typeof fields.errorCode === 'string' && /^(ORDER_[A-Z_]{1,60}|HTTP_[45]\d\d|INTERNAL_ERROR)$/.test(fields.errorCode)) safe.errorCode = fields.errorCode;
+    if (typeof fields.errorCode === 'string' && /^(ORDER_[A-Z_]{1,60}|PRODUCT_REVIEW_DATA_INCONSISTENT|HTTP_[45]\d\d|INTERNAL_ERROR)$/.test(fields.errorCode)) safe.errorCode = fields.errorCode;
     if (fields.transactionCapable === true) safe.transactionCapable = true;
     if (Object.hasOwn(require('./auditContract').actions, fields.action)) safe.action = fields.action;
     if (['ORDER','USER','PRODUCT','CATEGORY'].includes(fields.targetType)) safe.targetType = fields.targetType;

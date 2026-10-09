@@ -115,3 +115,7 @@ HTTP/JWT/SMTP/Cloudinary/frontend. Sem novas variáveis. O entrypoint
 `auditShippingSnapshots.js` usa o loader central e lê process.env apenas nessa
 fronteira; é coberto pelo teste arquitetural CFG-42. Não aceita flags de escrita,
 não cria índices/coleções automaticamente e não imprime URI/secrets/PII.
+
+## Perfil reviews-audit
+
+Audit:reviews valida NODE_ENV, DB_URI e LOG_LEVEL no runtimeConfig, sem exigir secrets do servidor. Usa autoCreate/autoIndex false, somente leitura, sem argumentos. Nenhum audit executado no banco comercial nesta task. [Contrato](REVIEWS_CONCORRENCIA.md).

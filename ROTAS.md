@@ -83,6 +83,14 @@ e nomes duplicados; excluir categorias com filhos ou produtos retorna 409.
 | PUT | `/me/update`, `/password/update` | Autenticado |
 | PUT | `/review` | Autenticado; uma avaliacao por usuario/produto |
 | DELETE | `/reviews?productId=:productId&id=:reviewId` | Autor da avaliacao ou administrador |
+
+Reviews (FET-DATA-004): PUT aceita `productId` válido, `rating` Number inteiro
+1..5 e `comment` string obrigatória, trim, até 2000 caracteres. Mutação exige
+CSRF/cookie, mantém no-store e responde `success` e `product` com
+`_id/reviews/ratings/numOfReviews` da operação atômica. IDs inválidos: 400;
+ausentes: 404; outro autor: 403; histórico inconsistente:
+409/`PRODUCT_REVIEW_DATA_INCONSISTENT`, sem reparo. Uma review por usuário/produto,
+autoria da sessão. GET também aceita `productId`. [Contrato](docs/REVIEWS_CONCORRENCIA.md).
 | POST | `/order/new` | Autenticado |
 | GET | `/orders/me` | Autenticado, somente os proprios pedidos |
 | GET | `/order/:id` | Proprietario ou administrador |
