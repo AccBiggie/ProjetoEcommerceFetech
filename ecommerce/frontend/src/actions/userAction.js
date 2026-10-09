@@ -33,7 +33,7 @@ export const register = (userData) => async (dispatch) => {
     try {
         dispatch({ type: REGISTER_USER_REQUEST })
 
-        const config = { headers: { "Content-Type": "multipart/form-data" } };
+        const config = { headers: { "Content-Type": "application/json" } };
 
         const { data } = await axios.post(`/api/v1/register`, userData, config);
 
@@ -77,7 +77,7 @@ export const updateProfile = (userData) => async (dispatch) => {
     try {
         dispatch({ type: UPDATE_PROFILE_REQUEST })
 
-        const config = { headers: { "Content-Type": "multipart/form-data" } };
+        const config = { headers: { "Content-Type": "application/json" } };
 
         const { data } = await axios.put(`/api/v1/me/update`, userData, config);
 
@@ -89,6 +89,24 @@ export const updateProfile = (userData) => async (dispatch) => {
         });
     }
 }
+
+export const uploadAvatar = file => async dispatch => {
+    const form = new FormData(); form.set('avatar', file);
+    try {
+        const { data } = await axios.put('/api/v1/me/avatar', form);
+        dispatch({ type: LOAD_USER_SUCCESS, payload: data.user });
+        return data.user;
+    } catch (error) {
+        // Refresh the confirmed avatar without unmounting the protected form.
+        try {
+            const { data } = await axios.get('/api/v1/me');
+            dispatch({ type: LOAD_USER_SUCCESS, payload: data.user });
+        } catch (refreshError) {
+            if (refreshError.response?.status === 401) dispatch({ type: LOAD_USER_FAIL, payload: null });
+        }
+        throw error;
+    }
+};
 
 // Update Senha
 export const updatePassword = (passwords) => async (dispatch) => {

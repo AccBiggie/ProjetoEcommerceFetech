@@ -1195,3 +1195,8 @@ Status: CORRIGIDO pela FET-ORDER-004 (08/10/2026). Novos Orders nascem paymentSt
 Até F001 nenhum endpoint confirma pagamento: novos pedidos permanecem bloqueados para expedição. Reservas Pending continuam consumindo Stock; cancel/release/refund permanecem F028. Históricos já enviados sem confirmação exigem auditoria/revisão, sem reparo automático. audit:orders foi estendido em modo somente leitura.
 
 Documentação: [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md) e [Relatório FET-ORDER-004](RELATORIO_FET_ORDER_004.md). Próxima recomendação: F001; não iniciada automaticamente.
+# Atualização de status — FET-MEDIA-001 (09/10/2026)
+
+F018 **CORRIGIDO NO CÓDIGO**. F019 **CORRIGIDO NO CÓDIGO PARA NOVAS SUBSTITUIÇÕES**. Upload multipart validado, ledger durável, CAS e cleanup reconciliável substituem avatar string/upload sem compensação. Assets históricos fora do namespace não são removidos automaticamente. [Relatório](RELATORIO_FET_MEDIA_001.md).
+
+F002–F017, F020, F021, F025 e F036 continuam corrigidos. F024 continua parcial; F029 continua aberto sem validação Cloudinary real; F030 permanece aberto. F001/pagamento e F027/frete não iniciados. Auditoria histórica preservada. Próxima recomendação: F031, tolerância a corrupção/migração de localStorage e Error Boundary; não iniciar automaticamente.

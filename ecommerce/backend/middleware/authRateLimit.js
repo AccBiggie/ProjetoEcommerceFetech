@@ -3,7 +3,7 @@ const { createAuthRateLimiter } = require('../services/authRateLimiter');
 const limiter = createAuthRateLimiter();
 
 module.exports = action => catchAsyncErrors(async (req, res, next) => {
-    const identity = { email: req.body?.email, ip: req.ip };
+    const identity = { email: action === 'avatar' ? req.user.id : req.body?.email, ip: req.ip };
     const result = action === 'login' ? await limiter.beginLogin(identity) : await limiter.consume(action, identity);
     if (!result.allowed) {
         require('../observability/logger').warn('auth.rate_limited', { status: 429 });

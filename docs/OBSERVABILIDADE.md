@@ -128,3 +128,6 @@ CATEGORY_PARENT_NOT_FOUND, CATEGORY_HIERARCHY_CYCLE,
 CATEGORY_HIERARCHY_DATA_INCONSISTENT, CATEGORY_HAS_CHILDREN e CATEGORY_IN_USE
 são códigos estáveis nos logs/responses. Nenhum audit para leitura da árvore.
 Contrato: [HIERARQUIA_CATEGORIAS.md](HIERARQUIA_CATEGORIAS.md).
+# Atualização FET-MEDIA-001
+
+Eventos user.avatar.updated/upload_failed e media.cleanup.pending/completed/blocked registram IDs técnicos e failureCode allowlisted. Bytes, filename, URLs/publicId e resposta bruta do provider não são logados. audit:media permite identificar intents stale e cleanup pendente/bloqueado sem provider nem mutação. Monitorar backlog e retries; apply requer operador com confirmação da database. [Operação](AVATAR_E_MIDIA.md).

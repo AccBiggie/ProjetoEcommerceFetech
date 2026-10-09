@@ -4,7 +4,7 @@ const isActive = user => Boolean(user && (user.accountStatus === undefined || us
 const statusOf = user => user.accountStatus === undefined ? 'ACTIVE' : user.accountStatus;
 function publicUser(user) {
     const result = user.toObject ? user.toObject() : { ...user };
-    for (const key of ['password', 'resetPasswordToken', 'resetPasswordExpire', 'adminMutationFence', 'deactivatedBy', 'deactivatedAt']) delete result[key];
+    for (const key of ['password', 'resetPasswordToken', 'resetPasswordExpire', 'adminMutationFence', 'avatarRevision', 'deactivatedBy', 'deactivatedAt']) delete result[key];
     result.accountStatus = statusOf(user);
     return result;
 }

@@ -75,7 +75,7 @@ export function AvatarUpload({ preview, onChange }) {
           <input
             type="file"
             name="avatar"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             onChange={onChange}
             style={{ display: "none" }}
           />

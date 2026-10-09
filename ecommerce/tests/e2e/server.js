@@ -16,11 +16,13 @@ nodemailer.createTransport = () => ({ sendMail: async mail => { resetLinks[mail.
 process.env.DB_URI = testUri(database);
 require('../../backend/config/runtimeConfig').initializeConfig(process.env);
 const app = require('../../backend/app');
+require('../../backend/services/mediaProvider').getProvider = () => mediaFake;
+const mediaFake = require('../helpers/fakeMediaProvider').createFakeMediaProvider();
 (async () => {
     await mongoose.connect(testUri(database));
     await fixtures();
     await require('../../backend/config/mongoTransactions').requireTransactions();
-    for (const email of ['idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com', 'lifecycle@routes.example.com', 'reviews-a@routes.example.com', 'reviews-b@routes.example.com']) {
+    for (const email of ['media@routes.example.com', 'idempotency-loss@routes.example.com', 'idempotency-errors@routes.example.com', 'inventory@routes.example.com', 'state-machine@routes.example.com', 'lifecycle@routes.example.com', 'reviews-a@routes.example.com', 'reviews-b@routes.example.com']) {
         await require('../../backend/models/userModel').create({ name: 'Cliente Idempotência', email, password, role: 'user',
             avatar: { public_id: 'fixture-avatar', url: '/Profile.png' } });
     }

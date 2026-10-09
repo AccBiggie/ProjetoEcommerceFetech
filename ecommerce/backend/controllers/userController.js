@@ -9,19 +9,20 @@ const crypto = require("crypto");
 const { performance } = require('node:perf_hooks');
 const { waitForMinimumDuration } = require('../utils/waitForMinimumDuration');
 const recoveryConfig = require('../config/passwordRecovery');
-const uploadAvatar = require("../utils/avatar");
+const { rejectMediaFields } = require('../utils/mediaContract');
 const { decodeSession, versionFilter, saveWithRevokedSessions, invalidSession } = require("../utils/authSession");
 const adminSafety = require('../services/adminSafetyService').createAdminSafetyService();
 const { activeFilter, isActive, adminUser } = require('../utils/userLifecycle');
 //Register a User
 exports.registerUser = catchAsyncErrors( async (req,res,next) => {
-    const avatar = await uploadAvatar(req.body.avatar);
+    if (!req.is('application/json')) throw require('../utils/mediaContract').error('AVATAR_MULTIPART_REQUIRED', 400, 'Envie os dados de cadastro como JSON e a foto após entrar na conta.');
+    rejectMediaFields(req.body);
     const { name, email, password } = req.body;
     const user = await User.create ({
         name,
         email,
         password,
-        avatar: avatar || { public_id: "default-avatar", url: "/Profile.png" },
+        avatar: { public_id: "default-avatar", url: "/Profile.png" },
     });
     sendToken(user, 201, res);
 });
@@ -144,13 +145,10 @@ exports.updatePassword = catchAsyncErrors(async(req, res, next) => {
 });
 //UPDATE USER PROFILE
 exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
-    const newUserData = {
-        name: req.body.name,
-        email: req.body.email,
-    }
-    const avatar = await uploadAvatar(req.body.avatar);
-    if (avatar) newUserData.avatar = avatar;
-    const user = await User.findOneAndUpdate({ $and: [{ _id: req.user.id }, activeFilter(), versionFilter(req.user.tokenVersion)] }, newUserData, {
+    if (!req.is('application/json')) throw require('../utils/mediaContract').error('AVATAR_MULTIPART_REQUIRED', 400, 'Envie os dados do perfil como JSON.');
+    rejectMediaFields(req.body);
+    const newUserData = Object.fromEntries(['name', 'email'].filter(key => req.body[key] !== undefined).map(key => [key, req.body[key]]));
+    const user = await User.findOneAndUpdate({ $and: [{ _id: req.user.id }, activeFilter(), versionFilter(req.user.tokenVersion)] }, { $set: newUserData }, {
         returnDocument: "after",
         runValidators: true,
     });
@@ -159,6 +157,11 @@ exports.updateProfile = catchAsyncErrors(async(req, res, next) => {
         success: true,
         user,
     });
+});
+exports.updateAvatar = catchAsyncErrors(async (req, res) => {
+    const bytes = await require('../utils/avatarContent').validateAvatarContent(req.avatarFile.bytes, req.avatarFile.mime);
+    const user = await require('../services/avatarMediaService').createAvatarMediaService().replace({ actor: req.user, bytes });
+    res.status(200).json({ success: true, user });
 });
 //GET ALL USERS (Admin)
 exports.getAllUser = catchAsyncErrors (async (req, res, next) => {

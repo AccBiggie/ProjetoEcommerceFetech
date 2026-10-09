@@ -119,3 +119,6 @@ não cria índices/coleções automaticamente e não imprime URI/secrets/PII.
 ## Perfil reviews-audit
 
 Audit:reviews valida NODE_ENV, DB_URI e LOG_LEVEL no runtimeConfig, sem exigir secrets do servidor. Usa autoCreate/autoIndex false, somente leitura, sem argumentos. Nenhum audit executado no banco comercial nesta task. [Contrato](REVIEWS_CONCORRENCIA.md).
+# Atualização FET-MEDIA-001
+
+Perfis mínimos media-audit/media-reconcile usam conexão de banco; audit e dry-run não exigem nem chamam Cloudinary. Apply exige grupo Cloudinary completo e Mongo transacional. Grupo parcial continua inválido (F036). Nenhuma variável nova ou alteração do config.env real. Sharp foi adicionado para decodificação integral de imagem, não para fetch remoto. [Comandos e contrato](AVATAR_E_MIDIA.md).

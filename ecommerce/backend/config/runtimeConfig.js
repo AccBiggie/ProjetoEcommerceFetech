@@ -28,7 +28,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
     }
     const environment = supplied('NODE_ENV') ? text('NODE_ENV') : 'development';
     if (!['development','test','production'].includes(environment)) bad('NODE_ENV','use development, test ou production');
-    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','users-audit','reviews-audit','categories-audit','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
+    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','users-audit','reviews-audit','categories-audit','media-audit','media-reconcile','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
     const production = environment === 'production';
     const logLevel = supplied('LOG_LEVEL') ? env.LOG_LEVEL : environment === 'test' ? 'error' : 'info';
     if (!['debug','info','warn','error'].includes(logLevel)) bad('LOG_LEVEL','use debug, info, warn ou error');
@@ -44,8 +44,15 @@ function loadConfig(env, { profile = 'server' } = {}) {
         } catch { bad('DB_URI','use URI mongodb:// ou mongodb+srv:// válida com database explícita; production não aceita database test'); }
     }
     if (profile !== 'server') {
+        let cloudinary;
+        if (profile === 'media-reconcile') {
+            const names = ['CLOUDINARY_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET'];
+            const enabled = names.some(name => text(name));
+            if (enabled) for (const name of names) required(name);
+            cloudinary = Object.freeze({ enabled, cloud_name: text(names[0]), api_key: text(names[1]), api_secret: env.CLOUDINARY_API_SECRET });
+        }
         if (issues.length) throw new ConfigurationError(issues);
-        return Object.freeze({ profile, environment, logging: Object.freeze({ level: logLevel }), mongo: Object.freeze({ uri }) });
+        return Object.freeze({ profile, environment, logging: Object.freeze({ level: logLevel }), mongo: Object.freeze({ uri }), ...(cloudinary ? { cloudinary } : {}) });
     }
     const port = integer('PORT', 4000, 1, 65535);
     let hops = 0;

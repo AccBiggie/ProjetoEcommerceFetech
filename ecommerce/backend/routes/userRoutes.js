@@ -20,6 +20,7 @@ router.route("/logout").post(logout).get((req, res) => {
 router.route("/me").get(isAuthenticatedUser, getUserDetails);
 router.route("/password/update").put(isAuthenticatedUser, updatePassword);
 router.route("/me/update").put(isAuthenticatedUser, updateProfile); 
+router.put('/me/avatar', isAuthenticatedUser, authRateLimit('avatar'), require('../middleware/avatarMultipart'), require('../controllers/userController').updateAvatar);
 router.route("/admin/users").get(isAuthenticatedUser,authorizeRoles("admin"), getAllUser);
 router
 .route("/admin/user/:id")

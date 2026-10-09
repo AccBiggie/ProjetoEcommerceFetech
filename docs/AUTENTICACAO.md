@@ -374,3 +374,6 @@ Políticas, configuração, compatibilidade e CSP exatas: [SEGURANCA_HTTP.md](SE
 ## Configuração central — FET-SEC-008
 
 JWT_SECRET/JWT_EXPIRE e COOKIE_EXPIRE são validados antes de conexão/listen, pelo [contrato de ambiente](CONFIGURACAO.md). Production exige secret de no mínimo 32 bytes, sem placeholders; não existe secret default. Cookie, revogação, rate limiting e resposta uniforme não mudaram. PASSWORD e demais credenciais não aparecem em erros de configuração. Valores de configuração são snapshots tipados; alterações exigem reinício.
+# Atualização FET-MEDIA-001
+
+Conta DEACTIVATED não pode fazer upload de avatar. [Contrato de mídia](AVATAR_E_MIDIA.md).

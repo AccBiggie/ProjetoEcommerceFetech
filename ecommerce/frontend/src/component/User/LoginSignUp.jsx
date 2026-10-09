@@ -5,7 +5,7 @@ import { Button, Link as MuiLink, Stack, Tab, Tabs } from "@mui/material";
 import { TextField } from "@mui/material";
 import { clearErrors, login, register } from "../../actions/userAction";
 import { useAlert } from "../../utils/alerts";
-import FormLayout, { AvatarUpload, PasswordField } from "./FormLayout";
+import FormLayout, { PasswordField } from "./FormLayout";
 
 export function LoginSignUp() {
   const dispatch = useDispatch(),
@@ -19,8 +19,6 @@ export function LoginSignUp() {
   const [loginEmail, setLoginEmail] = useState(""),
     [loginPassword, setLoginPassword] = useState("");
   const [user, setUser] = useState({ name: "", email: "", password: "" });
-  const [avatar, setAvatar] = useState(),
-    [preview, setPreview] = useState("/Profile.png");
   const requested =
     location.state?.returnTo ||
     new URLSearchParams(location.search).get("redirect") ||
@@ -40,22 +38,9 @@ export function LoginSignUp() {
     }
     if (isAuthenticated) navigate(redirect, { replace: true });
   }, [error, alert, dispatch, isAuthenticated, navigate, redirect]);
-  const upload = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      setAvatar(reader.result);
-      setPreview(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
   const submitRegister = (event) => {
     event.preventDefault();
-    const form = new FormData();
-    Object.entries(user).forEach(([key, value]) => form.set(key, value));
-    if (avatar) form.set("avatar", avatar);
-    dispatch(register(form));
+    dispatch(register(user));
   };
   return (
     <FormLayout
@@ -144,7 +129,6 @@ export function LoginSignUp() {
               setUser({ ...user, password: event.target.value })
             }
           />
-          <AvatarUpload preview={preview} onChange={upload} />
           <Button
             type="submit"
             className="signUpBtn"

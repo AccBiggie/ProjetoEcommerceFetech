@@ -34,6 +34,7 @@ const userSchema = new mongoose.Schema ( {
             require: true,
         },
     },
+    avatarRevision: { type: Number, default: 0, min: 0, max: Number.MAX_SAFE_INTEGER, validate: Number.isSafeInteger },
     role: {
         type: String,
         enum: ["user", "admin"],
@@ -63,6 +64,7 @@ const userSchema = new mongoose.Schema ( {
 });
 userSchema.set("toJSON", { transform: (doc, result) => {
     delete result.password;
+    delete result.avatarRevision;
     delete result.resetPasswordToken;
     delete result.resetPasswordExpire;
     delete result.adminMutationFence;

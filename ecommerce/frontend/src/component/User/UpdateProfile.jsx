@@ -1,9 +1,10 @@
-import { Button, Stack, TextField } from "@mui/material";
+import { Alert, Button, Stack, TextField } from "@mui/material";
 
 import FormLayout, { AvatarUpload } from "./FormLayout";
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearErrors, loadUser, updateProfile } from "../../actions/userAction";
+import { clearErrors, loadUser, updateProfile, uploadAvatar } from "../../actions/userAction";
+import { getErrorMessage } from '../../utils/api';
 import { useAlert } from "../../utils/alerts.js";
 import { useNavigate } from "react-router";
 import { UPDATE_PROFILE_RESET } from "../../constants/userConstants";
@@ -17,38 +18,42 @@ const UpdateProfile = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [avatar, setAvatar] = useState();
-  const [avatarPreview, setAvatarPreview] = useState("/Profile.png");
+  const [objectUrl, setObjectUrl] = useState("");
+  const [photoError, setPhotoError] = useState("");
+  const [photoPending, setPhotoPending] = useState(false);
+  const avatarPreview = objectUrl || user?.avatar?.url || '/Profile.png';
+  useEffect(() => {
+    if (!avatar) { setObjectUrl(''); return; }
+    const url = URL.createObjectURL(avatar); setObjectUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [avatar]);
   const updateProfileSubmit = (e) => {
     e.preventDefault();
 
-    const myForm = new FormData();
-
-    myForm.set("name", name);
-    myForm.set("email", email);
-    if (avatar) myForm.set("avatar", avatar);
-    dispatch(updateProfile(myForm));
+    dispatch(updateProfile({ name, email }));
   };
 
   const updateProfileDataChange = (e) => {
-    const reader = new FileReader();
-
-    if (!e.target.files[0]) return;
-    reader.onload = () => {
-      if (reader.readyState === 2) {
-        setAvatarPreview(reader.result);
-        setAvatar(reader.result);
-      }
-    };
-    reader.readAsDataURL(e.target.files[0]);
+    const file = e.target.files[0]; if (!file) return;
+    setPhotoError('');
+    if (file.size > 5 * 1024 * 1024) { setPhotoError('A foto deve ter no máximo 5 MiB.'); setAvatar(undefined); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setPhotoError('Escolha uma imagem JPEG, PNG ou WebP.'); setAvatar(undefined); return; }
+    setAvatar(file);
+  };
+  const savePhoto = async () => {
+    setPhotoPending(true); setPhotoError('');
+    try { await dispatch(uploadAvatar(avatar)); setAvatar(undefined); alert.success('Foto atualizada com sucesso!'); }
+    catch (error) { setAvatar(undefined); setPhotoError(getErrorMessage(error)); }
+    finally { setPhotoPending(false); }
   };
 
   useEffect(() => {
     if (user) {
       setName(user.name);
       setEmail(user.email);
-      setAvatarPreview(user.avatar.url);
     }
-
+  }, [user?._id, user?.name, user?.email]);
+  useEffect(() => {
     if (error) {
       alert.error(error);
       dispatch(clearErrors());
@@ -63,7 +68,7 @@ const UpdateProfile = () => {
         type: UPDATE_PROFILE_RESET,
       });
     }
-  }, [dispatch, error, alert, navigate, user, isUpdated]);
+  }, [dispatch, error, alert, navigate, isUpdated]);
 
   return (
     <FormLayout
@@ -97,11 +102,13 @@ const UpdateProfile = () => {
           preview={avatarPreview}
           onChange={updateProfileDataChange}
         />
+        {photoError && <Alert severity="error">{photoError}</Alert>}
+        <Button onClick={savePhoto} disabled={!avatar || photoPending || loading} variant="outlined">{photoPending ? 'Enviando foto...' : 'Salvar foto'}</Button>
         <Button
           type="submit"
           className="updateProfileBtn"
           variant="contained"
-          disabled={loading}
+          disabled={loading || photoPending}
         >
           Salvar alterações
         </Button>

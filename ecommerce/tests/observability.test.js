@@ -118,18 +118,21 @@ test('OBS logger preserva requestId autoritativo do contexto',()=>{
 });
 test('OBS errors SMTP e Cloudinary com secrets sentinelas nunca vazam',async()=>{
     const user=await h.createUser(),mail=require('nodemailer'),cloud=require('cloudinary');
-    const originalMail=mail.createTransport,originalUpload=cloud.v2.uploader.upload;
+    const boundary=require('../backend/services/mediaProvider');
+    const originalMail=mail.createTransport,originalUpload=boundary.getProvider;
     h.configure({LOG_LEVEL:'debug',PASSWORD:'PRIVATE_SMTP_CONFIG_SENTINEL',CLOUDINARY_NAME:'fixture',CLOUDINARY_API_KEY:'PRIVATE_CLOUD_KEY_SENTINEL',CLOUDINARY_API_SECRET:'PRIVATE_CLOUD_SECRET_SENTINEL'});
     mail.createTransport=()=>({sendMail:async()=>{throw new Error('PRIVATE_SMTP_ERROR_SENTINEL');}});
-    cloud.v2.uploader.upload=async()=>{throw new Error('PRIVATE_CLOUD_ERROR_SENTINEL');};
+    boundary.getProvider=()=>({uploadAvatar:async()=>{throw new Error('PRIVATE_CLOUD_ERROR_SENTINEL');}});
     try{
         const {output,logs}=await capture(async()=>{
             await h.request('POST','/password/forgot',{email:user.email},null,200);
-            await h.request('POST','/register',{name:'PRIVATE_NAME_SENTINEL',email:'PRIVATE_EMAIL_SENTINEL@example.test',password:'PRIVATE_PASSWORD_SENTINEL',avatar:'fixture-image'},null,500);
+            const cookie=await h.login(user),base=new URL((await h.request('GET','/me',null,cookie,200)).response.url);
+            base.pathname='/api/v1/me/avatar';const form=new FormData();form.set('avatar',new Blob([await require('./helpers/mediaHarness').image()],{type:'image/png'}),'PRIVATE_FILENAME');
+            const reply=await fetch(base,{method:'PUT',headers:{...require('./httpHeaders').withCsrf('PUT'),Cookie:cookie},body:form});assert.equal(reply.status,502);await reply.json();
         });
         assert.doesNotMatch(output,/PRIVATE_SMTP_|PRIVATE_CLOUD_|PRIVATE_NAME_|PRIVATE_EMAIL_|PRIVATE_PASSWORD_/);
-        assert.ok(logs.some(row=>row.event==='password.recovery.email.failed'));assert.ok(logs.some(row=>row.event==='http.request.error'&&row.status===500));
-    }finally{mail.createTransport=originalMail;cloud.v2.uploader.upload=originalUpload;h.configure({LOG_LEVEL:'error'});}
+        assert.ok(logs.some(row=>row.event==='password.recovery.email.failed'));assert.ok(logs.some(row=>row.event==='http.request.error'&&row.status===502));
+    }finally{mail.createTransport=originalMail;boundary.getProvider=originalUpload;h.configure({LOG_LEVEL:'error'});}
 });
 test('OBS Set-Cookie e JWT reais da resposta não entram nos logs',async()=>{
     const user=await h.createUser();h.configure({LOG_LEVEL:'debug'});const {result,output}=await capture(()=>h.request('POST','/login',{email:user.email,password:h.password},null,200));

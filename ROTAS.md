@@ -346,3 +346,6 @@ Detalhes: [Histórico de pedidos](docs/HISTORICO_PEDIDOS.md) e [Relatório FET-O
 ## FET-ORDER-004 — contrato de status de pedido
 
 PUT /api/v1/admin/order/:id consome somente status. Mesmo estado200 sem escrita; target inválido/ausente/não string400; inexistente404. Salto/retrocesso409 ORDER_STATUS_TRANSITION_INVALID; avanço sem paymentStatus PAID e paidAt válido409 ORDER_PAYMENT_NOT_CONFIRMED. Sequência é validada antes de pagamento. CAS protege estado e confirmação no write; Stock/ledger/archive não são alterados. Cliente/admin não confirmam pagamento por corpo. Nenhuma rota confirma pagamento até F001. Ver [Estados do pedido e pagamento](docs/ESTADOS_PEDIDO_PAGAMENTO.md).
+# Avatar binário — FET-MEDIA-001
+
+PUT `/api/v1/me/avatar`: sessão ativa + CSRF + limite por conta antes do parser; multipart com um arquivo `avatar` JPEG/PNG/WebP até 5 MiB. Retorna User confirmado; 400 contrato inválido, 413 tamanho, 415 conteúdo, 409 conflito, 502 provider, 503 provider ausente. Cadastro e perfil textual recebem JSON e rejeitam campos de mídia. Cadastro usa avatar padrão. Detalhes: [Avatar e mídia](docs/AVATAR_E_MIDIA.md).

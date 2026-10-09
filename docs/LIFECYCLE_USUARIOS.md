@@ -92,3 +92,6 @@ Desativação não apaga reviews e mantém suas referências. DEACTIVATED recebe
 antes do controller; audit:reviews considera o User existente, sem finding de
 referência ausente. Ao reativar e fazer login novo, a review conserva seu ID e
 count. [Contrato](REVIEWS_CONCORRENCIA.md).
+# Atualização FET-MEDIA-001
+
+F016 permanece corrigido: desativação conserva avatar e referência, que também bloqueia cleanup. Upload revalida estado/tokenVersion dentro da transação de attach; corrida com desativação aborta attach e conserva o avatar anterior. Legados não gerenciados exigem revisão humana e não são apagados automaticamente. Erasure/retention continuam F030. [Ciclo de vida de mídia](AVATAR_E_MIDIA.md).
