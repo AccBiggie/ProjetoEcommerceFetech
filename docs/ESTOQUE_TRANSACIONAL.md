@@ -189,3 +189,10 @@ permitindo teardown imediato. Não toca processos de Mongo existentes.
 ## FET-ORDER-004 — envio protegido por pagamento
 
 Shipping/entrega não toca na reserva, Product.Stock, StockMovement ou inventoryStatus, inclusive em legado: o decremento adicional do fluxo histórico foi removido. Avanço exige PAID e paidAt válido por CAS. Novo Order grava PENDING na própria transação F003/F004. Confirmação produtiva, commit/release, cancelamento e refund permanecem F001/F028. Sem migração de baseline histórico. [Estados do pedido e pagamento](ESTADOS_PEDIDO_PAGAMENTO.md).
+
+## F040 — outbox no pedido
+
+EmailOutbox ORDER_CREATED é gravado na mesma transação de Order, reserva de
+estoque, StockMovement e conclusão da idempotência. Nenhuma chamada SMTP dentro
+dela. Falha no enqueue reverte o conjunto; falha posterior de envio não reverte
+reserva/pedido. [Contrato](EMAILS_TRANSACIONAIS.md).

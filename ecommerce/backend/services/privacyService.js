@@ -16,11 +16,13 @@ const lock = createAdminMutationLock();
 const publicRequest = request => request ? { _id: String(request._id), type: request.type, status: request.status, requestedAt: request.requestedAt, completedAt: request.completedAt, cancelledAt: request.cancelledAt } : null;
 async function requestAnonymization(req) {
     await Request.init();
+    await require('./email/enqueue').modelFor(User.db).init();
     return withPrivacySensitiveWrite(req.user, async (session, user) => {
         const existing = await Request.findOne({ user: user._id, status: 'REQUESTED' }).session(session);
         if (existing) return { request: publicRequest(existing), created: false };
         const [request] = await Request.create([{ user: user._id, requestId: req.requestId }], { session });
         user.privacyStatus = 'ANONYMIZATION_REQUESTED'; await user.save({ session });
+        await require('./email/enqueue').enqueue({ eventType: 'PRIVACY_REQUEST_CREATED', recipientUserId: user._id, entityId: request._id, requestId: req.requestId }, session, User.db);
         return { request: publicRequest(request), created: true };
     });
 }

@@ -19,11 +19,13 @@ function createOrderInventoryService({ Product = require('../models/productModel
         const itemsPriceCents = sumCents(orderItems.map(item => multiplyCents(item.priceCents, item.quantity)));
         return { orderItems, itemsPriceCents };
     }
-    async function create({ intent, user, hashes, complete }) {
+    async function create({ intent, user, hashes, complete, requestId = null }) {
+        await require('./email/enqueue').modelFor(connection).init();
         const session = await connection.startSession();
         const orderId = new mongoose.Types.ObjectId(), paymentId = crypto.randomUUID(), reservedAt = new Date();
         try {
-            return await session.withTransaction(async () => {
+            const result = await session.withTransaction(async () => {
+                session.emailEnqueued = new Map();
                 const prepared = await prepare(intent, session);
                 for (const item of prepared.orderItems) {
                     const previous = await Product.findOneAndUpdate({ _id: item.product, Stock: { $gte: item.quantity } },
@@ -40,9 +42,11 @@ function createOrderInventoryService({ Product = require('../models/productModel
                     inventoryStatus: 'RESERVED', inventoryVersion: 1, inventoryReservedAt: reservedAt,
                 }], { session });
                 await complete(order, session);
+                await require('./email/enqueue').enqueue({ eventType: 'ORDER_CREATED', recipientUserId: user, entityId: order._id, requestId }, session, connection);
                 return order;
             }, { readPreference: 'primary', readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' },
                 maxCommitTimeMS: 10000, timeoutMS: 30000 });
+            require('./email/enqueue').logCommitted(session); return result;
         } finally { await session.endSession(); }
     }
     return { prepare, create };

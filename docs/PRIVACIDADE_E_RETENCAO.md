@@ -130,3 +130,12 @@ necessidades de política e controles operacionais próprios. O frontend explica
 solicitação versus execução, irreversibilidade e retenção comercial, sem promessa
 de eliminação total. Evidências: [testes](TESTES_FET_PRIVACY_001.md) e
 [relatório](RELATORIO_FET_PRIVACY_001.md).
+
+## F040 — EmailOutbox
+
+recipientUserId/entityId/dedupeKey/requestId são PSEUDONYMOUS_IDENTIFIER,
+com RETENTION_PERIOD = UNDEFINED. Sem recipient email, nome, subject/body,
+reset token ou erro bruto. Worker resolve User atual e suprime pending delivery
+para ANONYMIZED, sem recuperar email antigo de Order. Não existe notificação de
+privacy completed nem prazo legal/TTL inventado. F030 é baseline técnico e
+F029 continua aberto. [Contrato](EMAILS_TRANSACIONAIS.md).

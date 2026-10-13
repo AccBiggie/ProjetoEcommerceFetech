@@ -11,12 +11,14 @@ async function fencePrivacySensitiveUser(actor, session, connection = User.db) {
 async function withPrivacySensitiveWrite(actor, work, { connection = User.db } = {}) {
     const session = await connection.startSession();
     try {
-        return await session.withTransaction(async () => {
+        const result = await session.withTransaction(async () => {
+            session.emailEnqueued = new Map();
             // A real write creates a Mongo conflict with deactivation/anonymization.
             // A stale authenticated request cannot restore an Address/reviewer name later.
             const user = await fencePrivacySensitiveUser(actor, session, connection);
             return work(session, user);
         }, txOptions);
+        if (session.emailEnqueued?.size) require('./email/enqueue').logCommitted(session); return result;
     } finally { await session.endSession(); }
 }
 module.exports = { withPrivacySensitiveWrite, fencePrivacySensitiveUser, txOptions };

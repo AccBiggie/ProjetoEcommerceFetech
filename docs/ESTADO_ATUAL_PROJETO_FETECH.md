@@ -1,5 +1,24 @@
 # Estado atual — ProjetoEcommerceFetech
 
+## F040 — E-mails transacionais — FET-MAIL-001 (13/10/2026)
+
+Status corrente: CORRIGIDO NO CÓDIGO, com evidências no
+[RELATORIO_FET_MAIL_001.md](RELATORIO_FET_MAIL_001.md). Outbox transacional,
+dedupe persistente, worker distribuído com leases/retry limitado, adapter SMTP
+lazy e templates text/HTML. Order/registro/lifecycle/privacy request gravam evento
+junto com o domínio; F009 permanece envio direto sem token no outbox. Destinatário
+resolvido no envio; ANONYMIZED suprimido; retenção UNDEFINED. Auditoria READ_ONLY,
+CLI dry-run com apply/confirm-db explícitos. Sem promessa exactly-once SMTP.
+
+Retomada preserva worktree anterior e mantém tarefa sem commit. Testes usam DBs
+temporárias/providers fake; nenhum SMTP/Cloudinary real, migration comercial ou
+mudança de config.env nesta retomada. A inicialização local solicitada em 12/10
+foi operação separada e não é usada como validação F040. F024/F026 parciais,
+F029 aberto, F039 remoto não validado, F001/F027 adiados. F030 segue baseline
+técnico. Próxima recomendação: inventariar findings P2/P3 ainda abertos e avaliar
+F033 (acessibilidade), sem início automático. Este bloco prevalece sobre
+recomendações históricas abaixo. [Contrato](EMAILS_TRANSACIONAIS.md).
+
 ## F030 — baseline técnico de privacidade — FET-PRIVACY-001 (09/10/2026)
 
 **CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO.** privacyStatus separado de F016,

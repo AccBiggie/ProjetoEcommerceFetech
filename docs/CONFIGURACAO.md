@@ -132,3 +132,12 @@ internas; nao configurar URI comercial. FETECH_TEST_MONGOD seleciona somente
 o executavel do Server. CI sem identidade nao le config.env; testes com
 identidade valida tambem nao chamam dotenv. Perfis F036 permanecem centrais.
 SMTP e Cloudinary sao fakes locais; nenhuma credencial produtiva e exigida.
+
+## E-mails transacionais — FET-MAIL-001
+
+O adapter reutiliza HOST, PORTEMAIL, USER, PASSWORD e EMAIL_SECURE; FRONTEND_URL
+validado define os links. Sem nova família SMTP_* e sem secrets no outbox.
+Perfil server inicia worker apenas com SMTP completo; test/dev sem SMTP não
+abrem rede. Perfil email-outbox exige configuração de envio e confirmação
+explícita; email-outbox-audit valida ambiente/URI/log level sem SMTP. Transporte
+lazy, timeouts 10/10/20 segundos. [Contrato](EMAILS_TRANSACIONAIS.md).

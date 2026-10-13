@@ -11,6 +11,7 @@ async function runAuditedAdminMutation(req, mutation, { connection = Audit.db } 
     let committed;
     try {
         const value = await session.withTransaction(async () => {
+            session.emailEnqueued = new Map();
             const result = await mutation(session);
             committed = result.event;
             if (result.event) {
@@ -21,6 +22,7 @@ async function runAuditedAdminMutation(req, mutation, { connection = Audit.db } 
             }
             return result.value;
         }, { readPreference: 'primary', readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' }, maxCommitTimeMS: 10000, timeoutMS: 30000 });
+        if (session.emailEnqueued?.size) require('./email/enqueue').logCommitted(session);
         if (committed) logger.info('admin.action.completed', { action: committed.action, targetType: actions[committed.action][0], targetId: String(committed.targetId) });
         return value;
     } catch (error) { logger.warn('admin.action.failed', { errorName: error.name }); throw error; }

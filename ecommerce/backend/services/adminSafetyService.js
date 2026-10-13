@@ -51,6 +51,7 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
         });
     }
     async function changeStatus(executorId, targetId, nextStatus, auditRequest) {
+        await require('./email/enqueue').modelFor(User.db).init();
         return lock.run(async lease => {
             const target = await context(lease, executorId, targetId);
             if (nextStatus === 'ACTIVE' && require('../utils/privacyContract').isAnonymized(target)) require('../utils/privacyContract').fail('USER_ANONYMIZED');
@@ -75,10 +76,11 @@ function createAdminSafetyService({ User = DefaultUser, lock = createAdminMutati
                     require('../utils/authSession').versionFilter(target.tokenVersion)] }, update,
                 { returnDocument: 'after', runValidators: true, session });
                 if (!user) throw conflict();
+                await require('./email/enqueue').enqueue({ eventType: deactivating ? 'ACCOUNT_DEACTIVATED' : 'ACCOUNT_REACTIVATED', recipientUserId: user._id, entityId: user._id, version: user.tokenVersion, requestId: auditRequest?.requestId || null }, session, User.db);
                 return { value: user, event: { action: deactivating ? 'USER_DEACTIVATED' : 'USER_REACTIVATED', targetId: target._id,
                     metadata: { fromStatus: previous, toStatus: nextStatus } } };
             };
-            return auditRequest ? require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db }) : (await mutate()).value;
+            return auditRequest ? require('./adminAuditService').runAuditedAdminMutation(auditRequest, mutate, { connection: User.db }) : require('./email/enqueue').domainTransaction(User.db, async session => (await mutate(session)).value);
         });
     }
     async function bootstrap(input) {

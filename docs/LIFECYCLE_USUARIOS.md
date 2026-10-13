@@ -107,3 +107,10 @@ independente: NORMAL, ANONYMIZATION_REQUESTED, ANONYMIZED. Apenas este último
 é irreversível; reativação/update administrativo retorna 409 USER_ANONYMIZED.
 User legado sem privacyStatus equivale a NORMAL sem migration. Não excluir User
 fisicamente. [Contrato de privacidade](PRIVACIDADE_E_RETENCAO.md).
+
+## F040 — notificações de lifecycle
+
+Deactivation/reactivation enfileiram evento na transação da alteração, com
+versão para dedupe. Operação idempotente sem mudança não duplica eventos.
+DEACTIVATED continua elegível para a própria notificação; ANONYMIZED é suprimido
+no envio. JWT antigo não é restaurado. [Contrato](EMAILS_TRANSACIONAIS.md).

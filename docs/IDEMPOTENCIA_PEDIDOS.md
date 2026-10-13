@@ -167,3 +167,11 @@ FET-ORDER-004: replay após transição confirmada retorna o mesmo Order com sta
 ## F031 — storage comercial indisponível ou corrompido
 
 Tentativa session-scoped continua na key fetech.orderAttempt.v1 e preserva formato key/fingerprint, sem PII. Registry classifica como COMMERCIAL_RECOVERY/PRESERVE_COMMERCIAL. Recovery genérica nunca remove uma tentativa válida. Persistência precisa ter sucesso antes do POST, inclusive retry da mesma key; browser indisponível falha fechado. Corrupção gera bloqueio/marcador técnico na própria key, sem auto-submit/rotação. Usuário deve conferir pedidos e confirmar explicitamente antes de remover somente entrada inválida e habilitar outra tentativa. Sucesso/erro terminal conservam limpeza específica da key correspondente, sem clear genérico. [Contrato completo](PERSISTENCIA_FRONTEND.md).
+
+## F040 — evento de e-mail no commit
+
+ORDER_CREATED participa da transação de Order, Stock, ledger e claim COMPLETED.
+Falha no enqueue aborta tudo; replay retorna o mesmo pedido sem duplicar evento.
+SMTP ocorre depois, fora da request/transaction; falha do provider gera retry
+sem desfazer o pedido. Entrega SMTP pode duplicar em janela ambígua após send.
+[Contrato](EMAILS_TRANSACIONAIS.md).

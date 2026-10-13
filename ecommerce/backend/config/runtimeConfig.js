@@ -28,7 +28,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
     }
     const environment = supplied('NODE_ENV') ? text('NODE_ENV') : 'development';
     if (!['development','test','production'].includes(environment)) bad('NODE_ENV','use development, test ou production');
-    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','users-audit','privacy-audit','reviews-audit','products-audit','indexes-audit','categories-audit','media-audit','media-reconcile','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
+    if (!['server','bootstrap','seed','migration','shipping-audit','inventory-audit','orders-audit','users-audit','privacy-audit','email-outbox-audit','email-outbox','reviews-audit','products-audit','indexes-audit','categories-audit','media-audit','media-reconcile','database-operations'].includes(profile)) bad('PROFILE','perfil desconhecido');
     const production = environment === 'production';
     const logLevel = supplied('LOG_LEVEL') ? env.LOG_LEVEL : environment === 'test' ? 'error' : 'info';
     if (!['debug','info','warn','error'].includes(logLevel)) bad('LOG_LEVEL','use debug, info, warn ou error');
@@ -43,7 +43,7 @@ function loadConfig(env, { profile = 'server' } = {}) {
                 (production && client.options.dbName.toLowerCase() === 'test')) throw new Error();
         } catch { bad('DB_URI','use URI mongodb:// ou mongodb+srv:// válida com database explícita; production não aceita database test'); }
     }
-    if (profile !== 'server') {
+    if (profile !== 'server' && profile !== 'email-outbox') {
         let cloudinary;
         if (profile === 'media-reconcile') {
             const names = ['CLOUDINARY_NAME','CLOUDINARY_API_KEY','CLOUDINARY_API_SECRET'];
@@ -57,11 +57,14 @@ function loadConfig(env, { profile = 'server' } = {}) {
     const port = integer('PORT', 4000, 1, 65535);
     let hops = 0;
     try { hops = getTrustProxySetting(env.TRUST_PROXY_HOPS) || 0; } catch { bad('TRUST_PROXY_HOPS','deve ser inteiro entre 0 e 5'); }
+    const mailOnly = profile === 'email-outbox';
     const secret = env.JWT_SECRET;
+    if (!mailOnly) {
     if (typeof secret !== 'string' || !secret.trim()) bad('JWT_SECRET','obrigatória e não vazia; não existe secret default');
     else if (production && (Buffer.byteLength(secret) < 32 || secret.trim() !== secret ||
         /secret|changeme|change.me|password|placeholder|substitua|gere.um|<|>|your.jwt|^test$/i.test(secret))) bad('JWT_SECRET','comprimento mínimo de 32 bytes, sem placeholder ou espaços nas extremidades');
-    const expiresIn = required('JWT_EXPIRE');
+    }
+    const expiresIn = mailOnly ? '' : required('JWT_EXPIRE');
     if (expiresIn) {
         // Usar o próprio consumidor preserva o contrato de durações (strings numéricas são ms).
         try {
@@ -71,9 +74,10 @@ function loadConfig(env, { profile = 'server' } = {}) {
         } catch { bad('JWT_EXPIRE','deve representar expiração positiva aceita por jsonwebtoken, de pelo menos um segundo'); }
     }
     let expireDays;
-    try { getAuthCookieOptions({ nodeEnv: environment, cookieExpire: env.COOKIE_EXPIRE }); expireDays = Number(env.COOKIE_EXPIRE); }
+    try { if (!mailOnly) { getAuthCookieOptions({ nodeEnv: environment, cookieExpire: env.COOKIE_EXPIRE }); expireDays = Number(env.COOKIE_EXPIRE); } }
     catch { bad('COOKIE_EXPIRE','deve ser duração finita positiva em dias, com data representável'); }
     let origin, allowedOrigins = [];
+    if (mailOnly) required('FRONTEND_URL');
     try {
         allowedOrigins = [...getAllowedOrigins({ nodeEnv: environment, frontendUrl: env.FRONTEND_URL })];
         origin = text('FRONTEND_URL') ? new URL(env.FRONTEND_URL).origin : 'http://localhost:3000';

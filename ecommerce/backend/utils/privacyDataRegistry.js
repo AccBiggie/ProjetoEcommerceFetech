@@ -14,6 +14,7 @@ const registry = Object.freeze([
     category('AuthRateLimit', ['_id', 'scope', 'count', 'pending', 'expiresAt'], 'SECURITY_EPHEMERAL', 'HMAC conta/IP e proteção contra abuso', 'PRESERVE_ACTIVE_BUCKETS', 'EPHEMERAL_TECHNICAL'),
     category('MediaUploadIntent/MediaCleanupTask', ['user', 'publicId', 'status', 'failureCode'], 'PSEUDONYMOUS_IDENTIFIER', 'Lifecycle durável de mídia', 'DETACH_AND_QUEUE_SAFE_CLEANUP', 'HISTORICAL_RETENTION_UNDEFINED'),
     category('PrivacyRequest', ['user', 'processedBy', 'requestId', 'status', 'timestamps'], 'PSEUDONYMOUS_IDENTIFIER', 'Solicitação sem cópia de PII direta', 'PRESERVE', 'HISTORICAL_RETENTION_UNDEFINED'),
+    category('EmailOutbox', ['recipientUserId', 'entityId', 'dedupeKey', 'requestId'], 'PSEUDONYMOUS_IDENTIFIER', 'Notificação transacional sem cópia de email/body', 'SUPPRESS_PENDING_DELIVERY_FOR_ANONYMIZED_USER', 'HISTORICAL_RETENTION_UNDEFINED'),
     category('AdminMutationLock/CategoryHierarchyState', ['owner', 'bootstrapUserId', 'fence', 'revision'], 'TECHNICAL_METADATA', 'Concorrência e fencing', 'PRESERVE', 'HISTORICAL_RETENTION_UNDEFINED'),
     category('Category/Product', ['name', 'description', 'images', 'user'], 'PUBLIC_USER_CONTENT', 'Catálogo e autoria', 'PRESERVE', 'HISTORICAL_RETENTION_UNDEFINED'),
     category('Logs', ['requestId', 'userId', 'routeTemplate', 'action', 'code'], 'TECHNICAL_METADATA', 'Observabilidade sem corpo/PII direta', 'NO_DIRECT_PII', 'HISTORICAL_RETENTION_UNDEFINED'),

@@ -18,11 +18,15 @@ exports.registerUser = catchAsyncErrors( async (req,res,next) => {
     if (!req.is('application/json')) throw require('../utils/mediaContract').error('AVATAR_MULTIPART_REQUIRED', 400, 'Envie os dados de cadastro como JSON e a foto após entrar na conta.');
     rejectMediaFields(req.body);
     const { name, email, password } = req.body;
-    const user = await User.create ({
+    const user = await require('../services/email/enqueue').domainTransaction(User.db, async session => {
+        const [created] = await User.create ([{
         name,
         email,
         password,
         avatar: { public_id: "default-avatar", url: "/Profile.png" },
+        }], { session });
+        await require('../services/email/enqueue').enqueue({ eventType: 'ACCOUNT_REGISTERED', recipientUserId: created._id, entityId: created._id, requestId: req.requestId }, session, User.db);
+        return created;
     });
     sendToken(user, 201, res);
 });

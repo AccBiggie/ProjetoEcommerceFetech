@@ -15,7 +15,7 @@ exports.newOrder = catchAsyncErrors(async (req, res) => {
     try {
         const result = await idempotency.execute({ user: req.user._id, key, canonical: serializeOrderIntent(intent),
             prepare: () => inventory.prepare(intent),
-            create: (_prepared, hashes, complete) => inventory.create({ intent, user: req.user._id, hashes, complete }),
+            create: (_prepared, hashes, complete) => inventory.create({ intent, user: req.user._id, hashes, complete, requestId: req.requestId }),
         });
         if (result.replayed) { res.set('Idempotency-Replayed', 'true'); require('../observability/logger').info('order.idempotency.replayed', { orderId: String(result.order._id) }); }
         res.status(201).json({ success: true, order: history.customerOrder(result.order) });

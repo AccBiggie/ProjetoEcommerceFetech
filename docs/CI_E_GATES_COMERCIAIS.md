@@ -158,3 +158,12 @@ reais são proibidos nesta validação. F030 implementa baseline técnico; prazo
 formais de retenção permanecem UNDEFINED. F039 remoto/branch protection continuam
 não validados, F026/CD parcial e F024 mantém os quinze bloqueios existentes.
 [Contrato](PRIVACIDADE_E_RETENCAO.md).
+
+## F040 — cobertura permanente
+
+emailOutbox, emailWorker, emailTemplates e emailOutboxAudit fazem parte do glob
+API; emailOutbox.spec.js faz parte do E2E. Provider fake e Mongo temporário via
+runner obrigatório, sem skip F040. CLI dry-run e apply confirmado só com fake
+nas fixtures. Commercial Gate mantém architecture/API/build/E2E/audit, zero
+falhas esperadas/retries. Os 15 skips F024 continuam exclusivos de Database Tools.
+[Relatório](RELATORIO_FET_MAIL_001.md).

@@ -19,9 +19,15 @@ async function startServer(env, dependencies = {}) {
         await require('./models/authRateLimitModel').init();
         await require('./models/adminMutationLockModel').init();
         await require('./models/adminAuditEventModel').init();
+        await require('./models/emailOutboxModel').init();
         await require('./utils/categories').migrateLegacyCategories();
     }))();
-    return app.listen(config.port, '127.0.0.1', () => require('./observability/logger').info('app.started', { environment: config.environment, port: config.port, transactionCapable: true }));
+    const server = app.listen(config.port, '127.0.0.1', () => require('./observability/logger').info('app.started', { environment: config.environment, port: config.port, transactionCapable: true }));
+    // Injected startup checks remain side-effect free. Worker starts only in real server profiles.
+    const worker = dependencies.createApp ? null : require('./services/email/worker').startWorker(config);
+    if (worker && server.once) server.once('close', () => { worker.stop().catch(() => {}); });
+    server.stopEmailWorker = () => worker?.stop();
+    return server;
 }
 async function main() {
     loadEnvironment();
@@ -35,6 +41,13 @@ async function main() {
     };
     process.on('uncaughtException', () => shutdown('app.uncaught_exception'));
     process.on('unhandledRejection', () => shutdown('app.unhandled_rejection'));
+    const terminate = async () => {
+        emergency.info('app.shutdown.requested');
+        await server?.stopEmailWorker?.();
+        server?.close(); await require('mongoose').disconnect();
+        process.exitCode = 0;
+    };
+    process.once('SIGINT', terminate); process.once('SIGTERM', terminate);
     try { server = await startServer(process.env); }
     catch (error) {
         emergency.error('app.startup.failed', { errorName: error.name, invalidVariables: error.issues?.map(issue => issue.variable) });

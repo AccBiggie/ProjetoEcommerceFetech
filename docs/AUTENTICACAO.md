@@ -377,3 +377,10 @@ JWT_SECRET/JWT_EXPIRE e COOKIE_EXPIRE são validados antes de conexão/listen, p
 # Atualização FET-MEDIA-001
 
 Conta DEACTIVATED não pode fazer upload de avatar. [Contrato de mídia](AVATAR_E_MIDIA.md).
+
+## F040 — exceção de recuperação de senha
+
+Cadastro grava ACCOUNT_REGISTERED junto com User. Forgot/reset mantém envio
+direto controlado pelo adapter e F009 (resposta uniforme, timing floor, hash,
+expiração, cleanup quando envio falha). Token/link de reset nunca entra no
+outbox. Cookie/JWT e rate limiting permanecem. [Contrato](EMAILS_TRANSACIONAIS.md).

@@ -156,3 +156,11 @@ admin. Não registrar confirmação forte, alias, nome/email/endereço antigo,
 hash de senha/reset ou resposta bruta do provider. Request ID correlaciona
 API e evento. audit:privacy emite apenas contagens/códigos/IDs pseudônimos.
 [Contrato](PRIVACIDADE_E_RETENCAO.md).
+
+## F040 — eventos seguros de e-mail
+
+email.outbox.enqueued/sent/retry/dead/suppressed/worker_failed usam outboxId,
+eventType, requestId, tentativa e failureCode enumerados. Não serializam recipient,
+email, nome, subject/body, senha, erro bruto ou resposta do provider. Send/retry
+não cria AdministrativeAuditEvent; admin mantém audit de domínio.
+[Contrato](EMAILS_TRANSACIONAIS.md).

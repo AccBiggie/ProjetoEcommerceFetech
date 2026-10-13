@@ -33,7 +33,9 @@
     "ci:e2e": "node scripts/ci/run.js e2e",
     "ci:audit": "node scripts/ci/run.js audit",
     "ci:commercial": "node scripts/ci/run.js commercial",
-    "audit:privacy": "node backend/scripts/auditPrivacy.js"
+    "audit:privacy": "node backend/scripts/auditPrivacy.js",
+    "audit:email-outbox": "node backend/scripts/auditEmailOutbox.js",
+    "email:outbox:once": "node backend/scripts/emailOutbox.js"
   },
   "author": "",
   "license": "ISC",
