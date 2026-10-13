@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import {
-  Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent,
-  DialogContentText, DialogTitle, Divider, Drawer, IconButton,
-  LinearProgress, Stack, TableCell, TableRow, TextField, Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Drawer, IconButton, LinearProgress, Stack, TableCell, TableRow, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import Add from "@mui/icons-material/Add";
 import Close from "@mui/icons-material/Close";
 import DataTable from "../layout/DataTable";
 import { categoryDescendants, useCategories } from "../../context/CategoriesContext";
 import { getErrorMessage } from "../../utils/api";
+import { restoreActionFocus } from '../../utils/restoreActionFocus';
 
 export default function CategoriesManager({ showTable, onChanged }) {
   const { categories, ordered, loading, error: loadError, reload } = useCategories();
@@ -19,12 +17,15 @@ export default function CategoriesManager({ showTable, onChanged }) {
   const [notice, setNotice] = useState("");
   const [deleting, setDeleting] = useState(null);
   const nameInput = useRef(null);
+  const focusTrigger = useRef(null);
+  const createButton = useRef(null);
   const drawerOpen = Boolean(draft);
   useEffect(() => {
     if (drawerOpen && error && !pending) nameInput.current?.focus();
   }, [drawerOpen, error, pending]);
   const excluded = categoryDescendants(categories, draft?._id);
   const open = category => {
+    focusTrigger.current = document.activeElement;
     setError("");
     setNotice("");
     setDraft(category
@@ -56,6 +57,7 @@ export default function CategoriesManager({ showTable, onChanged }) {
       setError(getErrorMessage(error));
     } finally {
       setPending(false);
+      restoreActionFocus(focusTrigger.current, createButton.current);
     }
   };
   const remove = async () => {
@@ -71,12 +73,13 @@ export default function CategoriesManager({ showTable, onChanged }) {
       setError(getErrorMessage(error));
     } finally {
       setPending(false);
+      restoreActionFocus(focusTrigger.current, createButton.current);
     }
   };
   return <>
     <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 3, justifyContent: "space-between", alignItems: { sm: "center" } }}>
       {showTable && <Box><Typography variant="h2">Categorias e subcategorias</Typography><Typography color="textSecondary">Organize os departamentos e seus vínculos.</Typography></Box>}
-      <Button variant="contained" startIcon={<Add />} onClick={() => open()} disabled={pending || loading}>Cadastrar categoria</Button>
+      <Button ref={createButton} variant="contained" startIcon={<Add />} onClick={() => open()} disabled={pending || loading}>Cadastrar categoria</Button>
     </Stack>
     {loadError && <Alert severity="error" sx={{ mb: 2 }} action={<Button color="inherit" onClick={() => reload().catch(() => {})}>Tentar novamente</Button>}>{loadError}</Alert>}
     {notice && <Alert severity="success" sx={{ mb: 2 }} onClose={() => setNotice("")}>{notice}</Alert>}
@@ -90,9 +93,9 @@ export default function CategoriesManager({ showTable, onChanged }) {
           <TableCell><Chip size="small" label={category.parent_id ? "Subcategoria" : "Categoria"} /></TableCell>
           <TableCell>{categories.find(parent => parent._id === category.parent_id)?.name || "—"}</TableCell>
           <TableCell><Stack direction="row" spacing={1}>
-            <Button size="small" disabled={pending} onClick={() => open(category)}>Editar</Button>
-            <Button size="small" disabled={pending} onClick={() => open({ name: "", parent_id: category._id })}>Adicionar subcategoria</Button>
-            <Button size="small" color="error" disabled={pending} onClick={() => { setError(""); setDeleting(category); }}>Excluir</Button>
+            <Button aria-label={'Editar categoria ' + category.name} size="small" disabled={pending} onClick={() => open(category)}>Editar</Button>
+            <Button aria-label={'Adicionar subcategoria de ' + category.name} size="small" disabled={pending} onClick={() => open({ name: "", parent_id: category._id })}>Adicionar subcategoria</Button>
+            <Button aria-label={'Excluir categoria ' + category.name} size="small" color="error" disabled={pending} onClick={() => { focusTrigger.current = document.activeElement; setError(""); setDeleting(category); }}>Excluir</Button>
           </Stack></TableCell>
         </TableRow>)}
       </DataTable>}
@@ -102,6 +105,7 @@ export default function CategoriesManager({ showTable, onChanged }) {
       open={drawerOpen}
       onClose={close}
       slotProps={{
+        transition: { onExited: () => restoreActionFocus(focusTrigger.current, createButton.current) },
         paper: {
           role: "dialog",
           "aria-modal": true,
@@ -151,10 +155,10 @@ export default function CategoriesManager({ showTable, onChanged }) {
         </Stack>
       </Box>}
     </Drawer>
-    <Dialog open={Boolean(deleting)} onClose={() => { if (!pending) setDeleting(null); }} aria-labelledby="category-delete-title">
+    <Dialog open={Boolean(deleting)} slotProps={{ transition: { onExited: () => restoreActionFocus(focusTrigger.current, createButton.current) } }} onClose={() => { if (!pending) setDeleting(null); }} aria-labelledby="category-delete-title" aria-describedby="category-delete-description">
       <DialogTitle id="category-delete-title">Excluir categoria?</DialogTitle>
-      <DialogContent><DialogContentText>Excluir {deleting?.name}? Categorias com produtos ou subcategorias vinculados precisam ser reorganizadas antes da exclusão.</DialogContentText>{error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}</DialogContent>
-      <DialogActions><Button disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button disabled={pending} color="error" variant="contained" onClick={remove}>Confirmar exclusão</Button></DialogActions>
+      <DialogContent><DialogContentText id="category-delete-description">Excluir {deleting?.name}? Categorias com produtos ou subcategorias vinculados precisam ser reorganizadas antes da exclusão.</DialogContentText>{error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}</DialogContent>
+      <DialogActions><Button autoFocus disabled={pending} onClick={() => setDeleting(null)}>Cancelar</Button><Button disabled={pending} color="error" variant="contained" onClick={remove}>Confirmar exclusão</Button></DialogActions>
     </Dialog>
   </>;
 }

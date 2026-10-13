@@ -51,6 +51,7 @@ export default function ProductCard({ product }) {
         component={Link}
         className="productCard"
         to={"/product/" + product._id}
+        aria-label={'Ver detalhes de ' + product.name}
         sx={{ flex: 1 }}
       >
         <Box
@@ -85,6 +86,7 @@ export default function ProductCard({ product }) {
           </Typography>
           <Typography
             className="productName"
+            id={'product-name-' + product._id}
             sx={{
               mt: 0.5,
               minHeight: 48,
@@ -103,13 +105,14 @@ export default function ProductCard({ product }) {
             sx={{ my: 1, alignItems: "center" }}
           >
             <Rating
+              getLabelText={value => value.toLocaleString('pt-BR') + ' de 5 estrelas'}
               readOnly
               size="small"
               precision={0.5}
               value={Number(product.ratings) || 0}
             />
             <Typography variant="caption" color="textSecondary">
-              ({product.numOfReviews})
+              ({product.numOfReviews} avaliações)
             </Typography>
           </Stack>
           <Typography
@@ -118,11 +121,11 @@ export default function ProductCard({ product }) {
             sx={{ textDecoration: "line-through", minHeight: 20 }}
           >
             {product.oldPriceCents > product.priceCents
-              ? money(product.oldPriceCents)
+              ? 'Preço anterior: ' + money(product.oldPriceCents)
               : " "}
           </Typography>
           <Typography sx={{ fontSize: 24, fontWeight: 750 }}>
-            {money(product.priceCents)}
+            Preço atual: {money(product.priceCents)}
           </Typography>
           <Typography variant="caption" color="textSecondary">
             à vista · parcela ilustrativa de {money(product.installmmentPriceCents)}
@@ -132,6 +135,7 @@ export default function ProductCard({ product }) {
       <CardActions sx={{ px: 2, pb: 2 }}>
         <Button
           className="buttomCard"
+          aria-describedby={'product-name-' + product._id}
           fullWidth
           variant="contained"
           startIcon={<AddShoppingCart />}

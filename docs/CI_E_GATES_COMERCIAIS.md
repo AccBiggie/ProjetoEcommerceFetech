@@ -167,3 +167,17 @@ runner obrigatório, sem skip F040. CLI dry-run e apply confirmado só com fake
 nas fixtures. Commercial Gate mantém architecture/API/build/E2E/audit, zero
 falhas esperadas/retries. Os 15 skips F024 continuam exclusivos de Database Tools.
 [Relatório](RELATORIO_FET_MAIL_001.md).
+
+## F033 — gate de acessibilidade (13/10/2026)
+
+O job architecture agora executa frontendAccessibilityArchitecture.test.js, usando
+Babel para controles nativos/nomes de IconButton/tabIndex. O job E2E inclui
+accessibility.spec.js e os probes de axe adicionados a privacidade, checkout e
+persistência. @axe-core/playwright é somente devDependency frontend, instalado
+pelo npm ci existente. Todas as regras padrão; zero violations exigidas, sem
+allowlist/suppression. Zero skips E2E; só os 15 bloqueios F024 conhecidos na API.
+Nenhum browser adicional é baixado pela task local; usa-se Edge já instalado.
+
+Ver [contrato](ACESSIBILIDADE.md), [casos](TESTES_FET_A11Y_001.md) e
+[relatório](RELATORIO_FET_A11Y_001.md). CI local não comprova enforcement remoto
+F039 nem implantação F026. Screen reader e zoom humano não foram validados.

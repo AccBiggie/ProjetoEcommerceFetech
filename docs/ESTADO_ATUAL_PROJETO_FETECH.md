@@ -1,4 +1,25 @@
 # Estado atual — ProjetoEcommerceFetech
+## F033 — FET-A11Y-001 (13/10/2026)
+
+Status: **CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO DE ACESSIBILIDADE**. Referência
+WCAG 2.2 AA, sem certificação alegada. Main único persistente no layout, skip link,
+headings/títulos/foco de rota, nomes contextuais, constraints e erros associados,
+dialogs/menus/tabs/tabelas/paginação, avatar por teclado, contraste de bordas,
+reflow e reduced motion. Axe sem suppression e regressões no Commercial Gate. Validação final: focused
+architecture 47/47; browser a11y 15/15; architecture 118/118; API 1787 aprovados
+e 15 F024; E2E 75/75 sem skips; build, Commercial Gate e diff aprovados;
+audits backend/frontend zero vulnerabilidades.
+[Contrato](ACESSIBILIDADE.md), [testes](TESTES_FET_A11Y_001.md),
+[relatório](RELATORIO_FET_A11Y_001.md).
+
+Worktree inicialmente limpo em main; F040 já commitada em 85f54ce. F033 permanece
+sem commit. Banco real, SMTP, Cloudinary, índices e config.env intocados.
+F024/F026 parciais, F029 aberto, F030 baseline técnico preservado, F039 remoto
+pendente, F040 no código com SMTP real não validado; F001/F027 não iniciados.
+Sem teste humano de leitor de tela ou zoom real: há teclado/reflow automatizados.
+Próxima recomendação: inventário factual dos P2/P3 abertos, sem início automático.
+Este bloco corrente prevalece sobre recomendações históricas abaixo.
+
 
 ## F040 — E-mails transacionais — FET-MAIL-001 (13/10/2026)
 

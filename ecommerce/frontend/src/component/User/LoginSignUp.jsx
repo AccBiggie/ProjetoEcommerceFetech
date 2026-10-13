@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { Button, Link as MuiLink, Stack, Tab, Tabs } from "@mui/material";
-import { TextField } from "@mui/material";
+import { Alert, Box, Button, Link as MuiLink, Stack, Tab, Tabs } from "@mui/material";
+import TextField from '../layout/AccessibleTextField';
 import { clearErrors, login, register } from "../../actions/userAction";
-import { useAlert } from "../../utils/alerts";
 import FormLayout, { PasswordField } from "./FormLayout";
 
 export function LoginSignUp() {
   const dispatch = useDispatch(),
     navigate = useNavigate(),
-    location = useLocation(),
-    alert = useAlert();
+    location = useLocation();
   const { error, loading, isAuthenticated } = useSelector(
     (state) => state.user,
   );
   const [tab, setTab] = useState(0);
+  const [formError, setFormError] = useState('');
+  const errorSummary = useRef(null);
   const [loginEmail, setLoginEmail] = useState(""),
     [loginPassword, setLoginPassword] = useState("");
   const [user, setUser] = useState({ name: "", email: "", password: "" });
@@ -33,13 +33,15 @@ export function LoginSignUp() {
         : "/";
   useEffect(() => {
     if (error) {
-      alert.error(error);
+      setFormError(error);
+      requestAnimationFrame(() => errorSummary.current?.focus());
       dispatch(clearErrors());
     }
     if (isAuthenticated) navigate(redirect, { replace: true });
-  }, [error, alert, dispatch, isAuthenticated, navigate, redirect]);
+  }, [error, dispatch, isAuthenticated, navigate, redirect]);
   const submitRegister = (event) => {
     event.preventDefault();
+    setFormError('');
     dispatch(register(user));
   };
   return (
@@ -49,21 +51,26 @@ export function LoginSignUp() {
     >
       <Tabs
         value={tab}
-        onChange={(_, value) => setTab(value)}
+        onChange={(_, value) => { setTab(value); setFormError(''); }}
         variant="fullWidth"
         aria-label="Acesso à conta"
         sx={{ mb: 3 }}
       >
-        <Tab label="Entrar" />
-        <Tab label="Criar conta" />
+        <Tab id="login-tab" aria-controls="account-access-panel" label="Entrar" />
+        <Tab id="register-tab" aria-controls="account-access-panel" label="Criar conta" />
       </Tabs>
+      {formError && <Alert ref={errorSummary} tabIndex={-1} severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
+      <Box role="tabpanel" id="account-access-panel" aria-labelledby={tab === 0 ? 'login-tab' : 'register-tab'}>
       {tab === 0 ? (
         <Stack
           component="form"
+          aria-labelledby="login-tab"
+          aria-busy={loading}
           className="loginForm"
           spacing={2.5}
           onSubmit={(event) => {
             event.preventDefault();
+            setFormError('');
             dispatch(login(loginEmail, loginPassword));
           }}
         >
@@ -96,6 +103,8 @@ export function LoginSignUp() {
       ) : (
         <Stack
           component="form"
+          aria-labelledby="register-tab"
+          aria-busy={loading}
           className="signUpForm"
           spacing={2.5}
           onSubmit={submitRegister}
@@ -139,6 +148,7 @@ export function LoginSignUp() {
           </Button>
         </Stack>
       )}
+      </Box>
     </FormLayout>
   );
 }

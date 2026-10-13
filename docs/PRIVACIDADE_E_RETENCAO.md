@@ -139,3 +139,12 @@ reset token ou erro bruto. Worker resolve User atual e suprime pending delivery
 para ANONYMIZED, sem recuperar email antigo de Order. Não existe notificação de
 privacy completed nem prazo legal/TTL inventado. F030 é baseline técnico e
 F029 continua aberto. [Contrato](EMAILS_TRANSACIONAIS.md).
+
+## F033 — acessibilidade da interface
+
+O dialog administrativo de anonimização tem título e descrição associados e
+foco inicial no campo de confirmação. Axe e E2E verificam o estado aberto e a
+confirmação forte existente. Status são textuais; tabelas têm caption/headers e
+paginação legível. Políticas, retenção e irreversibilidade não foram alteradas.
+[Baseline técnico de acessibilidade](ACESSIBILIDADE.md); sem certificação legal
+ou WCAG e sem validação manual de leitor de tela.

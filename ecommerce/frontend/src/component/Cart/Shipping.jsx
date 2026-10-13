@@ -1,16 +1,7 @@
-import { shippingFields, normalizeShippingAddress } from '../../../../shared/shippingAddress.mjs';
+import { shippingFields, normalizeShippingAddress, normalizeShippingField } from '../../../../shared/shippingAddress.mjs';
 import { cartTotalCents } from '../../utils/money';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  Step,
-  StepLabel,
-  Stepper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Card, Step, StepLabel, Stepper, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import { useState, useRef } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +26,8 @@ export default function Shipping() {
   const [pending, setPending] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const form = useRef(null);
   const [reviewRequired, setReviewRequired] = useState(() => {
     const stored = readStoredValue(storageRegistry.attempt);
     return !stored.ok || stored.value?.recoveryRequired === true;
@@ -49,6 +42,16 @@ export default function Shipping() {
   };
   const submit = async (event) => {
     event.preventDefault();
+    const errors = {};
+    for (const key of Object.keys(shippingFields)) {
+      try { normalizeShippingField(key, shipping[key]); } catch (error) { errors[key] = error.message; }
+    }
+    setFieldErrors(errors);
+    if (Object.keys(errors).length) {
+      setError('Confira os campos de entrega indicados abaixo. ' + Object.values(errors).join(' '));
+      requestAnimationFrame(() => form.current?.querySelector('[aria-invalid="true"]')?.focus());
+      return;
+    }
     if (submitting.current) return;
     submitting.current = true;
     setPending(true);
@@ -105,10 +108,11 @@ export default function Shipping() {
           alignItems: "start",
         }}
       >
-        <Card component="form" onSubmit={submit} sx={{ p: { xs: 2.5, md: 4 } }}>
+        <Card component="form" ref={form} noValidate aria-busy={pending} onSubmit={submit} sx={{ p: { xs: 2.5, md: 4 } }}>
           <Typography variant="h2" sx={{ mb: 3 }}>
             Endereço de entrega
           </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>Campos marcados com * são obrigatórios.</Typography>
           {error && (
             <Alert severity="error" sx={{ mb: 3 }}>
               {error}
@@ -146,6 +150,9 @@ export default function Shipping() {
                 label={label}
                 name={key}
                 value={shipping[key]}
+                id={'shipping-' + key}
+                error={Boolean(fieldErrors[key])}
+                helperText={fieldErrors[key]}
                 required={!shippingFields[key].optional}
                 type={key === "phoneNo" ? "tel" : "text"}
                 disabled={pending}
@@ -160,6 +167,7 @@ export default function Shipping() {
                 }}
                 onChange={(e) => {
                   setSelectedAddressId("");
+                  setFieldErrors(previous => ({ ...previous, [key]: undefined }));
                   setShipping({ ...shipping, [key]: e.target.value });
                 }}
               />
@@ -173,10 +181,11 @@ export default function Shipping() {
           >
             {pending ? "Criando pedido..." : "Criar pedido"}
           </Button>
+          <Typography role="status" variant="body2">{pending ? 'Criando pedido. Aguarde.' : ''}</Typography>
         </Card>
         <Card sx={{ p: 3 }}>
           <Typography variant="h2">Resumo</Typography>
-          <Typography variant="h2" sx={{ my: 3 }}>
+          <Typography component="p" variant="h2" sx={{ my: 3 }}>
             {money(totalCents)}
           </Typography>
           <Alert severity="info">

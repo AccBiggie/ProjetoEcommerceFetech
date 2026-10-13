@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Box, IconButton, InputAdornment, TextField } from "@mui/material";
+import { Box, IconButton, InputAdornment } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
 
-export default function Search() {
+export default function Search({ label = "Busca no cabeçalho" }) {
   const [keyword, setKeyword] = useState("");
   const navigate = useNavigate();
   return (
@@ -11,6 +12,7 @@ export default function Search() {
       component="form"
       className="searchBox"
       role="search"
+      aria-label={label}
       onSubmit={(event) => {
         event.preventDefault();
         navigate(

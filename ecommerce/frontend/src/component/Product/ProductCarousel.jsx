@@ -43,14 +43,14 @@ export default function ProductCarousel({ children }) {
           <Button
             size="small"
             disabled={!navigation.previous}
-            onClick={() => api?.scrollPrev()}
+            onClick={() => api?.scrollPrev(true)}
           >
             Imagem anterior
           </Button>
           <Button
             size="small"
             disabled={!navigation.next}
-            onClick={() => api?.scrollNext()}
+            onClick={() => api?.scrollNext(true)}
           >
             Próxima imagem
           </Button>

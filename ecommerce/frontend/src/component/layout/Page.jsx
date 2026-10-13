@@ -18,7 +18,7 @@ export default function Page({
 }) {
   return (
     <Container
-      component="main"
+      component="div"
       maxWidth={maxWidth}
       className="contentPage"
       sx={{ py: { xs: 3, md: 5 } }}
@@ -34,7 +34,7 @@ export default function Page({
         }}
       >
         <Box>
-          <Typography variant="h1" sx={{ fontSize: { xs: 26, md: 32 } }}>
+          <Typography variant="h1" tabIndex={-1} sx={{ fontSize: { xs: 26, md: 32 } }}>
             {title}
           </Typography>
           {subtitle && (
@@ -60,6 +60,7 @@ export function NotFound({
       <Button component={Link} to="/products" variant="contained">
         Ver produtos
       </Button>
+      <Button component={Link} to="/" sx={{ ml: 2 }}>Página inicial</Button>
     </Page>
   );
 }

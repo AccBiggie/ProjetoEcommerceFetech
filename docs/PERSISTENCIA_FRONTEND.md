@@ -67,3 +67,13 @@ Não há JWT/password/bytes de avatar em registry, PII nova, analytics, Sentry o
 Para troubleshooting, conferir funcionamento de storage no navegador, revisar pedidos antes de remover uma tentativa comercial inválida e recarregar após correção. Preferências podem ser restauradas pelo fallback. Não instruir “limpar tudo” como rotina de recovery. Erros do backend continuam seu próprio fluxo e request ID F025; não inventamos request ID para erro React.
 
 Testes usam fake Storage e contextos Playwright isolados, sem storage do desenvolvedor. Harness de erro é compilado/servido apenas no host E2E, fora do bundle e rotas de produção. Evidências: [RELATORIO_FET_FRONT_001.md](RELATORIO_FET_FRONT_001.md). F029/F030/F033/F034/F037 continuam abertos conforme escopo; F024 parcial e F001/F027 adiados.
+
+## F033 — acessibilidade da recuperação
+
+O main persiste no layout durante o loading. Os avisos de armazenamento vêm após
+o skip link, preservam aside nomeado com alerta interno e levam foco ao main
+quando dispensados. Boundary e bootstrap mantêm main sem substituir seu papel
+por alert; o alerta está no texto e o título é “Falha ao carregar | Fetech”.
+Foco/recarga continuam locais e não alteram storage, F005 ou auth. E2E auditam as
+três falhas do boundary e os estados corrupto/indisponível com axe sem suppression.
+[Baseline técnico](ACESSIBILIDADE.md), sem certificação WCAG ou teste manual de AT.

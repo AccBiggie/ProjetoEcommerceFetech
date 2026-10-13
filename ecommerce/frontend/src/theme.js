@@ -37,6 +37,12 @@ export default function createAppTheme(mode = "light") {
         },
       },
       MuiTextField: { defaultProps: { fullWidth: true, variant: "outlined" } },
+      MuiOutlinedInput: { styleOverrides: { notchedOutline: { borderColor: dark ? '#7d8ba0' : '#7a8595' } } },
+      MuiPagination: { defaultProps: { getItemAriaLabel: (type, page, selected) => type === 'page'
+        ? (selected ? 'Página atual, ' : 'Ir para a página ') + page
+        : ({ first: 'Primeira página', last: 'Última página', next: 'Próxima página', previous: 'Página anterior' }[type] || 'Mais páginas') } },
+      MuiAlert: { defaultProps: { closeText: 'Fechar aviso' } },
+      MuiLinearProgress: { defaultProps: { 'aria-label': 'Carregando dados' } },
       MuiTableCell: {
         styleOverrides: {
           head: { backgroundColor: dark ? "#202b3d" : "#f8fafc", fontWeight: 700 },

@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { password } = require('../fixtures');
+const { expectNoA11yViolations } = require('../helpers/accessibility');
 const { installSecurityChecks, mutation } = require('./securityChecks');
 installSecurityChecks(test, expect);
 async function login(page, email) {
@@ -33,10 +34,20 @@ test('privacy: request, eligibility, strong confirmation, tombstone and audit th
         await row.getByRole('button', { name: 'Anonimizar', exact: true }).click();
         const dialog = page.getByRole('dialog'), confirm = dialog.getByRole('button', { name: 'Confirmar anonimização', exact: true });
         await expect(dialog).toContainText('irreversível'); await expect(confirm).toBeDisabled();
+        await expect(dialog).toHaveAccessibleName('Anonimizar conta');
+        await expect(dialog.getByLabel('Confirmação de anonimização')).toBeFocused();
+        await expectNoA11yViolations(page, 'privacy irreversible confirmation');
         await dialog.getByLabel('Confirmação de anonimização').fill('SIM'); await expect(confirm).toBeDisabled();
         await dialog.getByLabel('Confirmação de anonimização').fill('ANONIMIZAR ' + id);
+        const denied = route => route.fulfill({ status: 503, json: { success: false, message: 'Falha temporária de privacidade.' } });
+        await page.route('**/api/v1/admin/privacy/requests/*/anonymize', denied);
+        await confirm.click();
+        await expect(dialog.getByRole('alert')).toContainText('Falha temporária de privacidade.');
+        await expectNoA11yViolations(page, 'privacy confirmation API error');
+        await page.unroute('**/api/v1/admin/privacy/requests/*/anonymize', denied);
         const completed = page.waitForResponse(r => r.url().endsWith('/anonymize') && r.request().method() === 'POST');
         await confirm.click(); expect((await completed).status()).toBe(200); await expect(dialog).toHaveCount(0);
+        await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
         expect((await context.request.get('/api/v1/me')).status()).toBe(401);
         const deniedLogin = await mutation(customer, 'post', '/api/v1/login', { data: { email: profile.email, password } }); expect(deniedLogin.status()).toBe(401);
         await customer.goto('/product/' + productId);

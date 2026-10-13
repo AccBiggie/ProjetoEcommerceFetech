@@ -1,4 +1,5 @@
 const { test, expect } = require("@playwright/test");
+const { expectNoA11yViolations } = require('../helpers/accessibility');
 const { password, categories, productData } = require("../fixtures");
 const { installSecurityChecks, mutation } = require('./securityChecks');
 installSecurityChecks(test, expect);
@@ -58,7 +59,7 @@ test("rotas públicas, categorias, busca com caracteres especiais, paginação e
   for (const category of categories) {
     await page.goto("/");
     await page.getByRole("button", { name: "Compre por departamento" }).click();
-    await page.getByRole("link", { name: category, exact: true }).click();
+    await page.getByRole("menuitem", { name: category, exact: true }).click();
     await expect(page.getByRole("combobox", { name: "Categoria" })).toHaveValue(
       category,
     );
@@ -160,7 +161,7 @@ test("menu em tela pequena e navegação por teclado", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(button).toHaveAttribute("aria-expanded", "false");
   await button.click();
-  await page.getByRole("link", { name: "Segurança", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Segurança", exact: true }).click();
   await expect(page.getByRole("combobox", { name: "Categoria" })).toHaveValue(
     "Segurança",
   );
@@ -195,7 +196,7 @@ test("cadastro, alteração de senha, recuperação e redefinição pelo link", 
   await page.goto("/password/forgot");
   await page.getByRole("textbox", { name: "E-mail", exact: true }).fill(email);
   await page.locator(".forgotPasswordBtn").click();
-  await expect(page.getByRole("alert")).toContainText("Se existir uma conta associada a este e-mail, enviaremos as instruções para redefinição de senha.");
+  await expect(page.locator('main [role=status]')).toContainText("Se existir uma conta associada a este e-mail, enviaremos as instruções para redefinição de senha.");
   const reset = await (
     await request.get("/__test/reset-link?email=" + encodeURIComponent(email))
   ).json();
@@ -224,7 +225,7 @@ test("carrinho com dois produtos, remoção, persistência, checkout e detalhe d
   await page
     .locator(".cartContainer")
     .first()
-    .getByRole("button", { name: "Aumentar quantidade", exact: true })
+    .getByRole("button", { name: /^Aumentar quantidade de / })
     .click();
   await expect(
     page.locator(".cartContainer").first().locator("input"),
@@ -237,7 +238,7 @@ test("carrinho com dois produtos, remoção, persistência, checkout e detalhe d
   await page
     .locator(".cartContainer")
     .last()
-    .getByRole("button", { name: "Remover" })
+    .getByRole("button", { name: /^Remover .* do carrinho$/ })
     .click();
   await expect(page.locator(".cartContainer")).toHaveCount(1);
   await page.getByRole("button", { name: "Finalizar pedido" }).click();
@@ -260,9 +261,11 @@ test("carrinho com dois produtos, remoção, persistência, checkout e detalhe d
     Telefone: "44999999999",
   }))
     await page.getByRole("textbox", { name: label, exact: true }).fill(value);
-  await page.getByRole("button", { name: "Criar pedido", exact: true }).click();
+  await page.getByRole("button", { name: "Criar pedido", exact: true }).focus();
+  await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/\/order\/[a-f0-9]{24}$/);
   await expect(page.getByText("Pagamento: Pendente")).toBeVisible();
+  await expectNoA11yViolations(page, 'order detail after keyboard submit');
   const orderURL = page.url();
   await page.reload();
   await expect(
@@ -327,23 +330,23 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
     .getByRole("row")
     .filter({ hasText: "Produto administrativo E2E" });
   await expect(row).toBeVisible();
-  await row.getByRole("button", { name: "Editar", exact: true }).click();
+  await row.getByRole("button", { name: /^Editar / }).click();
   await page
     .getByRole("spinbutton", { name: "Preço", exact: true })
     .fill("175");
   await page.getByRole("button", { name: "Salvar produto" }).click();
   await expect(row).toContainText("175,00");
-  await row.getByRole("button", { name: "Excluir", exact: true }).click();
+  await row.getByRole("button", { name: /^Excluir / }).click();
   await page
     .getByRole("dialog")
     .getByRole("button", { name: "Confirmar exclusão" })
     .click();
   await expect(row).toHaveCount(0);
   await page.getByRole("tab", { name: "Usuários", exact: true }).click();
-  const role = page.getByLabel("Perfil de other@routes.example.com");
-  await expect(page.getByLabel("Perfil de admin@routes.example.com")).toBeDisabled();
+  const role = page.getByRole("row").filter({ hasText: "other@routes.example.com" }).getByRole("combobox");
+  await expect(page.getByRole("row").filter({ hasText: "admin@routes.example.com" }).getByRole("combobox")).toBeDisabled();
   await expect(page.getByRole("row").filter({ hasText: "admin@routes.example.com" })
-    .getByRole("button", { name: "Desativar conta", exact: true })).toBeDisabled();
+    .getByRole("button", { name: /^Desativar conta / })).toBeDisabled();
   for (const [status, message] of [
     [403, "Não é permitido remover sua própria permissão administrativa."],
     [409, "Outra alteração administrativa está em andamento. Tente novamente."],
@@ -408,14 +411,14 @@ test("dashboard: criar, editar e excluir produto; usuários e transições de pe
   const denied = await mutation(page, "delete", "/api/v1/admin/order/" + createdOrder.order._id);
   expect(denied.status()).toBe(405);
   expect(denied.headers().allow).toBe("PATCH");
-  await orderRow.getByRole("button", { name: "Arquivar", exact: true }).click();
+  await orderRow.getByRole("button", { name: /^Arquivar / }).click();
   await expect(page.getByRole("dialog")).toContainText("O pedido e seu histórico serão preservados.");
   await page.getByRole("button", { name: "Confirmar arquivamento" }).click();
   await expect(orderRow).toHaveCount(0);
   await page.getByLabel("Filtrar pedidos").selectOption("archived");
   await expect(orderRow).toContainText("Arquivado");
   expect((await page.request.get("/api/v1/order/" + createdOrder.order._id)).status()).toBe(200);
-  await orderRow.getByRole("button", { name: "Desarquivar", exact: true }).click();
+  await orderRow.getByRole("button", { name: /^Desarquivar / }).click();
   await page.getByRole("button", { name: "Confirmar desarquivamento" }).click();
   await expect(orderRow).toHaveCount(0);
   await page.getByLabel("Filtrar pedidos").selectOption("active");
@@ -485,7 +488,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   const { categories } = await (await page.request.get("/api/v1/categories")).json();
   const child = categories.find(category => category.name === "Subcategoria E2E");
   expect(child.parent_id).toBe(parent._id);
-  await parentRow.getByRole("button", { name: "Editar", exact: true }).click();
+  await parentRow.getByRole("button", { name: /^Editar / }).click();
   const parentEdit = page.getByRole("dialog", { name: "Editar categoria" });
   const parentSelect = parentEdit.getByRole("combobox", { name: "Categoria pai" });
   await expect(parentSelect.locator(`option[value="${parent._id}"]`)).toHaveCount(0);
@@ -494,7 +497,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   const cycleResponse = await mutation(page, "put", `/api/v1/admin/category/${parent._id}`, { data: { parent_id: child._id } });
   expect(cycleResponse.status()).toBe(409);
   expect((await cycleResponse.json()).code).toBe("CATEGORY_HIERARCHY_CYCLE");
-  await parentRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await parentRow.getByRole("button", { name: /^Excluir / }).click();
   const confirmation = page.getByRole("dialog", { name: "Excluir categoria?" });
   await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(confirmation.getByRole("alert")).toContainText("subcategorias");
@@ -510,7 +513,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   await expect(page.getByRole("row").filter({ hasText: "Produto da subcategoria E2E" })).toBeVisible();
   await page.getByRole("tab", { name: "Categorias", exact: true }).click();
   const childRow = page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E", { exact: true }) });
-  await childRow.getByRole("button", { name: "Editar", exact: true }).click();
+  await childRow.getByRole("button", { name: /^Editar / }).click();
   const edit = page.getByRole("dialog", { name: "Editar categoria" });
   await expect(edit.getByRole("combobox", { name: "Categoria pai" }).locator(`option[value="${child._id}"]`)).toHaveCount(0);
   await edit.getByRole("textbox", { name: "Nome da categoria" }).fill("Subcategoria E2E editada");
@@ -518,7 +521,7 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   await edit.getByRole("button", { name: "Salvar categoria" }).click();
   await expect(edit).toHaveCount(0);
   expect((await (await page.request.get(`/api/v1/category/${child._id}`)).json()).category.parent_id).toBe(null);
-  await page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E editada", { exact: true }) }).getByRole("button", { name: "Editar", exact: true }).click();
+  await page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E editada", { exact: true }) }).getByRole("button", { name: /^Editar / }).click();
   await edit.getByRole("combobox", { name: "Categoria pai" }).selectOption(parent._id);
   await edit.getByRole("button", { name: "Salvar categoria" }).click();
   await expect(edit).toHaveCount(0);
@@ -526,12 +529,12 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   await page.reload();
   await page.getByRole("tab", { name: "Categorias", exact: true }).click();
   const editedRow = page.getByRole("row").filter({ has: page.locator("td:first-child").getByText("Subcategoria E2E editada", { exact: true }) });
-  await editedRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await editedRow.getByRole("button", { name: /^Excluir / }).click();
   await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(confirmation.getByRole("alert")).toContainText("possui produtos");
   await confirmation.getByRole("button", { name: "Cancelar" }).click();
   await page.getByRole("button", { name: "Compre por departamento" }).click();
-  await page.getByRole("link", { name: "Departamento E2E", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Departamento E2E", exact: true }).click();
   await expect(page.locator(".products .productCard")).toHaveCount(1);
   await expect(page.locator(".productName")).toHaveText("Produto da subcategoria E2E");
   const products = await (await page.request.get(`/api/v1/products?category=${child._id}`)).json();
@@ -539,11 +542,11 @@ test("categorias: offcanvas, subcategoria por parent_id, edição, filtros e exc
   expect((await mutation(page, "delete", `/api/v1/product/${products.products[0]._id}`)).status()).toBe(200);
   await page.goto("/dashboard");
   await page.getByRole("tab", { name: "Categorias", exact: true }).click();
-  await editedRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await editedRow.getByRole("button", { name: /^Excluir / }).click();
   await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(confirmation).toHaveCount(0);
   await expect(editedRow).toHaveCount(0);
-  await parentRow.getByRole("button", { name: "Excluir", exact: true }).click();
+  await parentRow.getByRole("button", { name: /^Excluir / }).click();
   await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
   await expect(confirmation).toHaveCount(0);
   await expect(parentRow).toHaveCount(0);

@@ -1,15 +1,8 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useSearchParams } from "react-router";
-import {
-  Alert,
-  Box,
-  Chip,
-  Pagination,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Chip, Pagination, Stack, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import { getProduct } from "../../actions/productAction";
 import { useCategories } from "../../context/CategoriesContext";
 import ProductCard from "../Home/ProductCard";
@@ -81,6 +74,7 @@ export default function Products() {
           />
         )}
         <Typography
+          role="status"
           variant="body2"
           color="textSecondary"
           sx={{ ml: { sm: "auto !important" } }}
@@ -111,6 +105,7 @@ export default function Products() {
       {resultPerPage < count && (
         <Stack className="paginationBox" sx={{ mt: 5, alignItems: "center" }}>
           <Pagination
+            aria-label="Paginação de produtos"
             color="primary"
             count={Math.ceil(count / resultPerPage)}
             page={currentPage}

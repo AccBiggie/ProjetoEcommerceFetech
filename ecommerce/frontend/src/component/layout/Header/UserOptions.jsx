@@ -38,6 +38,7 @@ export default function UserOptions({ user }) {
         aria-label="Minha conta"
         aria-haspopup="true"
         aria-expanded={Boolean(anchor)}
+        aria-controls={anchor ? 'account-menu' : undefined}
         onClick={(event) => setAnchor(event.currentTarget)}
       >
         <Avatar
@@ -49,10 +50,11 @@ export default function UserOptions({ user }) {
         </Avatar>
       </IconButton>
       <Menu
+        id="account-menu"
         anchorEl={anchor}
         open={Boolean(anchor)}
         onClose={close}
-        slotProps={{ paper: { sx: { minWidth: 240 } } }}
+        slotProps={{ paper: { component: 'nav', 'aria-label': 'Opções da conta', sx: { minWidth: 240 } } }}
       >
         <Box sx={{ px: 2, py: 1 }}>
           <Typography sx={{ fontWeight: 700 }}>{user.name}</Typography>

@@ -1,4 +1,5 @@
-import { Alert, Button, Stack, TextField } from "@mui/material";
+import { Alert, Button, Stack } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import { Link } from "react-router";
 import FormLayout from "./FormLayout";
 import { useState, useEffect } from "react";
@@ -10,6 +11,7 @@ import { FORGOT_PASSWORD_RESET } from "../../constants/userConstants";
 const ForgotPassword = () => {
   const dispatch = useDispatch();
   const alert = useAlert();
+  const [formError, setFormError] = useState('');
 
   const { error, message, loading } = useSelector(
     (state) => state.forgotPassword,
@@ -19,6 +21,7 @@ const ForgotPassword = () => {
 
   const forgotPasswordSubmit = (e) => {
     e.preventDefault();
+    setFormError('');
 
     dispatch(forgotPassword({ email }));
   };
@@ -28,7 +31,8 @@ const ForgotPassword = () => {
 
   useEffect(() => {
     if (error) {
-      alert.error(error);
+      setFormError(error);
+
       dispatch(clearErrors());
     }
 
@@ -43,10 +47,11 @@ const ForgotPassword = () => {
       subtitle="Informe seu e-mail para receber o link de recuperação."
     >
       {message && (
-        <Alert severity="success" sx={{ mb: 3 }}>
+        <Alert role="status" severity="success" sx={{ mb: 3 }}>
           {message}
         </Alert>
       )}
+      {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
       <Stack component="form" spacing={2.5} onSubmit={forgotPasswordSubmit}>
         <TextField
           label="E-mail"

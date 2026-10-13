@@ -137,7 +137,7 @@ for (const width of [360, 768, 1440]) {
     const home = page.getByRole("article", { name: "Casa", exact: true });
     await expect(home).toContainText("CEP 01234-567");
     await expect(home.getByText("Favorito", { exact: true })).toBeVisible();
-    await home.getByRole("button", { name: "Editar", exact: true }).click();
+    await home.getByRole("button", { name: /^Editar / }).click();
     const edit = page.getByRole("dialog", { name: "Editar endereço" });
     await edit.getByRole("textbox", { name: "Número", exact: true }).fill("200A");
     await edit.getByRole("button", { name: "Salvar endereço" }).click();
@@ -149,7 +149,7 @@ for (const width of [360, 768, 1440]) {
     await expect(create).toHaveCount(0);
     const work = page.getByRole("article", { name: "Trabalho", exact: true });
     await expect(page.getByRole("article")).toHaveCount(2);
-    await work.getByRole("button", { name: "Tornar favorito", exact: true }).click();
+    await work.getByRole("button", { name: /^Tornar favorito / }).click();
     await expect(work.getByText("Favorito", { exact: true })).toBeVisible();
     await expect(home.getByText("Favorito", { exact: true })).toHaveCount(0);
     await expect(page.getByText("Favorito", { exact: true })).toHaveCount(1);
@@ -157,15 +157,16 @@ for (const width of [360, 768, 1440]) {
     await expect(work.getByText("Favorito", { exact: true })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem("shippingInfo")).data)).toEqual(shipping);
-    await home.getByRole("button", { name: "Excluir", exact: true }).click();
+    await home.getByRole("button", { name: /^Excluir / }).click();
     const confirmation = page.getByRole("dialog", { name: "Excluir endereço?" });
     await confirmation.getByRole("button", { name: "Cancelar" }).click();
     await expect(home).toBeVisible();
     for (const card of [home, work]) {
-      await card.getByRole("button", { name: "Excluir", exact: true }).click();
+      await card.getByRole("button", { name: /^Excluir / }).click();
       await confirmation.getByRole("button", { name: "Confirmar exclusão" }).click();
       await expect(confirmation).toHaveCount(0);
       await expect(card).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Adicionar endereço', exact: true })).toBeFocused();
     }
     await expect(page.getByText("Você ainda não tem endereços cadastrados.")).toBeVisible();
     expect((await (await page.request.get("/api/v1/addresses")).json()).addresses).toEqual([]);

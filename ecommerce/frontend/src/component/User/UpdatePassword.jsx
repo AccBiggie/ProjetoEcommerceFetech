@@ -1,4 +1,4 @@
-import { Button, Stack } from "@mui/material";
+import { Alert, Button, Stack } from "@mui/material";
 
 import FormLayout, { PasswordField } from "./FormLayout";
 import { useState, useEffect } from "react";
@@ -12,6 +12,7 @@ const UpdatePassword = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const alert = useAlert();
+  const [formError, setFormError] = useState('');
   const { error, isUpdated, loading } = useSelector((state) => state.profile);
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -19,13 +20,15 @@ const UpdatePassword = () => {
 
   const updatePasswordSubmit = (e) => {
     e.preventDefault();
+    setFormError('');
 
     dispatch(updatePassword({ oldPassword, newPassword, confirmPassword }));
   };
 
   useEffect(() => {
     if (error) {
-      alert.error(error);
+      setFormError(error);
+
       dispatch(clearErrors());
     }
 
@@ -43,6 +46,7 @@ const UpdatePassword = () => {
       title="Alterar senha"
       subtitle="Escolha uma senha com pelo menos 8 caracteres."
     >
+      {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
       <Stack component="form" spacing={2.5} onSubmit={updatePasswordSubmit}>
         <PasswordField
           label="Senha atual"

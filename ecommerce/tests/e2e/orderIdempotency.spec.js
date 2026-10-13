@@ -80,7 +80,7 @@ test('idempotência: 5xx/PROCESSING/conflito mantêm key; carrinho alterado cria
     expect(Object.keys(technical).sort()).toEqual(['fingerprint', 'key']);
     await page.unroute('**/api/v1/order/new');
     await page.goto('/cart');
-    await page.getByRole('button', { name: 'Aumentar quantidade', exact: true }).click();
+    await page.getByRole('button', { name: /^Aumentar quantidade de / }).click();
     await page.getByRole('button', { name: 'Finalizar pedido', exact: true }).click();
     const created = page.waitForResponse(r => r.url().endsWith('/api/v1/order/new') && r.status() === 201);
     await page.getByRole('button', { name: 'Criar pedido', exact: true }).click();

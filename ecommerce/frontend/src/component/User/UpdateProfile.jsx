@@ -1,4 +1,5 @@
-import { Alert, Button, Stack, TextField } from "@mui/material";
+import { Alert, Button, Stack } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 
 import FormLayout, { AvatarUpload } from "./FormLayout";
 import { useState, useEffect } from "react";
@@ -13,6 +14,7 @@ const UpdateProfile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const alert = useAlert();
+  const [formError, setFormError] = useState('');
   const { user } = useSelector((state) => state.user);
   const { error, isUpdated, loading } = useSelector((state) => state.profile);
   const [name, setName] = useState("");
@@ -29,6 +31,7 @@ const UpdateProfile = () => {
   }, [avatar]);
   const updateProfileSubmit = (e) => {
     e.preventDefault();
+    setFormError('');
 
     dispatch(updateProfile({ name, email }));
   };
@@ -55,7 +58,8 @@ const UpdateProfile = () => {
   }, [user?._id, user?.name, user?.email]);
   useEffect(() => {
     if (error) {
-      alert.error(error);
+      setFormError(error);
+
       dispatch(clearErrors());
     }
 
@@ -75,6 +79,7 @@ const UpdateProfile = () => {
       title="Editar perfil"
       subtitle="Mantenha suas informações atualizadas."
     >
+      {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
       <Stack
         component="form"
         className="updateProfileForm"
@@ -100,9 +105,11 @@ const UpdateProfile = () => {
         />
         <AvatarUpload
           preview={avatarPreview}
+          error={photoError}
+          selected={Boolean(avatar)}
+          disabled={photoPending || loading}
           onChange={updateProfileDataChange}
         />
-        {photoError && <Alert severity="error">{photoError}</Alert>}
         <Button onClick={savePhoto} disabled={!avatar || photoPending || loading} variant="outlined">{photoPending ? 'Enviando foto...' : 'Salvar foto'}</Button>
         <Button
           type="submit"

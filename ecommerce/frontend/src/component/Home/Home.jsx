@@ -30,9 +30,9 @@ export const productGrid = {
 };
 export function ProductSkeletons() {
   return (
-    <Box sx={productGrid}>
+    <Box sx={productGrid} role="status" aria-label="Carregando produtos" aria-busy="true">
       {Array.from({ length: 8 }, (_, i) => (
-        <Skeleton key={i} variant="rounded" height={390} />
+        <Skeleton key={i} aria-hidden="true" variant="rounded" height={390} />
       ))}
     </Box>
   );
@@ -46,7 +46,7 @@ export default function Home() {
     dispatch(getProduct());
   }, [dispatch]);
   return (
-    <Container component="main" maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+    <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
       <MetaData title="Loja Fetech | Entre já para o mundo gamer" />
       <Box
         sx={{
@@ -72,6 +72,7 @@ export default function Home() {
           />
           <Typography
             component="h1"
+            tabIndex={-1}
             sx={{
               fontSize: { xs: 34, md: 46 },
               lineHeight: 1.12,

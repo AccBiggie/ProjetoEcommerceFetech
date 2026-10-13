@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Alert, Box, Button, LinearProgress, Stack, TableCell, TableRow, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, LinearProgress, Stack, TableCell, TableRow, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import DataTable from '../layout/DataTable';
 import { getErrorMessage } from '../../utils/api';
 export default function AuditTrail() {
@@ -38,9 +39,9 @@ export default function AuditTrail() {
       </TableRow>)}
       {!loading && data.events.length === 0 && <TableRow><TableCell colSpan={5}>Nenhum evento encontrado.</TableCell></TableRow>}
     </DataTable>
-    <Stack direction="row" spacing={2} alignItems="center">
+    <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap' }} alignItems="center">
       <Button disabled={loading || page === 1} onClick={() => setPage(value => value - 1)}>Página anterior</Button>
-      <Typography>Página {page} de {Math.max(1, data.pagination.pages)} · {data.pagination.total} eventos</Typography>
+      <Typography role="status" aria-current="page">Página {page} de {Math.max(1, data.pagination.pages)} · {data.pagination.total} eventos</Typography>
       <Button disabled={loading || page >= data.pagination.pages} onClick={() => setPage(value => value + 1)}>Próxima página</Button>
     </Stack>
   </Box>;

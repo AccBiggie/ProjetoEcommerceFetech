@@ -1,0 +1,266 @@
+[
+  {
+    "page": "/",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/products",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/search",
+    "violations": [
+      {
+        "id": "landmark-unique",
+        "impact": "moderate",
+        "targets": [
+          [
+            ".css-1lu2azv > form"
+          ]
+        ]
+      }
+    ],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/cart",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/login",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/password/forgot",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/password/reset/invalid",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/missing",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "register",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "product",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "cart populated",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/account",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/addresses",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/me/update",
+    "violations": [
+      {
+        "id": "aria-allowed-role",
+        "impact": "minor",
+        "targets": [
+          [
+            ".MuiButton-sizeSmall"
+          ]
+        ]
+      }
+    ],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/password/update",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/orders",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/account/privacy",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "/shipping",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 1,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "admin products",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BODY"
+    }
+  },
+  {
+    "page": "admin Categorias",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "admin Usuários",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "admin Pedidos",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "admin Auditoria",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "admin Privacidade",
+    "violations": [],
+    "semantics": {
+      "main": 1,
+      "h1": 4,
+      "skip": false,
+      "active": "BUTTON"
+    }
+  },
+  {
+    "page": "category drawer",
+    "violations": []
+  }
+]

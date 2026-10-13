@@ -23,12 +23,12 @@ test('lifecycle: status/filtros, desativar revoga sessão, reativar exige login 
         await page.getByRole('tab', { name: 'Usuários', exact: true }).click();
         const filter = page.getByRole('combobox', { name: 'Filtrar usuários', exact: true }), row = page.getByRole('row').filter({ hasText: email });
         await expect(filter).toHaveValue('active'); await expect(row).toContainText('Ativo');
-        await expect(row.getByRole('button', { name: 'Excluir', exact: true })).toHaveCount(0);
+        await expect(row.getByRole('button', { name: /^Excluir / })).toHaveCount(0);
         await filter.selectOption('all'); await expect(row).toBeVisible();
-        await row.getByRole('button', { name: 'Desativar conta', exact: true }).click();
+        await row.getByRole('button', { name: /^Desativar conta / }).click();
         const dialog = page.getByRole('dialog'); await expect(dialog).toContainText('histórico serão preservados');
         await dialog.getByRole('button', { name: 'Cancelar', exact: true }).click(); await expect(row).toContainText('Ativo');
-        await row.getByRole('button', { name: 'Desativar conta', exact: true }).click();
+        await row.getByRole('button', { name: /^Desativar conta / }).click();
         const deactivation = page.waitForResponse(response => response.url().endsWith('/' + id + '/deactivate'));
         await dialog.getByRole('button', { name: 'Confirmar desativação', exact: true }).click();
         const deactivated = await deactivation; expect(deactivated.status()).toBe(200);
@@ -39,7 +39,7 @@ test('lifecycle: status/filtros, desativar revoga sessão, reativar exige login 
         expect((await denied).status()).toBe(401); await expect(customer).toHaveURL(/\/login$/);
         await filter.selectOption('active'); await expect(row).toHaveCount(0);
         await filter.selectOption('deactivated'); await expect(row).toContainText('Desativado');
-        await row.getByRole('button', { name: 'Reativar conta', exact: true }).click();
+        await row.getByRole('button', { name: /^Reativar conta / }).click();
         const reactivation = page.waitForResponse(response => response.url().endsWith('/' + id + '/reactivate'));
         await dialog.getByRole('button', { name: 'Confirmar reativação', exact: true }).click(); expect((await reactivation).status()).toBe(200);
         await expect(row).toHaveCount(0); await filter.selectOption('active'); await expect(row).toContainText('Ativo');

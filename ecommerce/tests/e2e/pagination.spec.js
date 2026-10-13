@@ -12,7 +12,7 @@ async function login(page,email='admin@routes.example.com') {
 test('catálogo navega página 1/2/voltar e filtro reinicia página',async({page})=>{
     const requests=[]; page.on('request',request=>{if(new URL(request.url()).pathname==='/api/v1/products') requests.push(new URL(request.url()));});
     await page.goto('/products');
-    const nav=page.getByRole('navigation',{name:'Navegar pela paginação'});
+    const nav=page.getByRole('navigation',{name:'Paginação de produtos'});
     await nav.getByRole('button',{name:'Ir para a página 2',exact:true}).click();
     await expect(page).toHaveURL(/page=2/);
     await expect(page.getByRole('link',{name:/Paginação fixture 17/}).first()).toBeVisible();

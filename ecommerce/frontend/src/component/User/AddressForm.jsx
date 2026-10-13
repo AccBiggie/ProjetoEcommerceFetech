@@ -1,9 +1,7 @@
 import { normalizeShippingField } from '../../../../shared/shippingAddress.mjs';
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert, Box, Button, Checkbox, Divider, Drawer, FormControlLabel,
-  IconButton, LinearProgress, Stack, TextField, Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Checkbox, Divider, Drawer, FormControlLabel, IconButton, LinearProgress, Stack, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import Close from "@mui/icons-material/Close";
 import { getErrorMessage } from "../../utils/api";
 
@@ -47,7 +45,10 @@ export default function AddressForm({ address, onSave, onClose }) {
     if (!/^[0-9\s-]+$/.test(draft.pinCode)) errors.pinCode = "Informe um CEP com 8 dígitos.";
     if (!/^[0-9\s()+.-]+$/.test(draft.phoneNo)) errors.phoneNo = "Informe um telefone com 10 a 15 dígitos, incluindo DDD.";
     setFieldErrors(errors);
-    if (Object.keys(errors).length) return;
+    if (Object.keys(errors).length) {
+      requestAnimationFrame(() => firstInput.current?.form?.querySelector('[aria-invalid="true"]')?.focus());
+      return;
+    }
     setPending(true);
     setError("");
     try {
@@ -65,7 +66,7 @@ export default function AddressForm({ address, onSave, onClose }) {
       role: "dialog", "aria-modal": true, "aria-labelledby": "address-form-title",
       sx: { width: { xs: "100%", sm: 580 }, maxWidth: "100%" },
     } }}>
-      <Box component="form" onSubmit={submit} sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+      <Box component="form" noValidate aria-busy={pending} onSubmit={submit} sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
         <Stack direction="row" sx={{ p: 2.5, alignItems: "center", justifyContent: "space-between" }}>
           <Typography id="address-form-title" variant="h2">{address._id ? "Editar endereço" : "Adicionar endereço"}</Typography>
           <IconButton aria-label="Fechar formulário de endereço" disabled={pending} onClick={close}><Close /></IconButton>
@@ -73,6 +74,8 @@ export default function AddressForm({ address, onSave, onClose }) {
         <Divider />
         {pending && <LinearProgress />}
         <Box sx={{ p: 3, flex: 1, overflowY: "auto", minHeight: 0 }}>
+          <Typography variant="body2" sx={{ mb: 2 }}>Campos marcados com * são obrigatórios.</Typography>
+          {Object.values(fieldErrors).some(Boolean) && <Alert severity="error" sx={{ mb: 2 }}>Confira os campos indicados abaixo.</Alert>}
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, minmax(0, 1fr))" }, gap: 2.5 }}>
             {fields.map(([field, label, maxLength, autoComplete], index) => (

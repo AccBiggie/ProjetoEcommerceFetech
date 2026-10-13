@@ -10,6 +10,7 @@ import ScrollToTop from "./component/layout/ScrollToTop";
 import { Box } from "@mui/material";
 import { ColorModeProvider } from "./context/ColorModeContext";
 import { CategoriesProvider } from "./context/CategoriesContext";
+import StorageNotices from './component/recovery/StorageNotices';
 
 function App() {
   React.useEffect(() => {
@@ -20,12 +21,14 @@ function App() {
     <ColorModeProvider>
       <Router>
         <CategoriesProvider>
+          <a className="skip-link" href="#main-content" onClick={() => document.getElementById('main-content')?.focus()}>Pular para o conteúdo principal</a>
+          <StorageNotices />
           <ScrollToTop />
           <Box
             sx={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
           >
             <Header />
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Box component="main" id="main-content" tabIndex={-1} sx={{ flex: 1, minWidth: 0 }}>
               <Routes />
             </Box>
             <Footer />

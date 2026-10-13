@@ -37,6 +37,7 @@ export default function Header() {
   const location = useLocation();
   return (
     <AppBar
+      component="header"
       position="sticky"
       color="inherit"
       elevation={0}
@@ -88,7 +89,7 @@ export default function Header() {
               alignItems: "center",
             }}
           >
-            <Tooltip title={themeLabel}>
+            <Tooltip title={themeLabel} slotProps={{ popper: { container: () => document.querySelector('header') } }}>
               <IconButton aria-label={themeLabel} onClick={toggleMode} color="inherit">
                 {mode === "dark" ? <LightModeOutlined /> : <DarkModeOutlined />}
               </IconButton>
@@ -118,6 +119,8 @@ export default function Header() {
           </Stack>
         </Box>
         <Stack
+          component="nav"
+          aria-label="Navegação principal"
           direction="row"
           spacing={{ xs: 1, sm: 3 }}
           sx={{ pb: 1, alignItems: "center" }}
@@ -156,14 +159,13 @@ export default function Header() {
           open={Boolean(anchor)}
           onClose={() => setAnchor(null)}
           slotProps={{
-            paper: { sx: { minWidth: 260, maxHeight: "70vh" } },
+            paper: { component: 'nav', 'aria-label': 'Departamentos', sx: { minWidth: 260, maxHeight: "70vh" } },
             list: { "aria-label": "Departamentos" },
           }}
         >
           {categories.map((category) => (
             <MenuItem
               component={Link}
-              role="link"
               key={category._id}
               to={"/products?category=" + encodeURIComponent(category.name)}
               onClick={() => setAnchor(null)}
@@ -177,7 +179,6 @@ export default function Header() {
           <Divider />
           <MenuItem
             component={Link}
-            role="link"
             to="/products"
             onClick={() => setAnchor(null)}
           >

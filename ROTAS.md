@@ -388,3 +388,12 @@ Campos extras, arrays, operadores e filtros não previstos são rejeitados.
 Solicitar não desativa nem encerra sessão; execução requer DEACTIVATED/user.
 Reativação de ANONYMIZED retorna 409 USER_ANONYMIZED. Limites de retenção em
 [PRIVACIDADE_E_RETENCAO](docs/PRIVACIDADE_E_RETENCAO.md).
+
+
+## F033 — foco e títulos da navegação
+
+O layout mantém um main durante loading. Ao mudar pathname, o foco segue para o
+h1 da página após o carregamento lazy. Filtros/paginação em query string preservam
+o foco. Back/forward para o fragmento do skip link pode focar main. MetaData
+continua definindo títulos por página; recovery possui título próprio sem PII.
+Nenhuma rota comercial ou contrato de API foi alterado. Ver [acessibilidade](docs/ACESSIBILIDADE.md).

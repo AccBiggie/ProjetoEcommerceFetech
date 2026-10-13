@@ -1,26 +1,6 @@
 import { parseMoneyToCents } from '../../utils/money';
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  LinearProgress,
-  Pagination,
-  Link as MuiLink,
-  Stack,
-  Tab,
-  TableCell,
-  TableRow,
-  Tabs,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Button, Card, Chip, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, LinearProgress, Pagination, Link as MuiLink, Stack, Tab, TableCell, TableRow, Tabs, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import DataTable from "../layout/DataTable";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -55,6 +35,7 @@ export default function Dashboard() {
   const [pages, setPages] = useState({ products: 1, users: 1, orders: 1 });
   const [pagination, setPagination] = useState({});
   const requestSequence = useRef(0);
+  const productNameInput = useRef(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
   const [draft, setDraft] = useState(emptyProduct);
@@ -88,6 +69,9 @@ export default function Dashboard() {
       setError(getErrorMessage(error));
     } finally {
       setPending(false);
+      requestAnimationFrame(() => {
+        if (document.activeElement === document.body) document.querySelector('main h1')?.focus();
+      });
     }
   };
   const saveProduct = (event) => {
@@ -137,7 +121,7 @@ export default function Dashboard() {
         ].map(([label, value]) => (
           <Card key={label} sx={{ p: 3 }}>
             <Typography color="textSecondary">{label}</Typography>
-            <Typography variant="h1" sx={{ mt: 1 }}>
+            <Typography component="p" variant="h1" sx={{ mt: 1 }}>
               {value}
             </Typography>
           </Card>
@@ -159,10 +143,11 @@ export default function Dashboard() {
           ["audit", "Auditoria"],
             ['privacy', 'Privacidade'],
         ].map(([value, label]) => (
-          <Tab key={value} value={value} label={label} />
+          <Tab key={value} id={'admin-tab-' + value} aria-controls="admin-panel" value={value} label={label} />
         ))}
       </Tabs>
-      {pending && <LinearProgress sx={{ mb: 2 }} />}
+      <Box id="admin-panel" role="tabpanel" aria-labelledby={'admin-tab-' + tab}>
+      {pending && <Box role="status" aria-label="Processando alteração administrativa"><LinearProgress sx={{ mb: 2 }} /></Box>}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
           {error}
@@ -202,6 +187,7 @@ export default function Dashboard() {
               ].map(([key, label]) => (
                 <TextField
                   key={key}
+                  inputRef={key === 'name' ? productNameInput : undefined}
                   label={label}
                   required={key !== "oldPrice"}
                   multiline={key === "description"}
@@ -272,10 +258,12 @@ export default function Dashboard() {
                   <Stack direction="row" spacing={1}>
                     <Button
                       size="small"
+                      aria-label={'Editar produto ' + product.name}
                       disabled={pending}
                       onClick={() => mutate(async () => {
                         const { data } = await axios.get('/api/v1/product/' + product._id);
                         setDraft({ ...data.product, imageUrl: data.product.images[0]?.url || '/Profile.png' });
+                        requestAnimationFrame(() => productNameInput.current?.focus());
                       })}
                     >
                       Editar
@@ -283,6 +271,7 @@ export default function Dashboard() {
                     <Button
                       size="small"
                       color="error"
+                      aria-label={'Excluir produto ' + product.name}
                       disabled={pending}
                       onClick={() =>
                         setConfirmation({
@@ -324,7 +313,7 @@ export default function Dashboard() {
                   disabled={pending || account._id === user._id || account.accountStatus !== "ACTIVE"}
                   slotProps={{
                     select: { native: true },
-                    htmlInput: { "aria-label": "Perfil de " + account.email },
+                    htmlInput: { "aria-label": "Perfil da conta " + account._id },
                   }}
                   onChange={(event) =>
                     mutate(() =>
@@ -341,6 +330,7 @@ export default function Dashboard() {
               <TableCell>
                 <Button
                   color="primary"
+                  aria-label={(account.accountStatus === 'DEACTIVATED' ? 'Reativar conta ' : 'Desativar conta ') + account._id}
                   disabled={pending || account._id === user._id || !["ACTIVE", "DEACTIVATED"].includes(account.accountStatus)}
                   onClick={() =>
                     setConfirmation({
@@ -399,6 +389,7 @@ export default function Dashboard() {
                 <Stack direction="row" spacing={1}>
                   {order.orderStatus !== "Delivered" && (
                     <Button
+                      aria-label={(order.orderStatus === 'Processing' ? 'Marcar enviado ' : 'Marcar entregue ') + order._id}
                       disabled={pending || !order.paymentConfirmed}
                       onClick={() =>
                         mutate(() =>
@@ -419,6 +410,7 @@ export default function Dashboard() {
                   {!order.paymentConfirmed && order.orderStatus !== "Delivered" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
                   <Button
                     color="primary"
+                    aria-label={(order.administrativeArchivedAt ? 'Desarquivar pedido ' : 'Arquivar pedido ') + order._id}
                     disabled={pending}
                     onClick={() =>
                       setConfirmation({
@@ -445,15 +437,16 @@ export default function Dashboard() {
         open={Boolean(confirmation)}
         onClose={() => setConfirmation(null)}
         aria-labelledby="delete-title"
+        aria-describedby="delete-description"
       >
         <DialogTitle id="delete-title">{confirmation?.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
+          <DialogContentText id="delete-description">
             {confirmation?.description || "Esta ação remove o registro da loja. Confirme para continuar."}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmation(null)}>Cancelar</Button>
+          <Button autoFocus onClick={() => setConfirmation(null)}>Cancelar</Button>
           <Button
             variant="contained"
             color={confirmation?.color || "error"}
@@ -467,6 +460,7 @@ export default function Dashboard() {
           </Button>
         </DialogActions>
       </Dialog>
+      </Box>
     </Page>
   );
 }

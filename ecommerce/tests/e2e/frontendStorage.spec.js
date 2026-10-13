@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { expectNoA11yViolations } = require('../helpers/accessibility');
 const { password } = require('../fixtures'); const { mutation, installSecurityChecks } = require('./securityChecks'); installSecurityChecks(test, expect);
 for (const [key, raw] of [['cartItems', '{'], ['cartItems', '{"foo":"bar"}'], ['cartItems', 'null'], ['cartItems', '{"version":99,"data":[]}'], ['shippingInfo', '{'], ['shippingInfo', 'null'], ['fetech-color-mode', 'PRIVATE_THEME_SENTINEL']]) test(`storage bootstrap recovery ${key} ${raw}`, async ({ page }) => {
     const errors = [], logs = []; page.on('pageerror', e => errors.push(e.name)); page.on('console', m => logs.push(m.text()));
@@ -23,6 +24,7 @@ test('storage corrupt F005 no automatic order/new key; persists review across re
     let posts = 0; page.on('request', r => { if (r.method() === 'POST' && r.url().endsWith('/api/v1/order/new')) posts++; });
     await checkout(page); await expect(page.getByRole('button', { name: 'Criar pedido', exact: true })).toBeDisabled();
     await expect(page.getByRole('alert').filter({ hasText: 'Isso não significa' })).toBeVisible(); expect(posts).toBe(0);
+    await expectNoA11yViolations(page, 'F005 corrupt attempt with recovery notice');
     await page.reload(); await expect(page.getByRole('button', { name: 'Criar pedido', exact: true })).toBeDisabled(); expect(posts).toBe(0);
     expect(await page.evaluate(() => JSON.parse(sessionStorage.getItem('fetech.orderAttempt.v1')))).toEqual({ recoveryRequired: true });
     page.once('dialog', d => d.dismiss()); await page.getByRole('button', { name: 'Já conferi meus pedidos; iniciar outra tentativa' }).click(); expect(posts).toBe(0);
@@ -40,6 +42,7 @@ for (const mode of ['getter', 'getItem', 'setItem']) test(`storage unavailable h
     if (mode === 'setItem') { await button.click(); await expect(page.getByRole('alert').filter({ hasText: 'preservar esta tentativa' })).toBeVisible(); }
     else await expect(button).toBeDisabled();
     expect(posts).toBe(0); expect(errors).toEqual([]); expect(await page.evaluate(() => window.__clears)).toBe(0);
+    await expectNoA11yViolations(page, 'F005 blocked persistence ' + mode);
 });
 test('storage fake JWT/user cache cannot authenticate and no auth storage is created', async ({ page }) => {
     await page.addInitScript(() => { localStorage.setItem('token', 'PRIVATE_FAKE_JWT'); localStorage.setItem('user', '{"role":"admin"}'); });

@@ -67,7 +67,10 @@ export default function Cart() {
                 <CartItemCard
                   item={item}
                   disabled={Boolean(pending)}
-                  deleteCartItems={(id) => dispatch(removeItemsFromCart(id))}
+                  deleteCartItems={(id) => {
+                    dispatch(removeItemsFromCart(id));
+                    requestAnimationFrame(() => document.querySelector('main h1')?.focus());
+                  }}
                 />
                 <Stack
                   direction="row"
@@ -78,6 +81,7 @@ export default function Cart() {
                   }}
                 >
                   <QuantityControl
+                    productName={item.name}
                     value={item.quantity}
                     stock={item.stock}
                     disabled={Boolean(pending) || moneyError}
@@ -91,14 +95,14 @@ export default function Cart() {
               </Card>
             ))}
           </Stack>
-          <Card sx={{ p: 3, position: { md: "sticky" }, top: 160 }}>
-            <Typography variant="h2">Resumo do pedido</Typography>
+          <Card component="section" aria-labelledby="cart-summary-title" sx={{ p: 3, position: { md: "sticky" }, top: 160 }}>
+            <Typography id="cart-summary-title" variant="h2">Resumo do pedido</Typography>
             <Stack
               direction="row"
               sx={{ my: 3, justifyContent: "space-between" }}
             >
               <Typography color="textSecondary">Produtos</Typography>
-              <Typography>
+              <Typography role="status">
                 {cartItems.reduce((sum, item) => sum + item.quantity, 0)} itens
               </Typography>
             </Stack>
@@ -108,7 +112,7 @@ export default function Cart() {
               sx={{ my: 3, justifyContent: "space-between" }}
             >
               <Typography sx={{ fontWeight: 700 }}>Total</Typography>
-              <Typography variant="h2">{moneyError ? "Total indisponível" : money(total)}</Typography>
+              <Typography component="p" variant="h2">{moneyError ? "Total indisponível" : money(total)}</Typography>
             </Stack>
             <Button
               fullWidth

@@ -1,16 +1,5 @@
-import {
-  Alert,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  Chip,
-  Link as MuiLink,
-  Rating,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
+import { Alert, Box, Breadcrumbs, Button, Card, Chip, Link as MuiLink, Rating, Stack, Typography } from '@mui/material';
+import TextField from '../layout/AccessibleTextField';
 import AddShoppingCart from "@mui/icons-material/AddShoppingCart";
 import QuantityControl from "../layout/QuantityControl";
 import { money } from "../../utils/format";
@@ -115,10 +104,11 @@ const ProductDetails = () => {
         <Link to="/products">Ver produtos</Link>
       </Page>
     );
-  if (loading || !product?._id || product._id !== id) return <Loader />;
+  if (!product?._id || product._id !== id) return <Loader />;
 
   return (
     <Page title={product.name} subtitle={product.category}>
+      <Typography role="status" variant="body2">{loading ? 'Atualizando produto...' : ''}</Typography>
       <Breadcrumbs sx={{ mb: 3 }}>
         <MuiLink component={Link} to="/products" underline="hover">
           Produtos
@@ -161,6 +151,7 @@ const ProductDetails = () => {
         <Stack sx={{ justifyContent: "center" }} spacing={2.5}>
           <Stack sx={{ alignItems: "center" }} direction="row" spacing={1}>
             <Rating
+              getLabelText={value => value.toLocaleString('pt-BR') + ' de 5 estrelas'}
               readOnly
               precision={0.5}
               value={Number(product.ratings) || 0}
@@ -175,11 +166,11 @@ const ProductDetails = () => {
               sx={{ textDecoration: "line-through" }}
             >
               {product.oldPriceCents > product.priceCents
-                ? money(product.oldPriceCents)
+                ? 'Preço anterior: ' + money(product.oldPriceCents)
                 : ""}
             </Typography>
             <Typography sx={{ fontSize: 36, fontWeight: 750 }}>
-              {money(product.priceCents)}
+              Preço atual: {money(product.priceCents)}
             </Typography>
             <Typography color="textSecondary">
               à vista · parcela ilustrativa de {money(product.installmmentPriceCents)}
@@ -193,6 +184,7 @@ const ProductDetails = () => {
             sx={{ alignSelf: "flex-start" }}
           />
           <QuantityControl
+            productName={product.name}
             value={quantity}
             stock={product.Stock}
             onDecrease={decreaseQuantity}

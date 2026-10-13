@@ -1,5 +1,6 @@
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 180px;
 }
 body {
   margin: 0;
@@ -11,6 +12,22 @@ img {
   outline: 3px solid var(--fetech-focus, #087f8c);
   outline-offset: 3px;
 }
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1600;
+  padding: 12px 18px;
+  background: #fff;
+  color: #182230;
+  transform: translateY(-200%);
+}
+.skip-link:focus { transform: translateY(0); }
+main { scroll-margin-top: 180px; }
+main h1 { scroll-margin-top: 180px; overflow-wrap: anywhere; }
+/* MUI ButtonBase resets outline; retain the same indicator on its controls. */
+.MuiButtonBase-root:focus-visible { outline: 3px solid var(--fetech-focus, #087f8c); outline-offset: 3px; }
+.MuiLink-root { text-decoration: underline; }
 .greenColor {
   color: var(--fetech-success, #16794b);
 }

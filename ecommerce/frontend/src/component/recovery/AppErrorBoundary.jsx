@@ -3,11 +3,11 @@ import { restoreInterfacePreferences } from '../../storage/safeStorage.mjs';
 import './recovery.css';
 export function RecoveryView() {
     const heading = useRef(null);
-    useEffect(() => { heading.current?.focus(); }, []);
-    return <main className="fetech-recovery" role="alert">
+    useEffect(() => { document.title = 'Falha ao carregar | Fetech'; heading.current?.focus(); }, []);
+    return <main className="fetech-recovery">
         <p className="fetech-recovery-brand">Fetech</p>
         <h1 ref={heading} tabIndex={-1}>Não foi possível carregar esta tela.</h1>
-        <p>Recarregue a página para tentar novamente. Seu carrinho e suas tentativas de pedido serão preservados.</p>
+        <p role="alert">Recarregue a página para tentar novamente. Seu carrinho e suas tentativas de pedido serão preservados.</p>
         <button onClick={() => window.location.reload()}>Recarregar página</button>
         <button onClick={() => { restoreInterfacePreferences(); window.location.reload(); }}>Restaurar preferências da interface</button>
         <p>Restaurar preferências redefine somente o tema deste navegador.</p>

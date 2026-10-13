@@ -44,7 +44,7 @@ export default function MainRoutes() {
           path="/search"
           element={
             <Page title="Pesquisar produtos">
-              <Search />
+              <Search label="Busca na página de pesquisa" />
             </Page>
           }
         />

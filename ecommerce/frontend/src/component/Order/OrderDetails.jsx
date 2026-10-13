@@ -119,7 +119,7 @@ export default function OrderDetails() {
                 sx={{ mt: 3, justifyContent: "space-between" }}
               >
                 <Typography sx={{ fontWeight: 700 }}>Total</Typography>
-                <Typography variant="h2">{money(order.totalPriceCents)}</Typography>
+                <Typography component="p" variant="h2">{money(order.totalPriceCents)}</Typography>
               </Stack>
             </Card>
             <Card sx={{ p: 3, alignSelf: "start" }}>

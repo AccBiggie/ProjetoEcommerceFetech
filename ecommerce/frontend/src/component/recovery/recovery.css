@@ -5,3 +5,4 @@
 .fetech-recovery button:focus-visible { outline: 3px solid #172338; outline-offset: 3px; }
 .fetech-storage-notices { padding: 12px 20px; background: #fff3cf; color: #302300; border-bottom: 1px solid #aa7915; }
 .fetech-storage-notices button { margin: 4px 0; padding: 6px 12px; background: #fff; color: #302300; border: 1px solid #765510; border-radius: 4px; cursor: pointer; }
+.fetech-storage-notices button:focus-visible { outline: 3px solid #302300; outline-offset: 3px; }

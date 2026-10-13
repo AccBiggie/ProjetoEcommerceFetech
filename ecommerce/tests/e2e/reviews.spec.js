@@ -19,10 +19,13 @@ test('reviews: criação, atualização e segundo usuário exibem agregados do b
     try {
         const customer = await context.newPage(); await login(customer, 'reviews-a@routes.example.com'); await customer.goto('/product/' + id);
         const send = async (rating, comment) => {
-            await customer.getByLabel('Nota', { exact: true }).selectOption(String(rating));
-            await customer.getByRole('textbox', { name: /^Comentário/ }).fill(comment);
+            await customer.getByLabel('Nota', { exact: true }).focus();
+            await customer.keyboard.press('Home');
+            for (let step = 1; step < rating; step++) await customer.keyboard.press('ArrowDown');
+            await customer.keyboard.press('Tab');
+            await customer.keyboard.press('ControlOrMeta+A'); await customer.keyboard.type(comment);
             const response = customer.waitForResponse(r => new URL(r.url()).pathname === '/api/v1/review' && r.request().method() === 'PUT');
-            await customer.getByRole('button', { name: 'Enviar comentário', exact: true }).click();
+            await customer.getByRole('button', { name: 'Enviar comentário', exact: true }).focus(); await customer.keyboard.press('Enter');
             const reply = await response; expect(reply.status()).toBe(200); return (await reply.json()).product;
         };
         const initial = await send(1, 'Avaliação inicial E2E'); await expect(customer.getByText('1 avaliações', { exact: true })).toBeVisible();
@@ -34,7 +37,7 @@ test('reviews: criação, atualização e segundo usuário exibem agregados do b
         const response = page.waitForResponse(r => new URL(r.url()).pathname === '/api/v1/review' && r.request().method() === 'PUT');
         await page.getByRole('button', { name: 'Enviar comentário', exact: true }).click(); const snapshot = (await (await response).json()).product;
         expect(snapshot.numOfReviews).toBe(2); expect(snapshot.ratings).toBe(3);
-        await expect(page.getByText('2 avaliações', { exact: true })).toBeVisible(); await expect(page.getByRole('img', { name: '3 Estrelas', exact: true })).toBeVisible();
+        await expect(page.getByText('2 avaliações', { exact: true })).toBeVisible(); await expect(page.getByRole('img', { name: '3 de 5 estrelas', exact: true })).toBeVisible();
         await expect(page.getByText('Avaliação atualizada E2E', { exact: true })).toBeVisible(); await expect(page.getByText('Segundo usuário E2E', { exact: true })).toBeVisible();
         const persisted = (await (await context.request.get('/api/v1/product/' + id)).json()).product;
         expect(persisted.reviews).toHaveLength(2); expect(persisted.ratings).toBe(3); expect(persisted.numOfReviews).toBe(2);

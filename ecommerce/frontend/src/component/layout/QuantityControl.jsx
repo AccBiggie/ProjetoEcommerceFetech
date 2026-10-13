@@ -8,6 +8,7 @@ export default function QuantityControl({
   onIncrease,
   stock,
   disabled = false,
+  productName = "produto",
 }) {
   return (
     <Box
@@ -21,7 +22,7 @@ export default function QuantityControl({
       }}
     >
       <IconButton
-        aria-label="Diminuir quantidade"
+        aria-label={'Diminuir quantidade de ' + productName}
         disabled={disabled || value <= 1}
         onClick={onDecrease}
       >
@@ -31,7 +32,7 @@ export default function QuantityControl({
         component="input"
         type="number"
         readOnly
-        aria-label="Quantidade"
+        aria-label={'Quantidade de ' + productName}
         value={value}
         sx={{
           width: 42,
@@ -44,7 +45,7 @@ export default function QuantityControl({
         }}
       />
       <IconButton
-        aria-label="Aumentar quantidade"
+        aria-label={'Aumentar quantidade de ' + productName}
         disabled={disabled || value >= stock}
         onClick={onIncrease}
       >

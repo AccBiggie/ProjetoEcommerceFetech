@@ -7,6 +7,7 @@ export default function ReviewCard({ review }) {
         <Stack>
           <Typography sx={{ fontWeight: 650 }}>{review.name}</Typography>
           <Rating
+            getLabelText={value => value.toLocaleString('pt-BR') + ' de 5 estrelas'}
             readOnly
             size="small"
             value={Number(review.rating)}

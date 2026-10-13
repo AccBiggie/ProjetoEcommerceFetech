@@ -22,7 +22,7 @@ test('pagamento: cliente vê Pendente e admin não pode enviar nem forçar confi
         await expect(admin.getByRole('button', { name: /Marcar como pago|Confirmar pagamento/i })).toHaveCount(0);
         const spoof = await mutation(admin, 'put', '/api/v1/admin/order/' + order._id, { data: { status: 'Shipped', paymentStatus: 'PAID', paidAt: new Date().toISOString() } });
         expect(spoof.status()).toBe(409); expect((await spoof.json()).code).toBe('ORDER_PAYMENT_NOT_CONFIRMED');
-        await row.getByRole('button', { name: 'Arquivar', exact: true }).click(); await admin.getByRole('button', { name: 'Confirmar arquivamento' }).click();
+        await row.getByRole('button', { name: /^Arquivar / }).click(); await admin.getByRole('button', { name: 'Confirmar arquivamento' }).click();
         await expect(row).toHaveCount(0); await admin.getByLabel('Filtrar pedidos').selectOption('archived');
         await expect(row).toContainText('Arquivado'); await expect(row.getByRole('button', { name: 'Marcar enviado' })).toBeDisabled();
         await page.reload(); await expect(page.getByText('Pagamento: Pendente', { exact: true })).toBeVisible();

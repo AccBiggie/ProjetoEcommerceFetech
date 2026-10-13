@@ -1,4 +1,4 @@
-import { Button, Stack } from "@mui/material";
+import { Alert, Button, Stack } from "@mui/material";
 
 import FormLayout, { PasswordField } from "./FormLayout";
 import { useState, useEffect } from "react";
@@ -14,6 +14,7 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const alert = useAlert();
+  const [formError, setFormError] = useState('');
 
   const { error, success, loading } = useSelector(
     (state) => state.forgotPassword,
@@ -24,6 +25,7 @@ const ResetPassword = () => {
 
   const resetPasswordSubmit = (e) => {
     e.preventDefault();
+    setFormError('');
 
     dispatch(resetPassword(token, { password, confirmPassword }));
   };
@@ -33,7 +35,8 @@ const ResetPassword = () => {
 
   useEffect(() => {
     if (error) {
-      alert.error(error);
+      setFormError(error);
+
       dispatch(clearErrors());
     }
 
@@ -50,6 +53,7 @@ const ResetPassword = () => {
       title="Redefinir senha"
       subtitle="Defina sua nova senha para voltar à loja."
     >
+      {formError && <Alert severity="error" sx={{ mb: 2 }}>{formError}</Alert>}
       <Stack component="form" spacing={2.5} onSubmit={resetPasswordSubmit}>
         <PasswordField
           label="Nova senha"

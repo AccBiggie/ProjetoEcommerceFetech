@@ -11,7 +11,7 @@ export default function Loader() {
         gap: 2,
       }}
     >
-      <CircularProgress size={32} />
+      <CircularProgress size={32} aria-hidden="true" />
       <Typography color="textSecondary">Carregando...</Typography>
     </Box>
   );

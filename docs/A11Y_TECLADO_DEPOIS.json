@@ -1,0 +1,256 @@
+[
+  {
+    "flow": "login",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "name": "Entrar"
+      },
+      {
+        "tag": "INPUT",
+        "name": "E-mail *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Senha *"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Mostrar senha"
+      },
+      {
+        "tag": "A",
+        "name": "Esqueci minha senha"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Entrar"
+      },
+      {
+        "tag": "A",
+        "name": "Todos os produtos"
+      },
+      {
+        "tag": "A",
+        "name": "Minha conta"
+      },
+      {
+        "tag": "A",
+        "name": "Meus pedidos"
+      },
+      {
+        "tag": "A",
+        "name": "Instagram"
+      }
+    ]
+  },
+  {
+    "flow": "produto",
+    "controls": [
+      {
+        "tag": "A",
+        "name": "Produtos"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Quantidade de Produto extra para paginação"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Aumentar quantidade de Produto extra para paginação"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Adicionar ao Carrinho"
+      },
+      {
+        "tag": "A",
+        "name": "Entre para avaliar este produto"
+      },
+      {
+        "tag": "A",
+        "name": "Todos os produtos"
+      },
+      {
+        "tag": "A",
+        "name": "Minha conta"
+      },
+      {
+        "tag": "A",
+        "name": "Meus pedidos"
+      },
+      {
+        "tag": "A",
+        "name": "Instagram"
+      },
+      {
+        "tag": "A",
+        "name": "YouTube"
+      }
+    ]
+  },
+  {
+    "flow": "cart",
+    "controls": [
+      {
+        "tag": "A",
+        "name": "Produto extra para paginação"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Remover Produto extra para paginação do carrinho"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Quantidade de Produto extra para paginação"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Aumentar quantidade de Produto extra para paginação"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Finalizar pedido"
+      },
+      {
+        "tag": "A",
+        "name": "Continuar comprando"
+      },
+      {
+        "tag": "A",
+        "name": "Todos os produtos"
+      },
+      {
+        "tag": "A",
+        "name": "Minha conta"
+      },
+      {
+        "tag": "A",
+        "name": "Meus pedidos"
+      },
+      {
+        "tag": "A",
+        "name": "Instagram"
+      }
+    ]
+  },
+  {
+    "flow": "checkout",
+    "controls": [
+      {
+        "tag": "A",
+        "name": "Gerenciar endereços"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Nome do destinatário *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Número *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Complemento"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Bairro *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Endereço *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Cidade *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Estado *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "País *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "CEP *"
+      }
+    ]
+  },
+  {
+    "flow": "privacy",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "name": "Solicitar anonimização da conta"
+      },
+      {
+        "tag": "A",
+        "name": "Todos os produtos"
+      },
+      {
+        "tag": "A",
+        "name": "Minha conta"
+      },
+      {
+        "tag": "A",
+        "name": "Meus pedidos"
+      },
+      {
+        "tag": "A",
+        "name": "Instagram"
+      },
+      {
+        "tag": "A",
+        "name": "YouTube"
+      }
+    ]
+  },
+  {
+    "flow": "admin",
+    "controls": [
+      {
+        "tag": "BUTTON",
+        "name": "Produtos"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Cadastrar categoria"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Nome *"
+      },
+      {
+        "tag": "TEXTAREA",
+        "name": "Descrição *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Preço *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Preço anterior"
+      },
+      {
+        "tag": "INPUT",
+        "name": "Estoque *"
+      },
+      {
+        "tag": "INPUT",
+        "name": "URL da imagem *"
+      },
+      {
+        "tag": "SELECT",
+        "name": "Categoria *"
+      },
+      {
+        "tag": "BUTTON",
+        "name": "Salvar produto"
+      }
+    ]
+  }
+]

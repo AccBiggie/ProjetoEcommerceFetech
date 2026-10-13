@@ -21,7 +21,7 @@ const stages = {
         console.log(`Repo safety: ${repositorySafety()} arquivos versionados verificados.`);
         diffCheck(root, process.env.GITHUB_EVENT_PATH ? JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')) : undefined);
     },
-    architecture: () => run(['--test', 'tests/frontendStorageArchitecture.test.js', 'tests/backendArchitecture.test.js', 'tests/ciCommercialGate.test.js', 'tests/ciRepositorySafety.test.js']),
+    architecture: () => run(['--test', 'tests/frontendAccessibilityArchitecture.test.js', 'tests/frontendStorageArchitecture.test.js', 'tests/backendArchitecture.test.js', 'tests/ciCommercialGate.test.js', 'tests/ciRepositorySafety.test.js']),
     api: () => npm(['test']),
     build: () => npm(['run', 'build'], path.join(app, 'frontend')),
     e2e: () => npm(['run', 'test:e2e']),

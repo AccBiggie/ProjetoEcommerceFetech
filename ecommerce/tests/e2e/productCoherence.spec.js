@@ -23,7 +23,7 @@ test('catálogo: coerência persiste após reload, alteração e recusa comercia
     try {
         expect((await mutation(page,'put','/api/v1/review',{data:{productId:p._id,rating:5,comment:'Review preservada E2E'}})).status()).toBe(200);
         await page.reload();const row=page.getByRole('row').filter({hasText:name});await expect(row).toContainText('75,00');
-        await row.getByRole('button',{name:'Editar',exact:true}).click();
+        await row.getByRole('button',{name:/^Editar /}).click();
         await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('50.00');
         await page.getByRole('spinbutton',{name:'Estoque',exact:true}).fill('7');
         await page.getByRole('combobox',{name:'Categoria',exact:true}).selectOption({label:'Notebooks'});
@@ -32,10 +32,10 @@ test('catálogo: coerência persiste após reload, alteração e recusa comercia
         expect((await updated).status()).toBe(200);await expect(row).toContainText('50,00');await page.reload();await expect(row).toContainText('Notebooks');
         let current=(await (await page.request.get('/api/v1/product/'+p._id)).json()).product;
         expect(current.off).toBe(50);expect(current.installmmentPriceCents).toBe(417);expect(current.Stock).toBe(7);expect(current.numOfReviews).toBe(1);expect(current.ratings).toBe(5);expect(current.reviews[0].comment).toBe('Review preservada E2E');
-        await row.getByRole('button',{name:'Editar',exact:true}).click();await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('110.00');
+        await row.getByRole('button',{name:/^Editar /}).click();await page.getByRole('spinbutton',{name:'Preço',exact:true}).fill('110.00');
         await page.getByRole('button',{name:'Salvar produto',exact:true}).click();await expect(page.getByRole('alert')).toContainText('preço anterior deve ser maior ou igual');
         current=(await (await page.request.get('/api/v1/product/'+p._id)).json()).product;expect(current.priceCents).toBe(5000);expect(current.Stock).toBe(7);
-        await page.getByRole('button',{name:'Cancelar edição',exact:true}).click();await row.getByRole('button',{name:'Excluir',exact:true}).click();await page.getByRole('button',{name:'Confirmar exclusão',exact:true}).click();
+        await page.getByRole('button',{name:'Cancelar edição',exact:true}).click();await row.getByRole('button',{name:/^Excluir /}).click();await page.getByRole('button',{name:'Confirmar exclusão',exact:true}).click();
         await expect(page.getByRole('alert')).toContainText('histórico de estoque ou pedidos');await expect(row).toBeVisible();
     } finally { await require('../helpers/productE2EFixture').removeE2EProductFixtures([p._id]); }
 });

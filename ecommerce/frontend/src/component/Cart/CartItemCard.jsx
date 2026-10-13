@@ -26,7 +26,7 @@ export default function CartItemCard({ item, deleteCartItems, disabled }) {
         <Typography
           component={Link}
           to={"/product/" + item.product}
-          sx={{ textDecoration: "none", display: "block", fontWeight: 650 }}
+          sx={{ textDecoration: "underline", display: "block", fontWeight: 650 }}
         >
           {item.name}
         </Typography>
@@ -37,6 +37,7 @@ export default function CartItemCard({ item, deleteCartItems, disabled }) {
           color="error"
           size="small"
           disabled={disabled}
+          aria-label={'Remover ' + item.name + ' do carrinho'}
           onClick={() => deleteCartItems(item.product)}
           sx={{ px: 0, minWidth: 0 }}
         >
