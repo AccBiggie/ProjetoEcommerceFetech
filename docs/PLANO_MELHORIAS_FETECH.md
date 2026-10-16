@@ -1,4 +1,18 @@
 # Plano de melhorias Fetech
+## F032 — FET-SEO-001 (16/10/2026)
+
+Status: **PARCIAL — PRODUÇÃO/INDEXABILIDADE DEPENDE DE F023**. Finding histórico
+“Metadados específicos e compartilhamento incompletos”, confirmado na posição 32
+do gerador histórico. Baseline seguro client-side implementado e integrado ao CI.
+Bloqueios individuais: origem canônica pública, sitemap produtivo, metadata inicial
+por rota, HTTP 404 frontend e entrega robots no hosting. Sem solução fictícia.
+[Contrato/matriz](SEO_TECNICO.md), [relatório](RELATORIO_FET_SEO_001.md),
+[evidências](TESTES_FET_SEO_001.md). Status anteriores preservados: F024/F026 parciais,
+F029 aberto, F030/F033 baselines técnicos, F038/F040 corrigidos no código,
+F039 remoto pendente. Índices F022/F037 não aplicados. F001/F027 não iniciados.
+Próximo candidato independente: inventariar F028, cancelamento/liberação de estoque;
+reembolso financeiro depende de F001. Não iniciar F023 nem F028 automaticamente.
+
 ## F038 — FET-PERF-002 (13/10/2026)
 
 Status: **CORRIGIDO NO CÓDIGO** — finding original “Imagem hero e chunks sem orçamento operacional”.

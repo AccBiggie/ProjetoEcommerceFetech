@@ -1,5 +1,14 @@
 # CI e gates comerciais — FET-CI-001
 
+FET-SEO-001 adiciona `frontendSeo.test.js` e `frontendSeoArchitecture.test.js`
+ao estágio architecture; também entram no wildcard do runner API isolado.
+`seo.spec.js` integra o wildcard E2E, sem skips SEO. O estágio build executa
+`audit:seo` após build e bundle budget. Auditoria offline somente leitura: sem
+API, Mongo, SMTP ou Cloudinary. JSON-LD público tem permissão explícita de
+serialização; parsing/acesso a storage continua restrito a `storage/`.
+Configuração sem domínio é válida e reporta os componentes F023 bloqueados,
+sem reprovar o baseline local nem fingir SEO produtivo. [Contrato](SEO_TECNICO.md).
+
 F039: **CORRIGIDO NO CÓDIGO / VALIDAÇÃO REMOTA PENDENTE**.
 F026: **PARCIAL** — CI implementado; CD/target produtivo ainda pendente.
 Enforcement remoto: **NÃO VALIDADO / DESCONHECIDO**. Nenhum push, run remoto

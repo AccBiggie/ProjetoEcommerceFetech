@@ -1,6 +1,7 @@
+import { recoveryHead } from '../seo/head.mjs';
 export function renderBootstrapRecovery(container, document = globalThis.document, reload = () => globalThis.location.reload()) {
     if (!container) return;
-    document.title = 'Falha ao carregar | Fetech';
+    recoveryHead(document);
     const main = document.createElement('main'); main.className = 'fetech-recovery';
     const brand = document.createElement('p'); brand.textContent = 'Fetech';
     const heading = document.createElement('h1'); heading.textContent = 'Não foi possível carregar esta tela.';

@@ -1,5 +1,11 @@
 # Performance frontend — FET-PERF-002 / F038
 
+FET-SEO-001: metadata client-side centralizada sem dependências novas, fetch extra,
+SSR ou alteração de budgets. Build medido: initial JS 653.367 bytes raw / 215.357
+gzip, 11 chunks iniciais e 42 JS totais; maior lazy 11.270 gzip, admin 5.724 gzip,
+hero 88.358 bytes. F038 permanece dentro dos limites originais. Sem novas medições
+de Core Web Vitals em campo. [SEO técnico](SEO_TECNICO.md).
+
 ## Identificação e baseline
 
 Finding original **F038 — Imagem hero e chunks sem orçamento operacional**,

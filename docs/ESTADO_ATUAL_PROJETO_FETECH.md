@@ -1,4 +1,20 @@
 # Estado atual — ProjetoEcommerceFetech
+## F032 — FET-SEO-001 (16/10/2026)
+
+Status: **PARCIAL — PRODUÇÃO/INDEXABILIDADE DEPENDE DE F023**. Baseline client-side:
+head central, metadata pública, noindex privado/busca/404, Product/Offer exatos e
+canonical apenas com origem autorizada opcional. Domínio formal não comprovado;
+sitemap, HTML inicial específico, HTTP 404 e entrega robots produtivos continuam
+BLOCKED_BY_F023. Sem SSR/prerender ou domínio inventado. [Contrato](SEO_TECNICO.md),
+[relatório](RELATORIO_FET_SEO_001.md), [testes](TESTES_FET_SEO_001.md).
+
+F024/F026 continuam parciais; F029 aberto; F030 baseline técnico; F033 baseline de
+acessibilidade; F038 corrigido no código; F039 corrigido no código com validação
+remota pendente; F040 corrigido no código, SMTP real não validado. Índices F022/F037
+não aplicados. F001/F027 adiados e não iniciados. Auditoria histórica preservada.
+Próximo candidato independente: inventariar F028 (cancelamento/liberação de estoque),
+separando reembolso financeiro dependente de F001. Não iniciado automaticamente.
+
 ## F038 — FET-PERF-002 (13/10/2026)
 
 Status: **CORRIGIDO NO CÓDIGO** — finding original “Imagem hero e chunks sem orçamento operacional”.

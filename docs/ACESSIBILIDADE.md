@@ -1,5 +1,10 @@
 # Acessibilidade — FET-A11Y-001 / F033
 
+FET-SEO-001: títulos/head passam pela autoridade `seo/head.mjs`, inclusive recovery.
+Títulos privados são genéricos por rota, sem PII; catálogo filtrado usa título de catálogo.
+H1, foco, skip link e lazy/Suspense permanecem sob F033. Teste SEO cobre navegação,
+loading e Strict Mode; axe continua sem supressões. [Contrato SEO](SEO_TECNICO.md).
+
 Referência: [WCAG 2.2 nível AA, W3C](https://www.w3.org/TR/WCAG22/).
 Esta entrega estabelece um baseline técnico. Não representa certificação WCAG,
 conformidade integral, nem cobertura de todas as combinações de tecnologia assistiva.

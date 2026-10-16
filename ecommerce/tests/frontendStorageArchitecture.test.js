@@ -5,7 +5,11 @@ const sources = files(root).map(file => ({ file: path.relative(root, file).repla
 test('ARCH storage access/parsing centralized; no clear anywhere', () => {
     for (const { file, text } of sources) {
         assert.doesNotMatch(text, /(?:localStorage|sessionStorage)\s*\.\s*clear\s*\(/, file);
-        if (!file.startsWith('storage/')) { assert.doesNotMatch(text, /JSON\.(?:parse|stringify)\s*\(/, file); assert.doesNotMatch(text, /\b(?:localStorage|sessionStorage)\b|\.\s*(?:getItem|setItem|removeItem)\s*\(/, file); }
+        if (!file.startsWith('storage/')) {
+            // SEO serializes public JSON-LD, never persisted state. Parsing remains prohibited here.
+            assert.doesNotMatch(text, file === 'seo/metadata.mjs' ? /JSON\.parse\s*\(/ : /JSON\.(?:parse|stringify)\s*\(/, file);
+            assert.doesNotMatch(text, /\b(?:localStorage|sessionStorage)\b|\.\s*(?:getItem|setItem|removeItem)\s*\(/, file);
+        }
         if (file.startsWith('reducers/')) assert.doesNotMatch(text, /storage\/|readStoredValue|writeStoredValue|removeStoredValue/, file);
     }
 });

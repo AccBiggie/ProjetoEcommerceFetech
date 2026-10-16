@@ -22,6 +22,7 @@
     "dev": "vite",
     "build": "vite build",
     "audit:bundle": "node scripts/bundle-audit.mjs",
+    "audit:seo": "node scripts/seo-audit.mjs",
     "ci:bundle-budget": "node scripts/bundle-audit.mjs --check",
     "preview": "vite preview",
     "test": "npm --prefix .. run test:e2e"

@@ -107,7 +107,7 @@ const ProductDetails = () => {
   if (!product?._id || product._id !== id) return <Loader pageHeading />;
 
   return (
-    <Page title={product.name} subtitle={product.category}>
+    <Page title={product.name} subtitle={product.category} seo={{ product }}>
       <Typography role="status" variant="body2">{loading ? 'Atualizando produto...' : ''}</Typography>
       <Breadcrumbs sx={{ mb: 3 }}>
         <MuiLink component={Link} to="/products" underline="hover">
