@@ -1,4 +1,32 @@
 # Estado atual — ProjetoEcommerceFetech
+## F038 — FET-PERF-002 (13/10/2026)
+
+Status: **CORRIGIDO NO CÓDIGO** — finding original “Imagem hero e chunks sem orçamento operacional”.
+Baseline real/versionado, Hero WebP local de 88.358 bytes (-91,73%), initial JS
+gzip 213.472 bytes (-3,16%), abas audit/privacy lazy, consultas só da aba ativa,
+leituras pending deduplicadas com stale/abort guards e fallback de página com
+h1 transitório sem roubar foco. Admin já era isolado da Home e continua assim.
+Manifest/proveniência, auditor READ_ONLY e budget integrado a ci:build/Commercial
+Gate. Nenhuma dependência nova, atualização de versão ou provider real.
+
+Validação: focused 26/26 + thunks reais 6/6; browser performance 9/9;
+arquitetura 144/144; API 1817 aprovados + 15 F024; E2E 84/84 sem
+skips; axe F033, build/budget/Commercial Gate/diff/audits aprovados.
+[Contrato](PERFORMANCE_FRONTEND.md), [testes](TESTES_FET_PERF_002.md),
+[relatório](RELATORIO_FET_PERF_002.md).
+
+Branch main, HEAD e6fcee5; worktree inicialmente limpo, F033 já commitada.
+FET-PERF-002 sem commit/push. Banco fetech, SMTP, Cloudinary, índices e config.env
+intocados. F024/F026 parciais, F029 aberto, F039 remoto pendente; F030/F033
+baselines técnicos, F040 no código/SMTP não validado; F001/F027 não iniciados.
+Índices F022/F037 pendentes. Referências históricas de custo de escala como F038
+não significam remediação dessas queries. Lab não equivale a field CWV;
+CDN/cache/compressão/deployment continuam F023. Próxima recomendação: inventário
+SEO com URL/deployment/rotas indexáveis, sem início automático.
+Este bloco corrente prevalece sobre recomendações históricas.
+Intermitências UL observadas durante validação estão registradas no relatório;
+causa não estabelecida, sem relaxar testes. A execução integral final passou.
+
 ## F033 — FET-A11Y-001 (13/10/2026)
 
 Status: **CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO DE ACESSIBILIDADE**. Referência

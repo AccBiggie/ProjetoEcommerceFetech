@@ -33,7 +33,7 @@ import Page, { NotFound } from "./component/layout/Page";
 
 export default function MainRoutes() {
   return (
-    <Suspense fallback={<Loader />}>
+    <Suspense fallback={<Loader pageHeading />}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/sad" element={<Navigate to="/" replace />} />

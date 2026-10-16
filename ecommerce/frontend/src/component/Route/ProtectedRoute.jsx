@@ -6,7 +6,7 @@ const ProtectedRoute = ({ admin = false }) => {
   const { loading, isAuthenticated, user } = useSelector((state) => state.user);
 
   const location = useLocation();
-  if (loading) return <Loader />;
+  if (loading) return <Loader pageHeading />;
   if (!isAuthenticated || !user)
     return (
       <Navigate

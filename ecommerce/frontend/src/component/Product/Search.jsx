@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Box, IconButton, InputAdornment } from '@mui/material';
-import TextField from '../layout/AccessibleTextField';
+import { Box, IconButton, InputAdornment, OutlinedInput } from '@mui/material';
 import SearchOutlined from "@mui/icons-material/SearchOutlined";
 
 export default function Search({ label = "Busca no cabeçalho" }) {
@@ -22,24 +21,21 @@ export default function Search({ label = "Busca no cabeçalho" }) {
         );
       }}
     >
-      <TextField
+      <OutlinedInput
+        fullWidth
         size="small"
         placeholder="Pesquisar Produtos..."
         value={keyword}
         onChange={(event) => setKeyword(event.target.value)}
-        slotProps={{
-          htmlInput: { "aria-label": "Pesquisar produtos" },
-          input: {
-            sx: { bgcolor: "background.default" },
-            endAdornment: (
+        inputProps={{ "aria-label": "Pesquisar produtos" }}
+        sx={{ bgcolor: "background.default" }}
+        endAdornment={
               <InputAdornment position="end">
                 <IconButton type="submit" aria-label="Pesquisar">
                   <SearchOutlined />
                 </IconButton>
               </InputAdornment>
-            ),
-          },
-        }}
+        }
       />
     </Box>
   );

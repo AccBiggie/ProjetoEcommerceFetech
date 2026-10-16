@@ -152,3 +152,14 @@ com pessoa usuária e tecnologias assistivas adicionais.
 Teclado automatizado: SIM. Teclado manual humano: NÃO. Leitor de tela manual: NÃO.
 Zoom manual real: NÃO; equivalente de reflow automatizado: SIM. A automação não
 assegura conformidade completa. SEO e performance avançada continuam independentes.
+
+## FET-PERF-002 — carregamento sob demanda
+
+F038 preserva guards, títulos, skip link e foco F033. Fallback de página lazy
+tem status/h1 transitório/área reservada; foco ignora esse heading e aguarda o
+definitivo. Loader dentro de página/aba mantém parágrafo para não duplicar h1.
+Suspense local das abas mantém shell administrativo. Axe sem suppression cobre
+fallback atrasado, login/produto/orders/audit/privacy e recovery de chunk, com
+back/forward e foco. Foco, contraste e reduced motion preservados.
+[Performance frontend](PERFORMANCE_FRONTEND.md) e
+[evidências](RELATORIO_FET_PERF_002.md); sem certificação de conformidade.

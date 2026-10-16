@@ -77,6 +77,7 @@ export default function ProductCard({ product }) {
             src={product.images?.[0]?.url || "/Profile.png"}
             alt={product.name}
             loading="lazy"
+            decoding="async"
             sx={{ maxHeight: 150, objectFit: "contain" }}
           />
         </Box>

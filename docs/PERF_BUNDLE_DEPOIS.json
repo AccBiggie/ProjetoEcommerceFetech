@@ -1,0 +1,941 @@
+{
+  "bootEntries": [
+    "index.html",
+    "src/App.jsx"
+  ],
+  "metrics": {
+    "initialJsRaw": 648394,
+    "initialJsGzip": 213472,
+    "entryJsGzip": 93792,
+    "initialCssRaw": 1706,
+    "initialCssGzip": 830,
+    "largestLazyGzip": 11260,
+    "largestRouteGzip": 11260,
+    "initialChunkCount": 11,
+    "totalJsChunks": 42,
+    "adminRouteGzip": 5722,
+    "largestImageRaw": 88358
+  },
+  "initial": [
+    {
+      "file": "assets/OutlinedInput-CQgmsqMY.js",
+      "raw": 45396,
+      "gzip": 15329
+    },
+    {
+      "file": "assets/Page-DyADeMbt.js",
+      "raw": 40785,
+      "gzip": 14598
+    },
+    {
+      "file": "assets/Stack-D7Ie1Sla.js",
+      "raw": 126336,
+      "gzip": 41559
+    },
+    {
+      "file": "assets/api-7D6eyNty.js",
+      "raw": 122,
+      "gzip": 122
+    },
+    {
+      "file": "assets/dividerClasses-D1uYa1yC.js",
+      "raw": 274,
+      "gzip": 217
+    },
+    {
+      "file": "assets/getActiveElement-BTahi-Rs.js",
+      "raw": 402,
+      "gzip": 270
+    },
+    {
+      "file": "assets/money-C9SEzP65.js",
+      "raw": 1486,
+      "gzip": 790
+    },
+    {
+      "file": "assets/useControlled-LL1e91el.js",
+      "raw": 376,
+      "gzip": 279
+    },
+    {
+      "file": "assets/useRovingTabIndex-Hm1vImGB.js",
+      "raw": 4768,
+      "gzip": 2056
+    },
+    {
+      "file": "assets/index-CfVHumqG.js",
+      "raw": 291845,
+      "gzip": 93792
+    },
+    {
+      "file": "assets/App-Bp3vPNG9.js",
+      "raw": 136604,
+      "gzip": 44460
+    }
+  ],
+  "initialCss": [
+    {
+      "file": "assets/index-G1XYr9Qk.css",
+      "raw": 897,
+      "gzip": 390
+    },
+    {
+      "file": "assets/App-CzqTsDIc.css",
+      "raw": 809,
+      "gzip": 440
+    }
+  ],
+  "routes": [
+    {
+      "source": "src/component/Admin/AuditTrail.jsx",
+      "file": "assets/AuditTrail-DZTM6qDF.js",
+      "raw": 2506,
+      "gzip": 1206,
+      "additionalFiles": [
+        "assets/AuditTrail-DZTM6qDF.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/LinearProgress-Nn6cohL8.js",
+        "assets/DataTable-AaYSJNna.js"
+      ]
+    },
+    {
+      "source": "src/component/Admin/Dashboard.jsx",
+      "file": "assets/Dashboard-CYqvtSbZ.js",
+      "raw": 18037,
+      "gzip": 5722,
+      "additionalFiles": [
+        "assets/Dashboard-CYqvtSbZ.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/restoreActionFocus-BPPIXnqj.js",
+        "assets/LinearProgress-Nn6cohL8.js",
+        "assets/Pagination-ChKx1uG7.js",
+        "assets/Tabs-DphphExI.js",
+        "assets/DataTable-AaYSJNna.js",
+        "assets/format-CuKQYOzO.js",
+        "assets/money-6L8Rkzcd.js",
+        "assets/Add-B9RTB2oM.js"
+      ]
+    },
+    {
+      "source": "src/component/Admin/PrivacyRequests.jsx",
+      "file": "assets/PrivacyRequests-2q1EtIw-.js",
+      "raw": 3719,
+      "gzip": 1679,
+      "additionalFiles": [
+        "assets/PrivacyRequests-2q1EtIw-.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/restoreActionFocus-BPPIXnqj.js",
+        "assets/DataTable-AaYSJNna.js"
+      ]
+    },
+    {
+      "source": "src/component/Cart/Cart.jsx",
+      "file": "assets/Cart-SuJ_0kFW.js",
+      "raw": 3672,
+      "gzip": 1612,
+      "additionalFiles": [
+        "assets/Cart-SuJ_0kFW.js",
+        "assets/money-6L8Rkzcd.js",
+        "assets/QuantityControl-xDSAA-YR.js",
+        "assets/Add-B9RTB2oM.js"
+      ]
+    },
+    {
+      "source": "src/component/Cart/Shipping.jsx",
+      "file": "assets/Shipping-CsxtTF3c.js",
+      "raw": 15528,
+      "gzip": 6219,
+      "additionalFiles": [
+        "assets/Shipping-CsxtTF3c.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/addressApi-TgzeeqMe.js",
+        "assets/LinearProgress-Nn6cohL8.js",
+        "assets/Stepper-CR1gyRk-.js",
+        "assets/money-6L8Rkzcd.js"
+      ]
+    },
+    {
+      "source": "src/component/Order/OrderDetails.jsx",
+      "file": "assets/OrderDetails-CqhYjQV5.js",
+      "raw": 3233,
+      "gzip": 1360,
+      "additionalFiles": [
+        "assets/OrderDetails-CqhYjQV5.js",
+        "assets/Stepper-CR1gyRk-.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/format-CuKQYOzO.js"
+      ]
+    },
+    {
+      "source": "src/component/Order/Orders.jsx",
+      "file": "assets/Orders-NZPCLrdI.js",
+      "raw": 2086,
+      "gzip": 1050,
+      "additionalFiles": [
+        "assets/Orders-NZPCLrdI.js",
+        "assets/Pagination-ChKx1uG7.js",
+        "assets/DataTable-AaYSJNna.js",
+        "assets/format-CuKQYOzO.js"
+      ]
+    },
+    {
+      "source": "src/component/Product/ProductDetails.jsx",
+      "file": "assets/ProductDetails-D6gxt430.js",
+      "raw": 28720,
+      "gzip": 11260,
+      "additionalFiles": [
+        "assets/ProductDetails-D6gxt430.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/QuantityControl-xDSAA-YR.js",
+        "assets/Add-B9RTB2oM.js"
+      ]
+    },
+    {
+      "source": "src/component/Product/Products.jsx",
+      "file": "assets/Products-5Sf_9i0G.js",
+      "raw": 2335,
+      "gzip": 1170,
+      "additionalFiles": [
+        "assets/Products-5Sf_9i0G.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/Pagination-ChKx1uG7.js"
+      ]
+    },
+    {
+      "source": "src/component/User/Addresses.jsx",
+      "file": "assets/Addresses-C8nl38xs.js",
+      "raw": 10970,
+      "gzip": 4383,
+      "additionalFiles": [
+        "assets/Addresses-C8nl38xs.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/addressApi-TgzeeqMe.js",
+        "assets/restoreActionFocus-BPPIXnqj.js",
+        "assets/LinearProgress-Nn6cohL8.js",
+        "assets/Add-B9RTB2oM.js"
+      ]
+    },
+    {
+      "source": "src/component/User/ForgotPassword.jsx",
+      "file": "assets/ForgotPassword-BI3wjBaX.js",
+      "raw": 1278,
+      "gzip": 722,
+      "additionalFiles": [
+        "assets/ForgotPassword-BI3wjBaX.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/FormLayout-BZtMDELE.js"
+      ]
+    },
+    {
+      "source": "src/component/User/LoginSignUp.jsx",
+      "file": "assets/LoginSignUp-LzLlMbh4.js",
+      "raw": 2945,
+      "gzip": 1291,
+      "additionalFiles": [
+        "assets/LoginSignUp-LzLlMbh4.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/Tabs-DphphExI.js",
+        "assets/FormLayout-BZtMDELE.js"
+      ]
+    },
+    {
+      "source": "src/component/User/Privacy.jsx",
+      "file": "assets/Privacy-CCU2I4Zz.js",
+      "raw": 2441,
+      "gzip": 1187,
+      "additionalFiles": [
+        "assets/Privacy-CCU2I4Zz.js"
+      ]
+    },
+    {
+      "source": "src/component/User/Profile.jsx",
+      "file": "assets/Profile-BOjCKJBi.js",
+      "raw": 1733,
+      "gzip": 815,
+      "additionalFiles": [
+        "assets/Profile-BOjCKJBi.js"
+      ]
+    },
+    {
+      "source": "src/component/User/ResetPassword.jsx",
+      "file": "assets/ResetPassword-2Me2yCE6.js",
+      "raw": 1257,
+      "gzip": 718,
+      "additionalFiles": [
+        "assets/ResetPassword-2Me2yCE6.js",
+        "assets/FormLayout-BZtMDELE.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js"
+      ]
+    },
+    {
+      "source": "src/component/User/UpdatePassword.jsx",
+      "file": "assets/UpdatePassword-DYjMYvRQ.js",
+      "raw": 1327,
+      "gzip": 721,
+      "additionalFiles": [
+        "assets/UpdatePassword-DYjMYvRQ.js",
+        "assets/FormLayout-BZtMDELE.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js"
+      ]
+    },
+    {
+      "source": "src/component/User/UpdateProfile.jsx",
+      "file": "assets/UpdateProfile-DG5rceUo.js",
+      "raw": 2274,
+      "gzip": 1195,
+      "additionalFiles": [
+        "assets/UpdateProfile-DG5rceUo.js",
+        "assets/AccessibleTextField-CD0jrl-2.js",
+        "assets/isMuiElement-0BtG_sfK.js",
+        "assets/FormLayout-BZtMDELE.js"
+      ]
+    }
+  ],
+  "lazy": [
+    {
+      "file": "assets/AccessibleTextField-CD0jrl-2.js",
+      "raw": 32219,
+      "gzip": 9934
+    },
+    {
+      "file": "assets/Add-B9RTB2oM.js",
+      "raw": 174,
+      "gzip": 166
+    },
+    {
+      "file": "assets/DataTable-AaYSJNna.js",
+      "raw": 6963,
+      "gzip": 2297
+    },
+    {
+      "file": "assets/FormLayout-BZtMDELE.js",
+      "raw": 3176,
+      "gzip": 1640
+    },
+    {
+      "file": "assets/LinearProgress-Nn6cohL8.js",
+      "raw": 6125,
+      "gzip": 1891
+    },
+    {
+      "file": "assets/Pagination-ChKx1uG7.js",
+      "raw": 9962,
+      "gzip": 3307
+    },
+    {
+      "file": "assets/QuantityControl-xDSAA-YR.js",
+      "raw": 963,
+      "gzip": 556
+    },
+    {
+      "file": "assets/Stepper-CR1gyRk-.js",
+      "raw": 12412,
+      "gzip": 3760
+    },
+    {
+      "file": "assets/Tabs-DphphExI.js",
+      "raw": 15267,
+      "gzip": 5332
+    },
+    {
+      "file": "assets/addressApi-TgzeeqMe.js",
+      "raw": 5248,
+      "gzip": 2192
+    },
+    {
+      "file": "assets/format-CuKQYOzO.js",
+      "raw": 212,
+      "gzip": 183
+    },
+    {
+      "file": "assets/isMuiElement-0BtG_sfK.js",
+      "raw": 196,
+      "gzip": 175
+    },
+    {
+      "file": "assets/money-6L8Rkzcd.js",
+      "raw": 146,
+      "gzip": 147
+    },
+    {
+      "file": "assets/restoreActionFocus-BPPIXnqj.js",
+      "raw": 14598,
+      "gzip": 4730
+    },
+    {
+      "file": "assets/AuditTrail-DZTM6qDF.js",
+      "raw": 2506,
+      "gzip": 1206
+    },
+    {
+      "file": "assets/Dashboard-CYqvtSbZ.js",
+      "raw": 18037,
+      "gzip": 5722
+    },
+    {
+      "file": "assets/PrivacyRequests-2q1EtIw-.js",
+      "raw": 3719,
+      "gzip": 1679
+    },
+    {
+      "file": "assets/Cart-SuJ_0kFW.js",
+      "raw": 3672,
+      "gzip": 1612
+    },
+    {
+      "file": "assets/Shipping-CsxtTF3c.js",
+      "raw": 15528,
+      "gzip": 6219
+    },
+    {
+      "file": "assets/OrderDetails-CqhYjQV5.js",
+      "raw": 3233,
+      "gzip": 1360
+    },
+    {
+      "file": "assets/Orders-NZPCLrdI.js",
+      "raw": 2086,
+      "gzip": 1050
+    },
+    {
+      "file": "assets/ProductDetails-D6gxt430.js",
+      "raw": 28720,
+      "gzip": 11260
+    },
+    {
+      "file": "assets/Products-5Sf_9i0G.js",
+      "raw": 2335,
+      "gzip": 1170
+    },
+    {
+      "file": "assets/Addresses-C8nl38xs.js",
+      "raw": 10970,
+      "gzip": 4383
+    },
+    {
+      "file": "assets/ForgotPassword-BI3wjBaX.js",
+      "raw": 1278,
+      "gzip": 722
+    },
+    {
+      "file": "assets/LoginSignUp-LzLlMbh4.js",
+      "raw": 2945,
+      "gzip": 1291
+    },
+    {
+      "file": "assets/Privacy-CCU2I4Zz.js",
+      "raw": 2441,
+      "gzip": 1187
+    },
+    {
+      "file": "assets/Profile-BOjCKJBi.js",
+      "raw": 1733,
+      "gzip": 815
+    },
+    {
+      "file": "assets/ResetPassword-2Me2yCE6.js",
+      "raw": 1257,
+      "gzip": 718
+    },
+    {
+      "file": "assets/UpdatePassword-DYjMYvRQ.js",
+      "raw": 1327,
+      "gzip": 721
+    },
+    {
+      "file": "assets/UpdateProfile-DG5rceUo.js",
+      "raw": 2274,
+      "gzip": 1195
+    }
+  ],
+  "assets": [
+    {
+      "file": "assets/index-CfVHumqG.js",
+      "raw": 291845,
+      "gzip": 93792
+    },
+    {
+      "file": "assets/App-Bp3vPNG9.js",
+      "raw": 136604,
+      "gzip": 44460
+    },
+    {
+      "file": "assets/Stack-D7Ie1Sla.js",
+      "raw": 126336,
+      "gzip": 41559
+    },
+    {
+      "file": "assets/wallpaperLoja2-CorKxZ5o.webp",
+      "raw": 88358,
+      "gzip": 88406
+    },
+    {
+      "file": "assets/OutlinedInput-CQgmsqMY.js",
+      "raw": 45396,
+      "gzip": 15329
+    },
+    {
+      "file": "assets/Page-DyADeMbt.js",
+      "raw": 40785,
+      "gzip": 14598
+    },
+    {
+      "file": "assets/AccessibleTextField-CD0jrl-2.js",
+      "raw": 32219,
+      "gzip": 9934
+    },
+    {
+      "file": "assets/ProductDetails-D6gxt430.js",
+      "raw": 28720,
+      "gzip": 11260
+    },
+    {
+      "file": "assets/Dashboard-CYqvtSbZ.js",
+      "raw": 18037,
+      "gzip": 5722
+    },
+    {
+      "file": "assets/Shipping-CsxtTF3c.js",
+      "raw": 15528,
+      "gzip": 6219
+    },
+    {
+      "file": "assets/Tabs-DphphExI.js",
+      "raw": 15267,
+      "gzip": 5332
+    },
+    {
+      "file": "assets/restoreActionFocus-BPPIXnqj.js",
+      "raw": 14598,
+      "gzip": 4730
+    },
+    {
+      "file": "assets/Stepper-CR1gyRk-.js",
+      "raw": 12412,
+      "gzip": 3760
+    },
+    {
+      "file": "assets/Addresses-C8nl38xs.js",
+      "raw": 10970,
+      "gzip": 4383
+    },
+    {
+      "file": "assets/Pagination-ChKx1uG7.js",
+      "raw": 9962,
+      "gzip": 3307
+    },
+    {
+      "file": "assets/DataTable-AaYSJNna.js",
+      "raw": 6963,
+      "gzip": 2297
+    },
+    {
+      "file": "assets/LinearProgress-Nn6cohL8.js",
+      "raw": 6125,
+      "gzip": 1891
+    },
+    {
+      "file": "assets/addressApi-TgzeeqMe.js",
+      "raw": 5248,
+      "gzip": 2192
+    },
+    {
+      "file": "assets/useRovingTabIndex-Hm1vImGB.js",
+      "raw": 4768,
+      "gzip": 2056
+    },
+    {
+      "file": "assets/PrivacyRequests-2q1EtIw-.js",
+      "raw": 3719,
+      "gzip": 1679
+    },
+    {
+      "file": "assets/Cart-SuJ_0kFW.js",
+      "raw": 3672,
+      "gzip": 1612
+    },
+    {
+      "file": "assets/OrderDetails-CqhYjQV5.js",
+      "raw": 3233,
+      "gzip": 1360
+    },
+    {
+      "file": "assets/FormLayout-BZtMDELE.js",
+      "raw": 3176,
+      "gzip": 1640
+    },
+    {
+      "file": "assets/LoginSignUp-LzLlMbh4.js",
+      "raw": 2945,
+      "gzip": 1291
+    },
+    {
+      "file": "assets/AuditTrail-DZTM6qDF.js",
+      "raw": 2506,
+      "gzip": 1206
+    },
+    {
+      "file": "assets/Privacy-CCU2I4Zz.js",
+      "raw": 2441,
+      "gzip": 1187
+    },
+    {
+      "file": "assets/Products-5Sf_9i0G.js",
+      "raw": 2335,
+      "gzip": 1170
+    },
+    {
+      "file": "assets/UpdateProfile-DG5rceUo.js",
+      "raw": 2274,
+      "gzip": 1195
+    },
+    {
+      "file": "assets/Orders-NZPCLrdI.js",
+      "raw": 2086,
+      "gzip": 1050
+    },
+    {
+      "file": "assets/Profile-BOjCKJBi.js",
+      "raw": 1733,
+      "gzip": 815
+    },
+    {
+      "file": "assets/money-C9SEzP65.js",
+      "raw": 1486,
+      "gzip": 790
+    },
+    {
+      "file": "assets/UpdatePassword-DYjMYvRQ.js",
+      "raw": 1327,
+      "gzip": 721
+    },
+    {
+      "file": "assets/ForgotPassword-BI3wjBaX.js",
+      "raw": 1278,
+      "gzip": 722
+    },
+    {
+      "file": "assets/ResetPassword-2Me2yCE6.js",
+      "raw": 1257,
+      "gzip": 718
+    },
+    {
+      "file": "assets/QuantityControl-xDSAA-YR.js",
+      "raw": 963,
+      "gzip": 556
+    },
+    {
+      "file": "assets/index-G1XYr9Qk.css",
+      "raw": 897,
+      "gzip": 390
+    },
+    {
+      "file": "assets/App-CzqTsDIc.css",
+      "raw": 809,
+      "gzip": 440
+    },
+    {
+      "file": "assets/getActiveElement-BTahi-Rs.js",
+      "raw": 402,
+      "gzip": 270
+    },
+    {
+      "file": "assets/useControlled-LL1e91el.js",
+      "raw": 376,
+      "gzip": 279
+    },
+    {
+      "file": "assets/dividerClasses-D1uYa1yC.js",
+      "raw": 274,
+      "gzip": 217
+    },
+    {
+      "file": "assets/ProductDetails-lzBYBdVx.css",
+      "raw": 261,
+      "gzip": 173
+    },
+    {
+      "file": "assets/format-CuKQYOzO.js",
+      "raw": 212,
+      "gzip": 183
+    },
+    {
+      "file": "assets/isMuiElement-0BtG_sfK.js",
+      "raw": 196,
+      "gzip": 175
+    },
+    {
+      "file": "assets/Add-B9RTB2oM.js",
+      "raw": 174,
+      "gzip": 166
+    },
+    {
+      "file": "assets/money-6L8Rkzcd.js",
+      "raw": 146,
+      "gzip": 147
+    },
+    {
+      "file": "assets/api-7D6eyNty.js",
+      "raw": 122,
+      "gzip": 122
+    }
+  ],
+  "publicAssets": [
+    {
+      "file": "demo-products/3070.png",
+      "raw": 181989,
+      "gzip": 181848
+    },
+    {
+      "file": "demo-products/NitroRyzen7.png",
+      "raw": 125174,
+      "gzip": 122947
+    },
+    {
+      "file": "demo-products/ProjetoLogoFetech2.svg",
+      "raw": 2486,
+      "gzip": 1174
+    },
+    {
+      "file": "demo-products/R5.png",
+      "raw": 154918,
+      "gzip": 154895
+    },
+    {
+      "file": "favicon.ico",
+      "raw": 3870,
+      "gzip": 3650
+    },
+    {
+      "file": "index.html",
+      "raw": 934,
+      "gzip": 500
+    },
+    {
+      "file": "logo192.png",
+      "raw": 5347,
+      "gzip": 5333
+    },
+    {
+      "file": "logo512.png",
+      "raw": 9664,
+      "gzip": 9663
+    },
+    {
+      "file": "manifest.json",
+      "raw": 517,
+      "gzip": 259
+    },
+    {
+      "file": "Profile.png",
+      "raw": 2540,
+      "gzip": 2386
+    },
+    {
+      "file": "robots.txt",
+      "raw": 70,
+      "gzip": 81
+    }
+  ],
+  "initialModules": [
+    "src/component/layout/MetaData.jsx",
+    "src/component/layout/Page.jsx",
+    "src/utils/api.js",
+    "src/storage/cartDomain.mjs",
+    "src/storage/storageRegistry.mjs",
+    "src/storage/safeStorage.mjs",
+    "src/constants/productConstants.js",
+    "src/reducers/productReducer.js",
+    "src/constants/userConstants.js",
+    "src/reducers/userReduces.js",
+    "src/constants/cartConstants.js",
+    "src/reducers/cartReducer.js",
+    "src/store.js",
+    "src/utils/httpClient.js",
+    "src/component/recovery/recovery.css",
+    "src/component/recovery/AppErrorBoundary.jsx",
+    "src/storage/bootstrapRecovery.mjs",
+    "src/index.jsx",
+    "src/App.css",
+    "src/images/ProjetoLogoFetech2.svg",
+    "src/component/layout/Footer/Footer.jsx",
+    "src/component/layout/Loader/Loader.jsx",
+    "src/utils/latestRead.mjs",
+    "src/actions/productAction.js",
+    "src/actions/cartAction.js",
+    "src/utils/alerts.js",
+    "src/component/Home/ProductCard.jsx",
+    "src/images/wallpaperLoja2.webp",
+    "src/context/CategoriesContext.jsx",
+    "src/component/Home/Home.jsx",
+    "src/component/Product/Search.jsx",
+    "src/component/Route/ProtectedRoute.jsx",
+    "src/routes.jsx",
+    "src/actions/userAction.js",
+    "src/theme.js",
+    "src/context/ColorModeContext.jsx",
+    "src/component/layout/Header/UserOptions.jsx",
+    "src/component/layout/Header/Header.jsx",
+    "src/component/layout/ScrollToTop.jsx",
+    "src/component/recovery/StorageNotices.jsx",
+    "src/App.jsx"
+  ],
+  "provenance": {
+    "assets/index-CfVHumqG.js": [
+      "src/storage/cartDomain.mjs",
+      "src/storage/storageRegistry.mjs",
+      "src/storage/safeStorage.mjs",
+      "src/constants/productConstants.js",
+      "src/reducers/productReducer.js",
+      "src/constants/userConstants.js",
+      "src/reducers/userReduces.js",
+      "src/constants/cartConstants.js",
+      "src/reducers/cartReducer.js",
+      "src/store.js",
+      "src/utils/httpClient.js",
+      "src/component/recovery/recovery.css",
+      "src/component/recovery/AppErrorBoundary.jsx",
+      "src/storage/bootstrapRecovery.mjs",
+      "src/index.jsx"
+    ],
+    "assets/AccessibleTextField-CD0jrl-2.js": [
+      "src/component/layout/AccessibleTextField.jsx"
+    ],
+    "assets/Add-B9RTB2oM.js": [],
+    "assets/Addresses-C8nl38xs.js": [
+      "src/component/User/AddressForm.jsx",
+      "src/component/User/Addresses.jsx"
+    ],
+    "assets/App-Bp3vPNG9.js": [
+      "src/App.css",
+      "src/images/ProjetoLogoFetech2.svg",
+      "src/component/layout/Footer/Footer.jsx",
+      "src/component/layout/Loader/Loader.jsx",
+      "src/utils/latestRead.mjs",
+      "src/actions/productAction.js",
+      "src/actions/cartAction.js",
+      "src/utils/alerts.js",
+      "src/component/Home/ProductCard.jsx",
+      "src/images/wallpaperLoja2.webp",
+      "src/context/CategoriesContext.jsx",
+      "src/component/Home/Home.jsx",
+      "src/component/Product/Search.jsx",
+      "src/component/Route/ProtectedRoute.jsx",
+      "src/routes.jsx",
+      "src/actions/userAction.js",
+      "src/theme.js",
+      "src/context/ColorModeContext.jsx",
+      "src/component/layout/Header/UserOptions.jsx",
+      "src/component/layout/Header/Header.jsx",
+      "src/component/layout/ScrollToTop.jsx",
+      "src/component/recovery/StorageNotices.jsx",
+      "src/App.jsx"
+    ],
+    "assets/AuditTrail-DZTM6qDF.js": [
+      "src/component/Admin/AuditTrail.jsx"
+    ],
+    "assets/Cart-SuJ_0kFW.js": [
+      "src/component/Cart/CartItemCard.jsx",
+      "src/component/Cart/Cart.jsx"
+    ],
+    "assets/Dashboard-CYqvtSbZ.js": [
+      "src/component/Admin/CategoriesManager.jsx",
+      "src/component/Admin/Dashboard.jsx"
+    ],
+    "assets/DataTable-AaYSJNna.js": [
+      "src/component/layout/DataTable.jsx"
+    ],
+    "assets/ForgotPassword-BI3wjBaX.js": [
+      "src/component/User/ForgotPassword.jsx"
+    ],
+    "assets/FormLayout-BZtMDELE.js": [
+      "src/component/User/FormLayout.jsx"
+    ],
+    "assets/LinearProgress-Nn6cohL8.js": [],
+    "assets/LoginSignUp-LzLlMbh4.js": [
+      "src/component/User/LoginSignUp.jsx"
+    ],
+    "assets/OrderDetails-CqhYjQV5.js": [
+      "src/component/Order/OrderDetails.jsx"
+    ],
+    "assets/Orders-NZPCLrdI.js": [
+      "src/component/Order/Orders.jsx"
+    ],
+    "assets/OutlinedInput-CQgmsqMY.js": [],
+    "assets/Page-DyADeMbt.js": [
+      "src/component/layout/MetaData.jsx",
+      "src/component/layout/Page.jsx"
+    ],
+    "assets/Pagination-ChKx1uG7.js": [],
+    "assets/Privacy-CCU2I4Zz.js": [
+      "src/component/User/Privacy.jsx"
+    ],
+    "assets/PrivacyRequests-2q1EtIw-.js": [
+      "src/component/Admin/PrivacyRequests.jsx"
+    ],
+    "assets/ProductDetails-D6gxt430.js": [
+      "src/component/Product/ProductCarousel.css",
+      "src/component/Product/ProductCarousel.jsx",
+      "src/component/Product/ReviewCard.jsx",
+      "src/component/Product/ProductDetails.jsx"
+    ],
+    "assets/Products-5Sf_9i0G.js": [
+      "src/component/Product/Products.jsx"
+    ],
+    "assets/Profile-BOjCKJBi.js": [
+      "src/component/User/Profile.jsx"
+    ],
+    "assets/QuantityControl-xDSAA-YR.js": [
+      "src/component/layout/QuantityControl.jsx"
+    ],
+    "assets/ResetPassword-2Me2yCE6.js": [
+      "src/component/User/ResetPassword.jsx"
+    ],
+    "assets/Shipping-CsxtTF3c.js": [
+      "src/component/Cart/SavedAddressPicker.jsx",
+      "src/utils/orderAttempt.mjs",
+      "src/component/Cart/Shipping.jsx"
+    ],
+    "assets/Stack-D7Ie1Sla.js": [],
+    "assets/Stepper-CR1gyRk-.js": [],
+    "assets/Tabs-DphphExI.js": [],
+    "assets/UpdatePassword-DYjMYvRQ.js": [
+      "src/component/User/UpdatePassword.jsx"
+    ],
+    "assets/UpdateProfile-DG5rceUo.js": [
+      "src/component/User/UpdateProfile.jsx"
+    ],
+    "assets/addressApi-TgzeeqMe.js": [
+      "src/utils/addressApi.js"
+    ],
+    "assets/api-7D6eyNty.js": [
+      "src/utils/api.js"
+    ],
+    "assets/dividerClasses-D1uYa1yC.js": [],
+    "assets/format-CuKQYOzO.js": [
+      "src/utils/format.js"
+    ],
+    "assets/getActiveElement-BTahi-Rs.js": [],
+    "assets/isMuiElement-0BtG_sfK.js": [],
+    "assets/money-6L8Rkzcd.js": [
+      "src/utils/money.js"
+    ],
+    "assets/money-C9SEzP65.js": [],
+    "assets/restoreActionFocus-BPPIXnqj.js": [
+      "src/utils/restoreActionFocus.js"
+    ],
+    "assets/useControlled-LL1e91el.js": [],
+    "assets/useRovingTabIndex-Hm1vImGB.js": []
+  }
+}

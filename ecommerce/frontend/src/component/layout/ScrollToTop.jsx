@@ -10,7 +10,7 @@ export default function ScrollToTop() {
     previous.current = pathname;
     // Lazy routes may first render a loader. Wait for the new page heading.
     const focusPage = () => {
-      const heading = document.querySelector('main h1');
+      const heading = document.querySelector('main h1:not([data-loading-heading])');
       if (!heading || heading.offsetParent === null) return false;
       heading.focus({ preventScroll: true });
       return true;

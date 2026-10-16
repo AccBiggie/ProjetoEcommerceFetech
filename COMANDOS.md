@@ -1,5 +1,42 @@
 # Comandos para executar o projeto
 
+## Ambiente local atual — banco fetech (16/10/2026)
+
+Para carregar os dados existentes, a API local usa:
+
+```text
+DB_URI=mongodb://127.0.0.1:27017/fetech?replicaSet=fetech_rs
+```
+
+Essa entrada está no `ecommerce/backend/config/config.env` local; os demais
+valores foram preservados. O replica set `fetech_rs` já está inicializado no
+diretório `.local/mongo-data`. Não é necessário inicializá-lo novamente ou
+migrar/copiar dados para outro banco. Esta configuração local atual prevalece
+sobre o exemplo de ambiente dedicado `fetech_dev_store` nas seções históricas abaixo.
+
+Com as portas livres, execute em três terminais:
+
+```powershell
+# Terminal 1: MongoDB com os dados existentes
+Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech'
+& '.\.local\mongod.exe' --replSet fetech_rs --dbpath '.\.local\mongo-data' --bind_ip 127.0.0.1 --port 27017 --wiredTigerCacheSizeGB 0.25
+
+# Terminal 2: API
+Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech\ecommerce'
+$env:DB_URI='mongodb://127.0.0.1:27017/fetech?replicaSet=fetech_rs'
+npm.cmd start
+
+# Terminal 3: frontend
+Set-Location 'C:\Users\Andre\Documents\GitHub\ProjetoEcommerceFetech\ecommerce\frontend'
+npm.cmd start
+```
+
+O limite de cache foi aplicado após um encerramento local com `out of memory`.
+Ele limita somente o cache interno WiredTiger, não toda a memória do processo;
+ver [documentação do MongoDB](https://www.mongodb.com/docs/manual/faq/diagnostics/).
+Na verificação desta sessão, `fetech` tinha 12 produtos e 14 categorias, ambos
+retornando HTTP 200 pelo proxy `http://127.0.0.1:3000/api/v1/`.
+
 ## Backup e recuperação — FET-OPS-001
 
 **Validação real bloqueada:** Database Tools ausentes, sem download por decisão do usuário. Antes de operar, seguir os pré-requisitos e a janela sem escrita do [runbook](docs/BACKUP_RESTORE.md). Na raiz, com ambiente seguro já configurado:
