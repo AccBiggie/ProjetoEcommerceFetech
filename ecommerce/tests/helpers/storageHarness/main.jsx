@@ -8,4 +8,6 @@ function BrokenDescendant() {
 }
 const container = document.getElementById('root');
 if (new URLSearchParams(location.search).has('bootstrap')) renderBootstrapRecovery(container);
+else if (new URLSearchParams(location.search).has('strict-seo')) import('./StrictSeo.jsx').then(({ mount }) => mount(container));
+else if (new URLSearchParams(location.search).has('strict-read')) import('./StrictRead.jsx').then(({ mount }) => mount(container));
 else ReactDOM.createRoot(container, { onCaughtError: () => {} }).render(<AppErrorBoundary><BrokenDescendant /></AppErrorBoundary>);

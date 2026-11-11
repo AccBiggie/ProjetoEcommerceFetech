@@ -1,5 +1,12 @@
 # Histórico comercial e arquivamento administrativo
 
+FET-ORDER-005 adiciona **Cancelled** ao histórico, exibido como Cancelado, com
+cancelledAt. Cancelamento elegível libera reserva transacionalmente; não exclui
+pedido nem altera dinheiro, shipping, idempotência ou archive. Archive continua
+independente e pode coexistir com cancelamento. DELETE segue 405; Cancelled não
+avança para Processing/Shipped/Delivered e não existe uncancel.
+[Cancelamento](CANCELAMENTO_PEDIDOS.md). F028 permanece PARCIAL, sem refund/return.
+
 ## Listagens paginadas — F022
 
 GET orders/me e admin/orders: default 25/max 100, page 1, skip máximo 100000, createdAt/_id estável. Customer mantém arquivados e ownership. Listas contêm resumo sem shippingInfo/orderItems; GET order/:id mantém snapshot completo e DTO privado. Admin totalAmount continua global do filtro via aggregate. Filtros archived/status allowlisted; painel/histórico possuem controles de página e proteção de respostas obsoletas. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).

@@ -1,5 +1,12 @@
 # Idempotência persistente de pedidos — FET-ORDER-001
 
+FET-ORDER-005: cancel replay não duplica Stock, RELEASE, ORDER_CANCELLED ou audit.
+Usa CAS/transação do próprio Order, sem exigir nova Idempotency-Key e sem alterar
+F005. A criação em replay retorna o mesmo pedido, inclusive seu estado Cancelled,
+preservando reserva histórica/snapshot/dinheiro. Nova compra é outra operação;
+não há uncancel nem reexecução da reserva por repetir a criação original.
+[Contrato](CANCELAMENTO_PEDIDOS.md).
+
 Contrato vigente em 08/10/2026. F005 / FET-P0-005 corrigido para a mesma intenção,
 identificada pela chave e pelo usuário. F003/F004 agora têm reserva transacional para intents
 diferentes e atomicidade de estoque. Nenhuma operação desta tarefa usa o banco real.

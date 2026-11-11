@@ -1,5 +1,18 @@
 # Configuração de ambiente — FET-SEC-008
 
+## SEO público do frontend — FET-SEO-001
+
+`VITE_PUBLIC_SITE_URL`: opcional e pública, consumida pelo Vite em dev/build e
+embutida no bundle; finalidade exclusiva: base autorizada de canonical, OG URL e
+imagens relativas. Não é secret, não substitui `FRONTEND_URL` do backend e não é
+adicionada ao schema privado da API. Origem HTTPS, sem credenciais, caminho,
+query, fragmento ou porta; configuração inválida informada faz Vite falhar com
+mensagem sem valor. Ausência permite build local sem canonical. Não há domínio
+real formal definido: F023 deve aprovar e fornecer a origem antes da promoção.
+Exemplo **somente de fixture**, nunca destino produtivo: `https://catalog.example.com`.
+Não preencher produção com essa fixture ou com staging por conveniência.
+Nenhum `config.env` real foi alterado. [Política e bloqueios](SEO_TECNICO.md).
+
 ## Perfil users-audit — FET-DATA-003
 
 `audit:users` usa `loadConfig(env, { profile: "users-audit" })`, loader central NODE_ENV/DB_URI e database explícita. Não exige JWT/SMTP/Cloudinary/frontend; sem novas variáveis. AutoCreate/autoIndex false, sem flags de escrita. Comando não executado no banco real nesta task. [Operação e limites](LIFECYCLE_USUARIOS.md).

@@ -104,10 +104,10 @@ const ProductDetails = () => {
         <Link to="/products">Ver produtos</Link>
       </Page>
     );
-  if (!product?._id || product._id !== id) return <Loader />;
+  if (!product?._id || product._id !== id) return <Loader pageHeading />;
 
   return (
-    <Page title={product.name} subtitle={product.category}>
+    <Page title={product.name} subtitle={product.category} seo={{ product }}>
       <Typography role="status" variant="body2">{loading ? 'Atualizando produto...' : ''}</Typography>
       <Breadcrumbs sx={{ mb: 3 }}>
         <MuiLink component={Link} to="/products" underline="hover">
@@ -139,6 +139,8 @@ const ProductDetails = () => {
                 key={item.url}
                 src={item.url}
                 alt={"Imagem " + (i + 1) + " de " + product.name}
+                loading={i === 0 ? 'eager' : 'lazy'}
+                decoding="async"
                 sx={{
                   width: "100%",
                   height: { xs: 250, md: 350 },

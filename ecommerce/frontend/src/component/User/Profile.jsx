@@ -15,7 +15,7 @@ import Loader from "../layout/Loader/Loader";
 
 export default function Profile() {
   const { user, loading } = useSelector((state) => state.user);
-  if (loading || !user) return <Loader />;
+  if (loading || !user) return <Loader pageHeading />;
   return (
     <Page
       title="Meu perfil"

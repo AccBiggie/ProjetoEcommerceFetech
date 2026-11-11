@@ -188,3 +188,11 @@ PrivacyRequest unique parcial ativo, user/latest e status/queue são necessário
 Product.reviews.user foi adicionado ao manifesto para contagem/audit/anonimização.
 Nenhuma aplicação no fetech; índices F022/F037 e restore F024 seguem gates de
 rollout. [Contrato](PRIVACIDADE_E_RETENCAO.md).
+
+## Performance frontend independente — FET-PERF-002
+
+Bundle/route splitting, política de imagens e orçamento formal são tratados
+em [PERFORMANCE_FRONTEND.md](PERFORMANCE_FRONTEND.md). Paginação e projeções API
+F022 permanecem; painel agora consulta só a coleção/página da aba ativa,
+preservando cancelamento e stale guards. Não são mudanças de índices nem tuning
+de consultas em escala. Nenhum índice F022/F037 foi aplicado no banco real.

@@ -1,5 +1,20 @@
 # Revisao das rotas e dos fluxos
 
+## Cancelamento — FET-ORDER-005
+
+| Método/rota | Autorização | Resultado |
+|---|---|---|
+| POST `/api/v1/order/:id/cancel` | Autenticado, dono do pedido | 200 Cancelled/RELEASED ou replay |
+| POST `/api/v1/admin/order/:id/cancel` | Admin, sem bypass comercial | 200 e audit transacional quando muda |
+
+Body vazio; campos extras/ID inválido 400; visitante 401; role/CSRF/Origin 403;
+pedido alheio/inexistente 404; conflito comercial 409. Códigos:
+ORDER_REFUND_REQUIRED, ORDER_RETURN_REQUIRED, ORDER_PAYMENT_UNVERIFIED,
+ORDER_INVENTORY_UNVERIFIED e ORDER_NOT_CANCELLABLE. No-store/request ID mantidos.
+Listas cliente/admin aceitam `status=Cancelled`. PUT status não cancela nem
+reativa. DELETE continua proibido; archive permanece separado.
+[Contrato](docs/CANCELAMENTO_PEDIDOS.md).
+
 ## Paginação — F022
 
 Coleções Products/Orders/Users/Audit/Reviews paginadas; page=1, limite padrão 25 (catálogo 12), máximo 100, skip máximo 100000. Query params desconhecidos, duplicados ou estruturados são 400. Categories são referência integral com teto 1000; addresses proprietário com teto 100; overflow 503 sem truncamento. Novos summaries exigem detalhe para snapshot/edição. [Inventário e contrato](docs/PAGINACAO_E_PERFORMANCE_API.md).

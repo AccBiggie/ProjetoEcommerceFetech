@@ -1,0 +1,592 @@
+[
+  {
+    "width": 360,
+    "home": {
+      "resources": [
+        {
+          "path": "/assets/index-D_w8EqHW.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/money-C9SEzP65.js",
+          "type": "other"
+        },
+        {
+          "path": "/assets/index-G1XYr9Qk.css",
+          "type": "link"
+        },
+        {
+          "path": "/assets/App-C2finioc.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/Page-WAgEKHyu.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/AccessibleTextField-DqpQjHjG.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/getActiveElement-D6I0ou5k.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/useRovingTabIndex-Cc9uVo0a.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/useControlled-DxpqusNG.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/api-7D6eyNty.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/App-CzqTsDIc.css",
+          "type": "link"
+        },
+        {
+          "path": "/assets/wallpaperLoja2-PoKckgeY.png",
+          "type": "img"
+        },
+        {
+          "path": "/api/v1/products",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/api/v1/categories",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/api/v1/me",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/favicon.ico",
+          "type": "other"
+        },
+        {
+          "path": "/demo-products/R5.png",
+          "type": "img"
+        }
+      ],
+      "lab": {
+        "lcp": [
+          {
+            "ms": 576,
+            "tag": "H1",
+            "alt": null
+          },
+          {
+            "ms": 616,
+            "tag": "IMG",
+            "alt": "Hardware e equipamentos Fetech"
+          }
+        ]
+      },
+      "images": [
+        {
+          "alt": "Hardware e equipamentos Fetech",
+          "loading": "auto",
+          "top": 515.40625,
+          "height": 200
+        },
+        {
+          "alt": "Produto extra para paginação",
+          "loading": "lazy",
+          "top": 966.203125,
+          "height": 150
+        },
+        {
+          "alt": "Teste & / Pesquisa",
+          "loading": "lazy",
+          "top": 1482.109375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Segurança",
+          "loading": "lazy",
+          "top": 1998.015625,
+          "height": 150
+        },
+        {
+          "alt": "Produto Rede e Internet",
+          "loading": "lazy",
+          "top": 2513.921875,
+          "height": 150
+        },
+        {
+          "alt": "Produto Cadeira Gamer",
+          "loading": "lazy",
+          "top": 3029.828125,
+          "height": 150
+        },
+        {
+          "alt": "Produto Monitores",
+          "loading": "lazy",
+          "top": 3545.734375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Gabinete",
+          "loading": "lazy",
+          "top": 4061.640625,
+          "height": 150
+        },
+        {
+          "alt": "Produto Periféricos",
+          "loading": "lazy",
+          "top": 4577.546875,
+          "height": 150
+        },
+        {
+          "alt": "Produto Notebooks",
+          "loading": "lazy",
+          "top": 5093.453125,
+          "height": 150
+        },
+        {
+          "alt": "Produto Hardware",
+          "loading": "lazy",
+          "top": 5609.359375,
+          "height": 150
+        },
+        {
+          "alt": "Produto PC Gamer",
+          "loading": "lazy",
+          "top": 6125.265625,
+          "height": 150
+        },
+        {
+          "alt": "Produto Kits Upgrades",
+          "loading": "lazy",
+          "top": 6641.171875,
+          "height": 150
+        }
+      ]
+    },
+    "admin": [
+      {
+        "path": "/assets/index-D_w8EqHW.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/money-C9SEzP65.js",
+        "type": "other"
+      },
+      {
+        "path": "/assets/index-G1XYr9Qk.css",
+        "type": "link"
+      },
+      {
+        "path": "/assets/App-C2finioc.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Page-WAgEKHyu.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/AccessibleTextField-DqpQjHjG.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/getActiveElement-D6I0ou5k.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/useRovingTabIndex-Cc9uVo0a.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/useControlled-DxpqusNG.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/api-7D6eyNty.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/App-CzqTsDIc.css",
+        "type": "link"
+      },
+      {
+        "path": "/assets/wallpaperLoja2-PoKckgeY.png",
+        "type": "img"
+      },
+      {
+        "path": "/api/v1/products",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/categories",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/me",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/favicon.ico",
+        "type": "other"
+      },
+      {
+        "path": "/demo-products/R5.png",
+        "type": "img"
+      },
+      {
+        "path": "/Profile.png",
+        "type": "img"
+      },
+      {
+        "path": "/assets/Dashboard-CMKWCjwQ.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/restoreActionFocus-ClIxtZP_.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/LinearProgress-BmxcKJt9.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Pagination-DpkzoSxA.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Tabs-DyNda8bI.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/DataTable-CROI58Qt.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/format-CuKQYOzO.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/money-CMN8CiBn.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Add-DnghkuAx.js",
+        "type": "script"
+      },
+      {
+        "path": "/favicon.ico",
+        "type": "other"
+      },
+      {
+        "path": "/api/v1/admin/products",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/admin/users",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/admin/orders",
+        "type": "xmlhttprequest"
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "home": {
+      "resources": [
+        {
+          "path": "/assets/index-D_w8EqHW.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/money-C9SEzP65.js",
+          "type": "other"
+        },
+        {
+          "path": "/assets/index-G1XYr9Qk.css",
+          "type": "link"
+        },
+        {
+          "path": "/assets/App-C2finioc.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/Page-WAgEKHyu.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/AccessibleTextField-DqpQjHjG.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/getActiveElement-D6I0ou5k.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/useRovingTabIndex-Cc9uVo0a.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/useControlled-DxpqusNG.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/api-7D6eyNty.js",
+          "type": "script"
+        },
+        {
+          "path": "/assets/App-CzqTsDIc.css",
+          "type": "link"
+        },
+        {
+          "path": "/assets/wallpaperLoja2-PoKckgeY.png",
+          "type": "img"
+        },
+        {
+          "path": "/api/v1/products",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/api/v1/categories",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/api/v1/me",
+          "type": "xmlhttprequest"
+        },
+        {
+          "path": "/favicon.ico",
+          "type": "other"
+        },
+        {
+          "path": "/demo-products/R5.png",
+          "type": "img"
+        }
+      ],
+      "lab": {
+        "lcp": [
+          {
+            "ms": 148,
+            "tag": "IMG",
+            "alt": "Hardware e equipamentos Fetech"
+          },
+          {
+            "ms": 148,
+            "tag": "IMG",
+            "alt": "Hardware e equipamentos Fetech"
+          }
+        ]
+      },
+      "images": [
+        {
+          "alt": "Hardware e equipamentos Fetech",
+          "loading": "auto",
+          "top": 157,
+          "height": 353.28125
+        },
+        {
+          "alt": "Produto extra para paginação",
+          "loading": "lazy",
+          "top": 721.078125,
+          "height": 150
+        },
+        {
+          "alt": "Teste & / Pesquisa",
+          "loading": "lazy",
+          "top": 721.078125,
+          "height": 150
+        },
+        {
+          "alt": "Produto Segurança",
+          "loading": "lazy",
+          "top": 721.078125,
+          "height": 150
+        },
+        {
+          "alt": "Produto Rede e Internet",
+          "loading": "lazy",
+          "top": 721.078125,
+          "height": 150
+        },
+        {
+          "alt": "Produto Cadeira Gamer",
+          "loading": "lazy",
+          "top": 1272.984375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Monitores",
+          "loading": "lazy",
+          "top": 1272.984375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Gabinete",
+          "loading": "lazy",
+          "top": 1272.984375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Periféricos",
+          "loading": "lazy",
+          "top": 1272.984375,
+          "height": 150
+        },
+        {
+          "alt": "Produto Notebooks",
+          "loading": "lazy",
+          "top": 1824.890625,
+          "height": 150
+        },
+        {
+          "alt": "Produto Hardware",
+          "loading": "lazy",
+          "top": 1824.890625,
+          "height": 150
+        },
+        {
+          "alt": "Produto PC Gamer",
+          "loading": "lazy",
+          "top": 1824.890625,
+          "height": 150
+        },
+        {
+          "alt": "Produto Kits Upgrades",
+          "loading": "lazy",
+          "top": 1824.890625,
+          "height": 150
+        }
+      ]
+    },
+    "admin": [
+      {
+        "path": "/assets/index-D_w8EqHW.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/money-C9SEzP65.js",
+        "type": "other"
+      },
+      {
+        "path": "/assets/index-G1XYr9Qk.css",
+        "type": "link"
+      },
+      {
+        "path": "/assets/App-C2finioc.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Page-WAgEKHyu.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/AccessibleTextField-DqpQjHjG.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/getActiveElement-D6I0ou5k.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/useRovingTabIndex-Cc9uVo0a.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/useControlled-DxpqusNG.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/api-7D6eyNty.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/App-CzqTsDIc.css",
+        "type": "link"
+      },
+      {
+        "path": "/assets/wallpaperLoja2-PoKckgeY.png",
+        "type": "img"
+      },
+      {
+        "path": "/api/v1/products",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/categories",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/me",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/favicon.ico",
+        "type": "other"
+      },
+      {
+        "path": "/demo-products/R5.png",
+        "type": "img"
+      },
+      {
+        "path": "/Profile.png",
+        "type": "img"
+      },
+      {
+        "path": "/assets/Dashboard-CMKWCjwQ.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/restoreActionFocus-ClIxtZP_.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/LinearProgress-BmxcKJt9.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Pagination-DpkzoSxA.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Tabs-DyNda8bI.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/DataTable-CROI58Qt.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/format-CuKQYOzO.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/money-CMN8CiBn.js",
+        "type": "script"
+      },
+      {
+        "path": "/assets/Add-DnghkuAx.js",
+        "type": "script"
+      },
+      {
+        "path": "/favicon.ico",
+        "type": "other"
+      },
+      {
+        "path": "/api/v1/admin/products",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/admin/users",
+        "type": "xmlhttprequest"
+      },
+      {
+        "path": "/api/v1/admin/orders",
+        "type": "xmlhttprequest"
+      }
+    ]
+  }
+]

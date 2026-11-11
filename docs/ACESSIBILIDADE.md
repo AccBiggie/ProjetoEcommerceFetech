@@ -1,5 +1,17 @@
 # Acessibilidade — FET-A11Y-001 / F033
 
+FET-ORDER-005: CancelOrder compartilhado entre lista/detalhe/admin usa botão com
+nome contextual, Dialog com title/description, foco inicial em Voltar, trap,
+Escape/retorno de foco, guard contra duplo clique, Cancelando… em role=status e
+erro em Alert. Cancelado é texto, com data real no detalhe. Estado final sem ação
+pode restaurar foco ao h1. E2E cobre teclado, diálogo, erro e axe sem supressões.
+[Contrato](CANCELAMENTO_PEDIDOS.md).
+
+FET-SEO-001: títulos/head passam pela autoridade `seo/head.mjs`, inclusive recovery.
+Títulos privados são genéricos por rota, sem PII; catálogo filtrado usa título de catálogo.
+H1, foco, skip link e lazy/Suspense permanecem sob F033. Teste SEO cobre navegação,
+loading e Strict Mode; axe continua sem supressões. [Contrato SEO](SEO_TECNICO.md).
+
 Referência: [WCAG 2.2 nível AA, W3C](https://www.w3.org/TR/WCAG22/).
 Esta entrega estabelece um baseline técnico. Não representa certificação WCAG,
 conformidade integral, nem cobertura de todas as combinações de tecnologia assistiva.
@@ -152,3 +164,14 @@ com pessoa usuária e tecnologias assistivas adicionais.
 Teclado automatizado: SIM. Teclado manual humano: NÃO. Leitor de tela manual: NÃO.
 Zoom manual real: NÃO; equivalente de reflow automatizado: SIM. A automação não
 assegura conformidade completa. SEO e performance avançada continuam independentes.
+
+## FET-PERF-002 — carregamento sob demanda
+
+F038 preserva guards, títulos, skip link e foco F033. Fallback de página lazy
+tem status/h1 transitório/área reservada; foco ignora esse heading e aguarda o
+definitivo. Loader dentro de página/aba mantém parágrafo para não duplicar h1.
+Suspense local das abas mantém shell administrativo. Axe sem suppression cobre
+fallback atrasado, login/produto/orders/audit/privacy e recovery de chunk, com
+back/forward e foco. Foco, contraste e reduced motion preservados.
+[Performance frontend](PERFORMANCE_FRONTEND.md) e
+[evidências](RELATORIO_FET_PERF_002.md); sem certificação de conformidade.

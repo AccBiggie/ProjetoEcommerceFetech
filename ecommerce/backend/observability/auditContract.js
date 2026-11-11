@@ -1,4 +1,5 @@
 const actions = Object.freeze({
+    ORDER_CANCELLED: ['ORDER', ['reasonCode']],
     ORDER_ARCHIVED: ['ORDER', ['archived']], ORDER_UNARCHIVED: ['ORDER', ['archived']], ORDER_STATUS_CHANGED: ['ORDER', ['from','to']],
     USER_ROLE_CHANGED: ['USER', ['fromRole','toRole']], USER_UPDATED: ['USER', ['changedFields']], USER_DELETED: ['USER', []],
     USER_DEACTIVATED: ['USER', ['fromStatus','toStatus']], USER_REACTIVATED: ['USER', ['fromStatus','toStatus']],
@@ -14,6 +15,7 @@ function metadataFor(action, input = {}) {
     for (const key of Object.keys(input)) {
         const value = input[key];
         if (key === 'archived' && typeof value === 'boolean' && value === (action === 'ORDER_ARCHIVED')) result[key] = value;
+        else if (key === 'reasonCode' && action === 'ORDER_CANCELLED' && value === 'ADMIN_REQUEST') result[key] = value;
         else if (['from','to'].includes(key) && ['Processing','Shipped','Delivered'].includes(value)) result[key] = value;
         else if (['fromRole','toRole'].includes(key) && ['admin','user'].includes(value)) result[key] = value;
         else if (['fromStatus','toStatus'].includes(key) && ['ACTIVE','DEACTIVATED'].includes(value)) result[key] = value;

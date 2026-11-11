@@ -77,3 +77,13 @@ por alert; o alerta está no texto e o título é “Falha ao carregar | Fetech�
 Foco/recarga continuam locais e não alteram storage, F005 ou auth. E2E auditam as
 três falhas do boundary e os estados corrupto/indisponível com axe sem suppression.
 [Baseline técnico](ACESSIBILIDADE.md), sem certificação WCAG ou teste manual de AT.
+
+## FET-PERF-002 — falha de módulo lazy
+
+Splitting mantém o ErrorBoundary como última defesa. Probe Playwright substitui
+chunk somente no host isolado por módulo com erro e verifica recovery,
+heading/foco/axe e storage local/session intactos. Sem rota de crash em
+produção, retry automático de pedido ou limpeza de carrinho/tentativa. Boot
+guardado de App/store preservado. Harness de desenvolvimento testa replay de
+leituras StrictMode, fora do build/rotas produtivos.
+[Performance frontend](PERFORMANCE_FRONTEND.md), [testes](TESTES_FET_PERF_002.md).

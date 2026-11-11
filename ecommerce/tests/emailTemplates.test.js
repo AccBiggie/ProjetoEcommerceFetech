@@ -12,6 +12,11 @@ for (const eventType of registry) test('MAIL template ' + eventType + ' pt-BR te
 test('MAIL Order text states receipt without claiming payment or shipping', () => { const m = render(event, context); assert.match(m.text, /Recebemos seu pedido/); assert.doesNotMatch(m.text, /pago|aprovado|enviado|entregue|pagamento confirmado/i); });
 test('MAIL money uses historical integer cents over legacy/current price', () => assert.match(render(event, context).text, /199,90/));
 test('MAIL money handles 50 cents exactly', () => assert.match(render(event, { ...context, order: { ...context.order, totalPriceCents: 50 } }).text, /0,50/));
+test('MAIL cancelamento informa somente cancelamento sem refund/return', () => {
+    const message = render({ ...event, eventType: 'ORDER_CANCELLED' }, context);
+    assert.match(message.text, /foi cancelado/); assert.match(message.html, /foi cancelado/);
+    assert.doesNotMatch(message.text + message.html, /reembolso|estorno|devolvido|devolução|logística reversa/i);
+});
 for (const value of ['<script>alert(1)</script>', '<img onerror="alert(1)">', '&', '"', "'"]) test('MAIL HTML escapes domain value ' + JSON.stringify(value), () => { const html = escapeHtml(value); assert.doesNotMatch(html, /[<>"']/); });
 for (const eventType of ['PAYMENT_CONFIRMED', 'ORDER_SHIPPED', 'TRACKING_AVAILABLE', 'ORDER_REFUNDED', '../template']) test('MAIL unavailable or client-controlled event is rejected ' + eventType, () => assert.throws(() => render({ ...event, eventType }, context)));
 for (const origin of ['https://user:password@example.test', 'javascript:alert(1)', '//evil.test', 'https://shop.example.test/path']) test('MAIL unsafe frontend URL rejected ' + origin, () => assert.throws(() => render(event, { ...context, origin })));

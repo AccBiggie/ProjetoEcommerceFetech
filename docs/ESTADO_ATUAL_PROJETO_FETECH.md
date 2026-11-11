@@ -1,4 +1,64 @@
 # Estado atual — ProjetoEcommerceFetech
+
+## F028 — FET-ORDER-005 (16/10/2026)
+
+Status **PARCIAL**. Cancelamento de pedido elegível não pago/pre-fulfillment com
+reserva verificável, release transacional, ledger, replay/concorrência, UI
+cliente/admin, audit e ORDER_CANCELLED implementados. Refund depende de F001;
+return/logística reversa de F027 + política. Expiração automática POLICY_UNDEFINED.
+Sem prazo, cron ou fluxo financeiro fictício. [Contrato](CANCELAMENTO_PEDIDOS.md),
+[relatório](RELATORIO_FET_ORDER_005.md), [testes](TESTES_FET_ORDER_005.md).
+SEO estava commitada em 0285bc6; esta task permanece sem commit.
+F023 pendente; F024/F026 parciais; F029 aberto; F032 parcial por F023; F039 remoto
+pendente. Baselines F030/F033, correções F002–F022/F025/F031/F036–F040 preservadas.
+F001/F027 não iniciados; banco/providers reais e índices comerciais intocados.
+Validação final da retomada (17/10): focused 77/77, architecture 155/155,
+API 1.880 aprovados + 15 F024, E2E 96/96 sem skips/retries, axe zero violações,
+build/SEO/budget/Commercial Gate/diff aprovados, npm audits zero vulnerabilidades.
+## F032 — FET-SEO-001 (16/10/2026)
+
+Status: **PARCIAL — PRODUÇÃO/INDEXABILIDADE DEPENDE DE F023**. Baseline client-side:
+head central, metadata pública, noindex privado/busca/404, Product/Offer exatos e
+canonical apenas com origem autorizada opcional. Domínio formal não comprovado;
+sitemap, HTML inicial específico, HTTP 404 e entrega robots produtivos continuam
+BLOCKED_BY_F023. Sem SSR/prerender ou domínio inventado. [Contrato](SEO_TECNICO.md),
+[relatório](RELATORIO_FET_SEO_001.md), [testes](TESTES_FET_SEO_001.md).
+
+F024/F026 continuam parciais; F029 aberto; F030 baseline técnico; F033 baseline de
+acessibilidade; F038 corrigido no código; F039 corrigido no código com validação
+remota pendente; F040 corrigido no código, SMTP real não validado. Índices F022/F037
+não aplicados. F001/F027 adiados e não iniciados. Auditoria histórica preservada.
+Próximo candidato independente: inventariar F028 (cancelamento/liberação de estoque),
+separando reembolso financeiro dependente de F001. Não iniciado automaticamente.
+
+## F038 — FET-PERF-002 (13/10/2026)
+
+Status: **CORRIGIDO NO CÓDIGO** — finding original “Imagem hero e chunks sem orçamento operacional”.
+Baseline real/versionado, Hero WebP local de 88.358 bytes (-91,73%), initial JS
+gzip 213.472 bytes (-3,16%), abas audit/privacy lazy, consultas só da aba ativa,
+leituras pending deduplicadas com stale/abort guards e fallback de página com
+h1 transitório sem roubar foco. Admin já era isolado da Home e continua assim.
+Manifest/proveniência, auditor READ_ONLY e budget integrado a ci:build/Commercial
+Gate. Nenhuma dependência nova, atualização de versão ou provider real.
+
+Validação: focused 26/26 + thunks reais 6/6; browser performance 9/9;
+arquitetura 144/144; API 1817 aprovados + 15 F024; E2E 84/84 sem
+skips; axe F033, build/budget/Commercial Gate/diff/audits aprovados.
+[Contrato](PERFORMANCE_FRONTEND.md), [testes](TESTES_FET_PERF_002.md),
+[relatório](RELATORIO_FET_PERF_002.md).
+
+Branch main, HEAD e6fcee5; worktree inicialmente limpo, F033 já commitada.
+FET-PERF-002 sem commit/push. Banco fetech, SMTP, Cloudinary, índices e config.env
+intocados. F024/F026 parciais, F029 aberto, F039 remoto pendente; F030/F033
+baselines técnicos, F040 no código/SMTP não validado; F001/F027 não iniciados.
+Índices F022/F037 pendentes. Referências históricas de custo de escala como F038
+não significam remediação dessas queries. Lab não equivale a field CWV;
+CDN/cache/compressão/deployment continuam F023. Próxima recomendação: inventário
+SEO com URL/deployment/rotas indexáveis, sem início automático.
+Este bloco corrente prevalece sobre recomendações históricas.
+Intermitências UL observadas durante validação estão registradas no relatório;
+causa não estabelecida, sem relaxar testes. A execução integral final passou.
+
 ## F033 — FET-A11Y-001 (13/10/2026)
 
 Status: **CORRIGIDO NO CÓDIGO — BASELINE TÉCNICO DE ACESSIBILIDADE**. Referência

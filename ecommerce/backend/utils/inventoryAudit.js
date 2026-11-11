@@ -12,8 +12,8 @@ async function auditInventory(connection, { write = console.log } = {}) {
     const byOrder = new Map(orders.map(order => [String(order._id), order])), seen = new Set();
     for (const product of products) if (!validStock(product.Stock)) add('INVALID_STOCK', 'product', product._id);
     for (const order of orders) {
-        if ((order.inventoryVersion === 1 || order.inventoryReservedAt) && order.inventoryStatus !== 'RESERVED') add('MISSING_INVENTORY_STATUS', 'order', order._id);
-        if (order.inventoryStatus !== 'RESERVED') continue; // Não inventar baseline legado.
+        if ((order.inventoryVersion === 1 || order.inventoryReservedAt) && !['RESERVED', 'RELEASED'].includes(order.inventoryStatus)) add('MISSING_INVENTORY_STATUS', 'order', order._id);
+        if (!['RESERVED', 'RELEASED'].includes(order.inventoryStatus)) continue; // Não inventar baseline legado.
         for (const item of order.orderItems || []) {
             const rows = movements.filter(m => String(m.order) === String(order._id) && String(m.product) === String(item.product) && m.type === 'RESERVE');
             if (!rows.length) add('MISSING_RESERVE', 'order', order._id);
@@ -24,6 +24,7 @@ async function auditInventory(connection, { write = console.log } = {}) {
         if (movement.type !== 'RESERVE') {
             if (!require('./stockMovementContract').validMovement(movement)) add('INCOHERENT_MOVEMENT', 'movement', movement._id);
             if (!products.some(p => String(p._id) === String(movement.product))) add('ORPHAN_MOVEMENT', 'movement', movement._id);
+            if (movement.type === 'RELEASE' && !byOrder.has(String(movement.order))) add('ORPHAN_MOVEMENT', 'movement', movement._id);
             continue;
         }
         const order = byOrder.get(String(movement.order));

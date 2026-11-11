@@ -1,5 +1,21 @@
 # CI e gates comerciais — FET-CI-001
 
+FET-ORDER-005 adiciona ao wildcard API `orderCancellation.test.js`,
+`orderCancellationConcurrency.test.js`, `orderLifecycleAudit.test.js` e ao E2E
+`orderCancellation.spec.js`. Templates F040 também cobrem ORDER_CANCELLED.
+Probes incluem processos independentes, retry após outbox/audit e falhas all-or-nothing.
+Sem skip F028/E2E; somente 15 bloqueios F024 Tools existentes. CI remoto e branch
+protection continuam não validados. [Evidências](TESTES_FET_ORDER_005.md).
+
+FET-SEO-001 adiciona `frontendSeo.test.js` e `frontendSeoArchitecture.test.js`
+ao estágio architecture; também entram no wildcard do runner API isolado.
+`seo.spec.js` integra o wildcard E2E, sem skips SEO. O estágio build executa
+`audit:seo` após build e bundle budget. Auditoria offline somente leitura: sem
+API, Mongo, SMTP ou Cloudinary. JSON-LD público tem permissão explícita de
+serialização; parsing/acesso a storage continua restrito a `storage/`.
+Configuração sem domínio é válida e reporta os componentes F023 bloqueados,
+sem reprovar o baseline local nem fingir SEO produtivo. [Contrato](SEO_TECNICO.md).
+
 F039: **CORRIGIDO NO CÓDIGO / VALIDAÇÃO REMOTA PENDENTE**.
 F026: **PARCIAL** — CI implementado; CD/target produtivo ainda pendente.
 Enforcement remoto: **NÃO VALIDADO / DESCONHECIDO**. Nenhum push, run remoto
@@ -181,3 +197,21 @@ Nenhum browser adicional é baixado pela task local; usa-se Edge já instalado.
 Ver [contrato](ACESSIBILIDADE.md), [casos](TESTES_FET_A11Y_001.md) e
 [relatório](RELATORIO_FET_A11Y_001.md). CI local não comprova enforcement remoto
 F039 nem implantação F026. Screen reader e zoom humano não foram validados.
+
+## F038 — orçamento frontend (FET-PERF-002)
+
+`ci:build` executa build e `ci:bundle-budget` no mesmo output, sem segundo
+build local. O workflow existente exige esse estágio nos jobs build e E2E;
+aggregate mantém os seis jobs. Arquitetura inclui
+frontendPerformanceArchitecture.test.js e frontendBundleBudget.test.js.
+API inclui stale/dedupe dos thunks; E2E inclui frontendPerformance.spec.js e
+axe de páginas/abas/fallbacks lazy. Bytes/grafo/contagens são gates, sem limiar
+temporal LCP/CLS/INP ou Lighthouse. Admin no initial e retirada de dynamic
+entries escolhidos reprovam. Manifest/proveniência identificam módulos, sem
+depender de hashes. Budget não é atualizado automaticamente pelo CI.
+
+`audit:bundle` e `ci:bundle-budget` são read-only; ausência de build/metadados
+falha fechado. [Contrato](PERFORMANCE_FRONTEND.md),
+[casos](TESTES_FET_PERF_002.md), [relatório](RELATORIO_FET_PERF_002.md).
+Sem dependência nova, skip performance/E2E, analytics ou provider real. Somente
+quinze bloqueios F024 conhecidos permanecem autorizados; F039 remoto pendente.

@@ -6,6 +6,8 @@ router.param("id", require("../middleware/validateId"));
 //Routes of Order Api
 router.route("/order/new").post(isAuthenticatedUser, newOrder);
 router.route("/order/:id").get(isAuthenticatedUser, getSingleOrder);
+router.post('/order/:id/cancel', isAuthenticatedUser, require('../controllers/orderController').cancelOrder);
+router.post('/admin/order/:id/cancel', isAuthenticatedUser, authorizeRoles('admin'), require('../controllers/orderController').cancelOrder);
 router.route("/orders/me").get(isAuthenticatedUser, myOrders);
 router
   .route("/admin/orders")

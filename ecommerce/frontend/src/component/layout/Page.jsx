@@ -14,6 +14,7 @@ export default function Page({
   subtitle,
   actions,
   children,
+  seo,
   maxWidth = "lg",
 }) {
   return (
@@ -23,7 +24,7 @@ export default function Page({
       className="contentPage"
       sx={{ py: { xs: 3, md: 5 } }}
     >
-      <MetaData title={title + " | Fetech"} />
+      <MetaData title={title + " | Fetech"} {...seo} />
       <Stack
         direction={{ xs: "column", sm: "row" }}
         spacing={2}

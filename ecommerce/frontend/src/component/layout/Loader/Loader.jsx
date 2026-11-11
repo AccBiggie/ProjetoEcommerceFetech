@@ -1,5 +1,6 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-export default function Loader() {
+import MetaData from '../MetaData';
+export default function Loader({ pageHeading = false }) {
   return (
     <Box
       role="status"
@@ -11,8 +12,9 @@ export default function Loader() {
         gap: 2,
       }}
     >
+      {pageHeading && <MetaData />}
       <CircularProgress size={32} aria-hidden="true" />
-      <Typography color="textSecondary">Carregando...</Typography>
+      <Typography component={pageHeading ? 'h1' : 'p'} data-loading-heading={pageHeading ? '' : undefined} color="textSecondary">Carregando...</Typography>
     </Box>
   );
 }

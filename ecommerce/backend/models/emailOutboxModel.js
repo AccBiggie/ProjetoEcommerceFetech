@@ -3,7 +3,7 @@ const { events, states, policy, codes } = require('../services/email/contract');
 const schema = new mongoose.Schema({
     schemaVersion: { type: Number, enum: [1], default: 1 },
     eventType: { type: String, enum: events, required: true },
-    dedupeKey: { type: String, required: true, match: /^(ACCOUNT_REGISTERED|ORDER_CREATED|ACCOUNT_DEACTIVATED|ACCOUNT_REACTIVATED|PRIVACY_REQUEST_CREATED):[a-f0-9]{24}:(v1|[0-9]+)$/ },
+    dedupeKey: { type: String, required: true, match: /^(ACCOUNT_REGISTERED|ORDER_CREATED|ORDER_CANCELLED|ACCOUNT_DEACTIVATED|ACCOUNT_REACTIVATED|PRIVACY_REQUEST_CREATED):[a-f0-9]{24}:(v1|[0-9]+)$/ },
     recipientUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     entityType: { type: String, enum: ['USER', 'ORDER', 'PRIVACY_REQUEST'], required: true },
     entityId: { type: mongoose.Schema.Types.ObjectId, required: true },

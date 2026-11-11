@@ -1,9 +1,10 @@
 import { Component, useEffect, useRef } from 'react';
 import { restoreInterfacePreferences } from '../../storage/safeStorage.mjs';
 import './recovery.css';
+import { recoveryHead } from '../../seo/head.mjs';
 export function RecoveryView() {
     const heading = useRef(null);
-    useEffect(() => { document.title = 'Falha ao carregar | Fetech'; heading.current?.focus(); }, []);
+    useEffect(() => { recoveryHead(); heading.current?.focus(); }, []);
     return <main className="fetech-recovery">
         <p className="fetech-recovery-brand">Fetech</p>
         <h1 ref={heading} tabIndex={-1}>Não foi possível carregar esta tela.</h1>

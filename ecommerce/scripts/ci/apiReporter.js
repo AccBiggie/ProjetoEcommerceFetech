@@ -7,6 +7,16 @@ module.exports = async function* (source) {
         if ((type === 'test:pass' || type === 'test:fail') && data.file) {
             records.push({ file: path.relative(app, data.file).replaceAll('\\', '/'), name: data.name, skip: data.skip, todo: data.todo, failed: type === 'test:fail' });
             yield `${type === 'test:fail' ? 'FAIL' : data.skip ? 'SKIP (validação obrigatória)' : 'PASS'} ${data.name}\n`;
+            // Numeric diagnostics only: never print response bodies, messages or stacks.
+            if (type === 'test:fail') {
+                let error = data.details?.error;
+                for (let depth = 0; error && depth < 4; depth++, error = error.cause) {
+                    if (typeof error.actual === 'number' && typeof error.expected === 'number') {
+                        yield `ASSERT numeric: actual=${error.actual}, expected=${error.expected}\n`;
+                        break;
+                    }
+                }
+            }
         }
         if (type === 'test:summary' && data.file === undefined) summary = data;
     }

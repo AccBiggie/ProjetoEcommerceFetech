@@ -21,9 +21,9 @@ const stages = {
         console.log(`Repo safety: ${repositorySafety()} arquivos versionados verificados.`);
         diffCheck(root, process.env.GITHUB_EVENT_PATH ? JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8')) : undefined);
     },
-    architecture: () => run(['--test', 'tests/frontendAccessibilityArchitecture.test.js', 'tests/frontendStorageArchitecture.test.js', 'tests/backendArchitecture.test.js', 'tests/ciCommercialGate.test.js', 'tests/ciRepositorySafety.test.js']),
+    architecture: () => run(['--test', 'tests/frontendSeo.test.js', 'tests/frontendSeoArchitecture.test.js', 'tests/frontendPerformanceArchitecture.test.js', 'tests/frontendBundleBudget.test.js', 'tests/frontendAccessibilityArchitecture.test.js', 'tests/frontendStorageArchitecture.test.js', 'tests/backendArchitecture.test.js', 'tests/ciCommercialGate.test.js', 'tests/ciRepositorySafety.test.js']),
     api: () => npm(['test']),
-    build: () => npm(['run', 'build'], path.join(app, 'frontend')),
+    build: async () => { await npm(['run', 'build'], path.join(app, 'frontend')); await npm(['run', 'ci:bundle-budget'], path.join(app, 'frontend')); await npm(['run', 'audit:seo'], path.join(app, 'frontend')); },
     e2e: () => npm(['run', 'test:e2e']),
     audit: async () => { await npm(['audit', '--audit-level=high']); await npm(['audit', '--audit-level=high'], path.join(app, 'frontend')); },
     aggregate: async () => aggregate(JSON.parse(process.env.NEEDS_JSON || '{}')),

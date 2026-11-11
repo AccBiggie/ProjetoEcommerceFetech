@@ -3,15 +3,17 @@ import { Alert, Box, Button, Card, Chip, Dialog, DialogActions, DialogContent, D
 import TextField from '../layout/AccessibleTextField';
 import DataTable from "../layout/DataTable";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import Page from "../layout/Page";
+import CancelOrder from '../Order/CancelOrder';
 import { useCategories } from "../../context/CategoriesContext";
 import CategoriesManager from "./CategoriesManager";
-import AuditTrail from './AuditTrail';
-import PrivacyRequests from './PrivacyRequests';
+import Loader from '../layout/Loader/Loader';
+const AuditTrail = lazy(() => import('./AuditTrail'));
+const PrivacyRequests = lazy(() => import('./PrivacyRequests'));
 import { getErrorMessage } from "../../utils/api";
 import { money, statusLabel, paymentLabel } from "../../utils/format";
 
@@ -41,19 +43,15 @@ export default function Dashboard() {
   const [draft, setDraft] = useState(emptyProduct);
   const load = useCallback(async (signal) => {
     const sequence = ++requestSequence.current;
-    const [products, users, orders] = await Promise.all([
-      axios.get("/api/v1/admin/products", { signal, params: { page: pages.products, limit: 25 } }),
-      axios.get("/api/v1/admin/users", { signal, params: { status: userStatus, page: pages.users, limit: 25 } }),
-      axios.get("/api/v1/admin/orders", { signal, params: { archived, page: pages.orders, limit: 25 } }),
-    ]);
+    if (!['products', 'users', 'orders'].includes(tab)) return;
+    const params = { page: pages[tab], limit: 25 };
+    if (tab === 'users') params.status = userStatus;
+    if (tab === 'orders') params.archived = archived;
+    const { data: response } = await axios.get('/api/v1/admin/' + tab, { signal, params });
     if (sequence !== requestSequence.current || signal?.aborted) return;
-    setPagination({ products: products.data.pagination, users: users.data.pagination, orders: orders.data.pagination });
-    setData({
-      products: products.data.products,
-      users: users.data.users,
-      orders: orders.data.orders,
-    });
-  }, [archived, userStatus, pages]);
+    setPagination(value => ({ ...value, [tab]: response.pagination }));
+    setData(value => ({ ...value, [tab]: response[tab] }));
+  }, [tab, archived, userStatus, pages]);
   useEffect(() => {
     const controller = new AbortController();
     load(controller.signal).catch((error) => { if (!axios.isCancel(error) && !controller.signal.aborted) setError(getErrorMessage(error)); });
@@ -115,9 +113,9 @@ export default function Dashboard() {
         }}
       >
         {[
-          ["Produtos", pagination.products?.total ?? 0],
-          ["Usuários", pagination.users?.total ?? 0],
-          ["Pedidos", pagination.orders?.total ?? 0],
+          ["Produtos", pagination.products?.total ?? '—'],
+          ["Usuários", pagination.users?.total ?? '—'],
+          ["Pedidos", pagination.orders?.total ?? '—'],
         ].map(([label, value]) => (
           <Card key={label} sx={{ p: 3 }}>
             <Typography color="textSecondary">{label}</Typography>
@@ -127,6 +125,7 @@ export default function Dashboard() {
           </Card>
         ))}
       </Box>
+      <Typography variant="caption" color="textSecondary">As contagens são atualizadas ao abrir a respectiva aba.</Typography>
       <Tabs
         value={tab}
         onChange={(_, value) => setTab(value)}
@@ -154,8 +153,10 @@ export default function Dashboard() {
         </Alert>
       )}
       <CategoriesManager showTable={tab === "categories"} onChanged={load} />
-      {tab === 'audit' && <AuditTrail />}
-      {tab === 'privacy' && <PrivacyRequests />}
+      <Suspense fallback={<Loader />}>
+        {tab === 'audit' && <AuditTrail />}
+        {tab === 'privacy' && <PrivacyRequests />}
+      </Suspense>
       {tab === "products" && (
         <>
           <Card
@@ -387,7 +388,7 @@ export default function Dashboard() {
               </TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1}>
-                  {order.orderStatus !== "Delivered" && (
+                  {['Processing', 'Shipped'].includes(order.orderStatus) && (
                     <Button
                       aria-label={(order.orderStatus === 'Processing' ? 'Marcar enviado ' : 'Marcar entregue ') + order._id}
                       disabled={pending || !order.paymentConfirmed}
@@ -407,7 +408,8 @@ export default function Dashboard() {
                         : "Marcar entregue"}
                     </Button>
                   )}
-                  {!order.paymentConfirmed && order.orderStatus !== "Delivered" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
+                  {!order.paymentConfirmed && order.orderStatus === "Processing" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
+                  <CancelOrder order={order} admin onCancelled={value => { ++requestSequence.current; setData(data => ({ ...data, orders: data.orders.map(item => item._id === value._id ? { ...item, ...value } : item) })); }} />
                   <Button
                     color="primary"
                     aria-label={(order.administrativeArchivedAt ? 'Desarquivar pedido ' : 'Arquivar pedido ') + order._id}

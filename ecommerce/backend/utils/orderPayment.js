@@ -4,7 +4,7 @@ function paymentConfirmed(order) {
 function presentPayment(order) {
     const confirmed = paymentConfirmed(order);
     const status = ['PENDING', 'PAID'].includes(order.paymentStatus) ? order.paymentStatus : 'UNVERIFIED';
-    return { ...order, paymentStatus: status, paymentConfirmed: confirmed,
+    return { ...order, cancellation: require('./orderCancellation').cancellationEligibility(order), paymentStatus: status, paymentConfirmed: confirmed,
         // Legacy/browser/provider payload is not payment evidence or a public DTO.
         paymentInfo: { status: confirmed ? 'Paid' : status === 'PENDING' ? 'Pending' : 'Unverified' } };
 }

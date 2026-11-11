@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "measuredAtHead": "e6fcee5c460c7b13aafabf165595815e52f4c944",
+  "baseline": "../../docs/PERF_BUNDLE_ANTES.json",
+  "optimized": "../../docs/PERF_BUNDLE_DEPOIS.json",
+  "margin": "Initial JS gzip +2.5%; demais bytes JS/CSS +5%; imagem 100000 bytes (+13.2%); contagens initial +2, total +6.",
+  "limits": {
+    "initialJsGzip": 218809,
+    "entryJsGzip": 98482,
+    "initialJsRaw": 680814,
+    "initialCssRaw": 1792,
+    "initialCssGzip": 872,
+    "largestRouteGzip": 11823,
+    "largestLazyGzip": 11823,
+    "adminRouteGzip": 6009,
+    "largestImageRaw": 100000,
+    "initialChunkCount": 13,
+    "totalJsChunks": 48
+  },
+  "forbiddenInitialPrefixes": [
+    "src/component/Admin/",
+    "src/component/User/Privacy.jsx",
+    "src/component/Cart/Shipping.jsx"
+  ],
+  "requiredLazySources": [
+    "src/component/Admin/AuditTrail.jsx",
+    "src/component/Admin/Dashboard.jsx",
+    "src/component/Admin/PrivacyRequests.jsx",
+    "src/component/Cart/Cart.jsx",
+    "src/component/Cart/Shipping.jsx",
+    "src/component/Order/OrderDetails.jsx",
+    "src/component/Order/Orders.jsx",
+    "src/component/Product/ProductDetails.jsx",
+    "src/component/Product/Products.jsx",
+    "src/component/User/Addresses.jsx",
+    "src/component/User/ForgotPassword.jsx",
+    "src/component/User/LoginSignUp.jsx",
+    "src/component/User/Privacy.jsx",
+    "src/component/User/Profile.jsx",
+    "src/component/User/ResetPassword.jsx",
+    "src/component/User/UpdatePassword.jsx",
+    "src/component/User/UpdateProfile.jsx"
+  ]
+}

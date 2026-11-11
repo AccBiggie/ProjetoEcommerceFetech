@@ -15,7 +15,7 @@ import ArrowForward from "@mui/icons-material/ArrowForward";
 import { getProduct } from "../../actions/productAction";
 import ProductCard from "./ProductCard";
 import MetaData from "../layout/MetaData";
-import hero from "../../images/wallpaperLoja2.png";
+import hero from "../../images/wallpaperLoja2.webp";
 import { useCategories } from "../../context/CategoriesContext";
 
 export const productGrid = {
@@ -101,9 +101,11 @@ export default function Home() {
           component="img"
           src={hero}
           alt="Hardware e equipamentos Fetech"
+          loading="eager"
+          fetchPriority="high"
           sx={{
             width: "100%",
-            height: { xs: 200, md: "100%" },
+            height: { xs: 200, md: 380 },
             maxHeight: 380,
             objectFit: "cover",
           }}

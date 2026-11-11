@@ -18,9 +18,13 @@ import Page from "../layout/Page";
 import { getErrorMessage } from "../../utils/api";
 
 import { statusLabel, money, paymentLabel } from "../../utils/format";
+import CancelOrder from './CancelOrder';
+import { useRef } from 'react';
 
 export default function Orders() {
   const [orders, setOrders] = useState([]);
+  const cancelled = useRef(new Map());
+  const onCancelled = order => { cancelled.current.set(order._id, order); setOrders(items => items.map(item => item._id === order._id ? { ...item, ...order } : item)); };
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [page, setPage] = useState(1);
@@ -30,7 +34,7 @@ export default function Orders() {
     setLoading(true); setError('');
     axios
       .get("/api/v1/orders/me", { signal: controller.signal, params: { page, limit: 25 } })
-      .then(({ data }) => { if (!controller.signal.aborted) { setOrders(data.orders); setPagination(data.pagination); } })
+      .then(({ data }) => { if (!controller.signal.aborted) { setOrders(data.orders.map(order => cancelled.current.get(order._id) || order)); setPagination(data.pagination); } })
       .catch((error) => {
         if (!axios.isCancel(error)) setError(getErrorMessage(error));
       })
@@ -55,7 +59,7 @@ export default function Orders() {
         </Card>
       )}
       {!!orders.length && (
-        <DataTable label="Meus pedidos" columns={["Pedido", "Status", "Pagamento", "Total"]}>
+        <DataTable label="Meus pedidos" columns={["Pedido", "Status", "Pagamento", "Total", "Ações"]}>
           {orders.map((order) => (
             <TableRow key={order._id} hover>
               <TableCell>
@@ -79,6 +83,7 @@ export default function Orders() {
               </TableCell>
               <TableCell><Chip size="small" label={"Pagamento: " + paymentLabel(order)} /></TableCell>
               <TableCell>{money(order.totalPriceCents)}</TableCell>
+              <TableCell><CancelOrder order={order} onCancelled={onCancelled} /></TableCell>
             </TableRow>
           ))}
         </DataTable>
