@@ -1,4 +1,35 @@
 # Plano de melhorias Fetech
+
+## F028 — Cancelamento/devolução/reembolso
+
+Status: **PARCIAL** — FET-ORDER-005, 16/10/2026.
+
+Corrigido no código:
+
+- cancelamento de pedido elegível e comprovadamente não pago;
+- liberação transacional de estoque;
+- ledger de release;
+- concorrência/idempotência;
+- customer/admin UX;
+- audit read-only;
+- ORDER_CANCELLED via outbox.
+
+Bloqueado/deferido:
+
+- refund financeiro: depende de F001;
+- devolução/logística reversa: depende de F027 e política comercial;
+- nenhum prazo de devolução foi inventado;
+- nenhum timeout de reservation foi inventado.
+
+[Contrato](CANCELAMENTO_PEDIDOS.md), [relatório](RELATORIO_FET_ORDER_005.md),
+[evidências](TESTES_FET_ORDER_005.md). F023/F024/F026/F029 permanecem pendentes,
+F032 parcial por F023, F039 remoto pendente; F001/F027 não iniciados.
+Inventário dos findings ainda abertos e classificação por dependência no relatório.
+Próximo candidato independente: revalidar F035 (documentação/contratos) e F042
+(manutenção de dependências), sem iniciar implementação automaticamente.
+Validação integral final de 17/10/2026: focused 77/77, architecture 155/155,
+API 1.880 + 15 F024, E2E 96/96 sem skips, axe zero violações, build/SEO/budget/
+Commercial Gate/diff aprovados; npm audits zero vulnerabilidades. Sem commit.
 ## F032 — FET-SEO-001 (16/10/2026)
 
 Status: **PARCIAL — PRODUÇÃO/INDEXABILIDADE DEPENDE DE F023**. Finding histórico

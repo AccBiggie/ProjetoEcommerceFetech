@@ -1,5 +1,12 @@
 # Estados do pedido e pagamento
 
+FET-ORDER-005 acrescenta **Cancelled**, terminal, exclusivamente pela operação de
+cancelamento elegível Processing/PENDING/RESERVED. Order, liberação de Stock,
+RELEASE, outbox e audit admin são transacionais. PAID/paidAt, envio/entrega e
+legado não verificado impedem esse fluxo. PUT status não cancela nem reativa;
+Cancelled não pode avançar para Shipped/Delivered/Processing. Sem refund/return,
+sem confirmação fictícia de pagamento. [Contrato](CANCELAMENTO_PEDIDOS.md).
+
 FET-OPS-002: transição administrativa efetiva gera `ORDER_STATUS_CHANGED` com from/to na mesma transaction do update. Request ID correlaciona resposta/log/audit. Mesmo estado permanece no-op; PENDING/legados sem evidência não avançam. Nenhum pagamento real foi implementado. [Observabilidade](OBSERVABILIDADE.md).
 
 FET-ORDER-004 / F002 / FET-P0-002 — 08/10/2026.

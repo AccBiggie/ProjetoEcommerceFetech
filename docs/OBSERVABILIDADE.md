@@ -1,5 +1,14 @@
 # Observabilidade operacional — FET-OPS-002
 
+FET-ORDER-005: audit admin **ORDER_CANCELLED**, targetType ORDER, reasonCode
+ADMIN_REQUEST, transacional e sem shipping/email/telefone/free-text. Self-cancel
+não é evento administrativo: evidência em Order/RELEASE/outbox. Request ID,
+http.request.error/completed e email.outbox.enqueued permanecem no contrato atual.
+Conflitos esperados 409: ORDER_REFUND_REQUIRED, ORDER_RETURN_REQUIRED,
+ORDER_PAYMENT_UNVERIFIED, ORDER_INVENTORY_UNVERIFIED e ORDER_NOT_CANCELLABLE.
+Não são 500. audit:orders agora inclui lifecycle em leitura snapshot, sem writes
+ou providers. [Categorias e operação](CANCELAMENTO_PEDIDOS.md).
+
 ## Integração de paginação — F022
 
 Audit API usa parser central page/limit com skip máximo 100000 e booleans hasNext/hasPrevious. Filtros/DTO F025, imutabilidade, Request ID e no-store preservados; count/list em paralelo. audit:indexes separado é somente leitura, sem dados/URI ou import de models. Sem logging de query bruta, timeout global ou nova telemetria. [Contrato](PAGINACAO_E_PERFORMANCE_API.md).

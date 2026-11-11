@@ -1,4 +1,20 @@
 # Estado atual — ProjetoEcommerceFetech
+
+## F028 — FET-ORDER-005 (16/10/2026)
+
+Status **PARCIAL**. Cancelamento de pedido elegível não pago/pre-fulfillment com
+reserva verificável, release transacional, ledger, replay/concorrência, UI
+cliente/admin, audit e ORDER_CANCELLED implementados. Refund depende de F001;
+return/logística reversa de F027 + política. Expiração automática POLICY_UNDEFINED.
+Sem prazo, cron ou fluxo financeiro fictício. [Contrato](CANCELAMENTO_PEDIDOS.md),
+[relatório](RELATORIO_FET_ORDER_005.md), [testes](TESTES_FET_ORDER_005.md).
+SEO estava commitada em 0285bc6; esta task permanece sem commit.
+F023 pendente; F024/F026 parciais; F029 aberto; F032 parcial por F023; F039 remoto
+pendente. Baselines F030/F033, correções F002–F022/F025/F031/F036–F040 preservadas.
+F001/F027 não iniciados; banco/providers reais e índices comerciais intocados.
+Validação final da retomada (17/10): focused 77/77, architecture 155/155,
+API 1.880 aprovados + 15 F024, E2E 96/96 sem skips/retries, axe zero violações,
+build/SEO/budget/Commercial Gate/diff aprovados, npm audits zero vulnerabilidades.
 ## F032 — FET-SEO-001 (16/10/2026)
 
 Status: **PARCIAL — PRODUÇÃO/INDEXABILIDADE DEPENDE DE F023**. Baseline client-side:

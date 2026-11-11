@@ -7,18 +7,23 @@ function sourceOrder(order) {
   // but never turn a stored string timestamp into trusted payment evidence.
   const result = Order.hydrate(order).toObject();
   result.paidAt = order.paidAt;
+  result.cancelledAt = order.cancelledAt;
+  result.inventoryReservedAt = order.inventoryReservedAt;
+  result.shippedAt = order.shippedAt;
   result.user = order.user;
   return result;
 }
 function customerOrder(order) {
   const result = sourceOrder(order);
   delete result.idempotencyKeyHash; delete result.idempotencyRequestHash;
+  delete result.cancelledByUserId;
   delete result.administrativeArchivedAt; delete result.administrativeArchivedBy;
   return require('../utils/money').presentOrder(result);
 }
 function adminOrder(order) {
   const result = sourceOrder(order);
   delete result.idempotencyKeyHash; delete result.idempotencyRequestHash;
+  delete result.cancelledByUserId;
   result.administrativeArchivedAt ??= null;
   result.administrativeArchivedBy ??= null;
   return require('../utils/money').presentOrder(result);

@@ -1,5 +1,17 @@
 # Estoque transacional — FET-ORDER-002
 
+## Liberação por cancelamento — FET-ORDER-005
+
+Pedido Processing/PENDING com reserva v1 verificável pode transicionar para
+Cancelled/RELEASED. Order + `$inc` de Stock + RELEASE por produto + outbox
+ORDER_CANCELLED + audit admin, quando aplicável, compartilham uma transação.
+Delta=+quantity, quantidade do snapshot conferida com RESERVE. CAS no Order e
+retry Mongo impedem dupla liberação entre processos. Missing product/ledger,
+overflow, pagamento/envio ou legado não verificado falham fechado.
+Sem índice novo, expiração automática ou operação no banco comercial. Índice
+parcial RESERVE F037 continua pré-requisito e não foi aplicado nesta task.
+[Contrato e concorrência](CANCELAMENTO_PEDIDOS.md).
+
 ## Extensão F037 — estoque administrativo
 
 O catálogo usa INITIAL_STOCK para baseline positivo de novos produtos e

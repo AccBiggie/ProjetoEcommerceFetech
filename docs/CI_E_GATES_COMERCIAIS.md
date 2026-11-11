@@ -1,5 +1,12 @@
 # CI e gates comerciais — FET-CI-001
 
+FET-ORDER-005 adiciona ao wildcard API `orderCancellation.test.js`,
+`orderCancellationConcurrency.test.js`, `orderLifecycleAudit.test.js` e ao E2E
+`orderCancellation.spec.js`. Templates F040 também cobrem ORDER_CANCELLED.
+Probes incluem processos independentes, retry após outbox/audit e falhas all-or-nothing.
+Sem skip F028/E2E; somente 15 bloqueios F024 Tools existentes. CI remoto e branch
+protection continuam não validados. [Evidências](TESTES_FET_ORDER_005.md).
+
 FET-SEO-001 adiciona `frontendSeo.test.js` e `frontendSeoArchitecture.test.js`
 ao estágio architecture; também entram no wildcard do runner API isolado.
 `seo.spec.js` integra o wildcard E2E, sem skips SEO. O estágio build executa

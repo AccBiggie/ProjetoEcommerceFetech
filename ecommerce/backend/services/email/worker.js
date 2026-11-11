@@ -35,7 +35,7 @@ function createWorker({ Model = Default, User = require('../../models/userModel'
         if (!['NORMAL', 'ANONYMIZATION_REQUESTED'].includes(privacyStatusOf(user))) return suppress(row, 'EMAIL_RECIPIENT_STATE_INVALID');
         if (typeof user.email !== 'string' || !validator.isEmail(user.email) || /@privacy\.invalid$/i.test(user.email)) return suppress(row, 'EMAIL_RECIPIENT_INVALID');
         let order;
-        if (row.eventType === 'ORDER_CREATED') {
+        if (['ORDER_CREATED', 'ORDER_CANCELLED'].includes(row.eventType)) {
             order = await Order.findById(row.entityId).select('_id user totalPriceCents totalPrice').lean();
             if (!order) return suppress(row, 'EMAIL_TARGET_MISSING');
             if (String(order.user) !== String(row.recipientUserId)) return suppress(row, 'EMAIL_TARGET_INVALID');

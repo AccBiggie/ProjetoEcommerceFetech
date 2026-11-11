@@ -4,7 +4,7 @@ const { txOptions } = require('../privacySensitiveWrite');
 const modelFor = connection => connection.models.EmailOutbox || connection.model('EmailOutbox', Default.schema);
 async function enqueue({ eventType, recipientUserId, entityId, version = 'v1', requestId = null }, session, connection = Default.db) {
     if (!session?.inTransaction() || !events.includes(eventType) || !(version === 'v1' || Number.isSafeInteger(version) && version >= 0)) throw new Error('Transactional email requires domain transaction');
-    const entityType = eventType === 'ORDER_CREATED' ? 'ORDER' : eventType === 'PRIVACY_REQUEST_CREATED' ? 'PRIVACY_REQUEST' : 'USER';
+    const entityType = ['ORDER_CREATED', 'ORDER_CANCELLED'].includes(eventType) ? 'ORDER' : eventType === 'PRIVACY_REQUEST_CREATED' ? 'PRIVACY_REQUEST' : 'USER';
     const document = new (modelFor(connection))({ eventType, recipientUserId, entityId, entityType, dedupeKey: `${eventType}:${entityId}:${version}`, requestId });
     await document.validate();
     const result = await modelFor(connection).updateOne({ dedupeKey: document.dedupeKey }, { $setOnInsert: document.toObject() }, { upsert: true, session, timestamps: false });

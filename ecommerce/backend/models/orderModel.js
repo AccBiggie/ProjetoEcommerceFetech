@@ -6,7 +6,11 @@ const orderSchema = new mongoose.Schema({
   administrativeArchivedBy: { type: mongoose.Schema.ObjectId, ref: 'User', default: null, select: false },
   idempotencyKeyHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
   idempotencyRequestHash: { type: String, match: /^[0-9a-f]{64}$/, select: false, immutable: true },
-  inventoryStatus: { type: String, enum: ['RESERVED'], immutable: true },
+  inventoryStatus: { type: String, enum: ['RESERVED', 'RELEASED'] },
+  cancelledAt: Date,
+  cancelledByUserId: { type: mongoose.Schema.ObjectId, ref: 'User', select: false },
+  cancellationSource: { type: String, enum: ['CUSTOMER', 'ADMIN'] },
+  cancellationReasonCode: { type: String, enum: ['CUSTOMER_REQUEST', 'ADMIN_REQUEST'] },
   inventoryVersion: { type: Number, enum: [1], immutable: true },
   inventoryReservedAt: { type: Date, immutable: true },
   shippingInfoVersion: { type: Number, enum: [1, 2] },
@@ -62,7 +66,7 @@ const orderSchema = new mongoose.Schema({
   totalPriceCents: require('../utils/money').centsSchema(),
   orderStatus: {
     type: String,
-    enum: ["Processing", "Shipped", "Delivered"],
+    enum: ["Processing", "Shipped", "Delivered", "Cancelled"],
     required: true,
     default: "Processing",
   },
@@ -77,6 +81,10 @@ orderSchema.index({ user: 1, idempotencyKeyHash: 1 }, { unique: true, name: 'one
 require('../utils/queryIndexes').add(orderSchema, 'orders');
 
 orderSchema.pre('validate', function () {
+  if (this.inventoryStatus === 'RELEASED' && this.orderStatus !== 'Cancelled') this.invalidate('inventoryStatus', 'Liberação exige cancelamento.');
+  if (this.orderStatus === 'Cancelled' && (this.inventoryStatus !== 'RELEASED' || !this.cancelledAt || !this.cancelledByUserId ||
+      !this.cancellationSource || !this.cancellationReasonCode || this.paymentStatus !== 'PENDING' || this.paidAt != null || this.deliveredAt != null))
+    this.invalidate('orderStatus', 'Cancelamento inconsistente.');
   if (this.shippingInfoVersion === 2) {
     this.shippingInfo = require('../../shared/shippingAddress.mjs').normalizeShippingAddress(this.shippingInfo);
   }
@@ -89,6 +97,7 @@ orderSchema.pre('validate', function () {
 orderSchema.set('toJSON', { transform: (_doc, ret) => {
   delete ret.administrativeArchivedAt; delete ret.administrativeArchivedBy;
   delete ret.idempotencyKeyHash; delete ret.idempotencyRequestHash;
+  delete ret.cancelledByUserId;
   return require('../utils/money').presentOrder(ret);
 } });
 function forbidPhysicalDelete() {

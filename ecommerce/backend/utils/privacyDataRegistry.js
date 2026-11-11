@@ -1,6 +1,7 @@
 // Classification only. This registry does not invent retention law or schedule erasure.
 const category = (store, fields, classification, purpose, anonymization, retention) => Object.freeze({ store, fields: Object.freeze(fields), classification, purpose, anonymization, retention, retentionPeriod: 'UNDEFINED' });
 const registry = Object.freeze([
+    category('Order', ['cancelledByUserId'], 'PSEUDONYMOUS_IDENTIFIER', 'Autoria do cancelamento comercial', 'PRESERVE', 'HISTORICAL_RETENTION_UNDEFINED'),
     category('User', ['name', 'email', 'avatar'], 'DIRECT_PII', 'Perfil/contato', 'REPLACE_WITH_TOMBSTONE', 'UNTIL_ACCOUNT_ANONYMIZATION'),
     category('User', ['password', 'resetPasswordToken', 'resetPasswordExpire', 'tokenVersion'], 'SECURITY_CREDENTIAL', 'Autenticação', 'ROTATE_AND_REVOKE', 'UNTIL_ACCOUNT_ANONYMIZATION'),
     category('User', ['_id', 'createdAt', 'deactivatedBy', 'role', 'accountStatus', 'privacyStatus'], 'PSEUDONYMOUS_IDENTIFIER', 'Integridade referencial', 'PRESERVE', 'HISTORICAL_RETENTION_UNDEFINED'),

@@ -10,12 +10,17 @@ function render(event, { origin, order } = {}) {
     if (!events.includes(event.eventType)) throw new Error('Unknown email template');
     const url = new URL(origin); if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.origin !== origin) throw new Error('Invalid frontend origin');
     let subject, body, path = '/account';
-    if (event.eventType === 'ORDER_CREATED') {
+    if (['ORDER_CREATED', 'ORDER_CANCELLED'].includes(event.eventType)) {
         if (!order || String(order._id) !== String(event.entityId) || String(order.user) !== String(event.recipientUserId)) throw new Error('Invalid email order');
-        const money = require('../../utils/money');
-        subject = 'Recebemos seu pedido na Fetech';
-        body = `Recebemos seu pedido ${order._id}. Total: ${money.formatBRLFromCents(money.readCents(order, 'totalPrice'))}. Você pode acompanhar o status pela sua conta.`;
         path = '/order/' + order._id;
+        if (event.eventType === 'ORDER_CANCELLED') {
+            subject = 'Seu pedido foi cancelado';
+            body = `Seu pedido ${order._id} foi cancelado. Ele não seguirá o processamento normal.`;
+        } else {
+            const money = require('../../utils/money');
+            subject = 'Recebemos seu pedido na Fetech';
+            body = `Recebemos seu pedido ${order._id}. Total: ${money.formatBRLFromCents(money.readCents(order, 'totalPrice'))}. Você pode acompanhar o status pela sua conta.`;
+        }
     } else [subject, body] = messages[event.eventType];
     const link = origin + path;
     return { subject, text: body + '\n' + link, html: `<p>${escapeHtml(body)}</p><p><a href="${escapeHtml(link)}">Acessar a Fetech</a></p>` };

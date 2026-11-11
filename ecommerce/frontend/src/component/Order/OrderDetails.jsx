@@ -14,22 +14,27 @@ import {
 } from "@mui/material";
 
 import Loader from "../layout/Loader/Loader";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Link, useParams } from "react-router";
 import Page from "../layout/Page";
 import { getErrorMessage } from "../../utils/api";
 import { statusLabel, money, paymentLabel } from "../../utils/format";
+import CancelOrder from './CancelOrder';
+import { useSelector } from 'react-redux';
 
 export default function OrderDetails() {
   const { id } = useParams();
+  const admin = useSelector(state => state.user.user?.role === 'admin');
   const [state, setState] = useState({ loading: true });
+  const readController = useRef(null);
   useEffect(() => {
     const controller = new AbortController();
+    readController.current = controller;
     setState({ loading: true });
     axios
       .get(`/api/v1/order/${id}`, { signal: controller.signal })
-      .then(({ data }) => setState({ order: data.order }))
+      .then(({ data }) => { if (!controller.signal.aborted) setState({ order: data.order }); })
       .catch((error) => {
         if (!axios.isCancel(error)) setState({ error: getErrorMessage(error) });
       });
@@ -57,7 +62,10 @@ export default function OrderDetails() {
             >
               Pedido: {order._id}
             </Typography>
-            <Stepper
+            <Chip label={statusLabel(order.orderStatus)} sx={{ mb: 2 }} />
+            {order.cancelledAt && <Typography>Cancelado em {new Date(order.cancelledAt).toLocaleString('pt-BR')}</Typography>}
+            <CancelOrder order={order} admin={admin} onCancelled={value => { readController.current?.abort(); setState({ order: value }); }} />
+            {order.orderStatus !== 'Cancelled' && <Stepper
               alternativeLabel
               activeStep={["Processing", "Shipped", "Delivered"].indexOf(
                 order.orderStatus,
@@ -68,7 +76,7 @@ export default function OrderDetails() {
                   <StepLabel>{label}</StepLabel>
                 </Step>
               ))}
-            </Stepper>
+            </Stepper>}
             <Chip
               label={"Pagamento: " + paymentLabel(order)}
               variant="outlined"

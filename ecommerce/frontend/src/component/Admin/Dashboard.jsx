@@ -8,6 +8,7 @@ import axios from "axios";
 import { Link } from "react-router";
 import { useSelector } from "react-redux";
 import Page from "../layout/Page";
+import CancelOrder from '../Order/CancelOrder';
 import { useCategories } from "../../context/CategoriesContext";
 import CategoriesManager from "./CategoriesManager";
 import Loader from '../layout/Loader/Loader';
@@ -387,7 +388,7 @@ export default function Dashboard() {
               </TableCell>
               <TableCell>
                 <Stack direction="row" spacing={1}>
-                  {order.orderStatus !== "Delivered" && (
+                  {['Processing', 'Shipped'].includes(order.orderStatus) && (
                     <Button
                       aria-label={(order.orderStatus === 'Processing' ? 'Marcar enviado ' : 'Marcar entregue ') + order._id}
                       disabled={pending || !order.paymentConfirmed}
@@ -407,7 +408,8 @@ export default function Dashboard() {
                         : "Marcar entregue"}
                     </Button>
                   )}
-                  {!order.paymentConfirmed && order.orderStatus !== "Delivered" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
+                  {!order.paymentConfirmed && order.orderStatus === "Processing" && <Typography variant="caption">O envio ficará disponível após a confirmação do pagamento.</Typography>}
+                  <CancelOrder order={order} admin onCancelled={value => { ++requestSequence.current; setData(data => ({ ...data, orders: data.orders.map(item => item._id === value._id ? { ...item, ...value } : item) })); }} />
                   <Button
                     color="primary"
                     aria-label={(order.administrativeArchivedAt ? 'Desarquivar pedido ' : 'Arquivar pedido ') + order._id}

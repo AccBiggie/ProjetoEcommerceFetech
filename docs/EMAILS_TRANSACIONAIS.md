@@ -1,5 +1,14 @@
 # E-mails transacionais F040
 
+FET-ORDER-005 adiciona **ORDER_CANCELLED**, entityType ORDER e dedupe
+ORDER_CANCELLED:OrderId:v1 na mesma transação do cancelamento/release/audit.
+Template pt-BR text/HTML informa cancelamento, sem afirmar refund, estorno,
+valor devolvido ou logística reversa. Não depende de cálculo monetário.
+Recipient é User atual; ANONYMIZED permanece SUPPRESSED, inclusive quando admin
+cancela reserva elegível. Sem email/body/PII direta na outbox. Nenhum SMTP na
+transação ou envio real nesta task. At-least-once/best-effort preservado, sem
+promessa exactly-once SMTP. [Contrato](CANCELAMENTO_PEDIDOS.md).
+
 ## Inventário anterior à implementação — 09/10/2026
 
 Branch main, HEAD 613f18b, worktree limpo; F030 commitada.

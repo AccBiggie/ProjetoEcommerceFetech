@@ -1,5 +1,13 @@
 # Privacidade e retenção — inventário técnico F030
 
+FET-ORDER-005 registra `Order.cancelledByUserId` como PSEUDONYMOUS_IDENTIFIER,
+não anônimo, preservado para autoria comercial; retenção permanece UNDEFINED.
+Campo omitido dos DTOs cliente/admin; audit:users verifica referência opcional.
+cancelledAt/source/reasonCode compõem histórico comercial sem motivo livre ou
+PII direta. Admin pode cancelar pedido elegível de User DEACTIVATED/ANONYMIZED;
+isso não reativa a conta, apaga histórico ou impede supressão F040 do destinatário
+anonimizado. [Cancelamento e limites](CANCELAMENTO_PEDIDOS.md).
+
 Este documento define controles técnicos; não certifica conformidade jurídica.
 ObjectIds e hashes correlacionáveis são identificadores pseudônimos, não dados
 anônimos. RETENTION_PERIOD = **UNDEFINED** quando não há decisão formal do

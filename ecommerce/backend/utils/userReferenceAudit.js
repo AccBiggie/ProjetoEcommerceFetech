@@ -25,7 +25,7 @@ async function auditUserReferences(connection, { write = console.log } = {}) {
     }
     for (const [collection, fields] of [
         ['addresses', [['user', 'Address.user', false]]],
-        ['orders', [['user', 'Order.user', false], ['administrativeArchivedBy', 'Order.administrativeArchivedBy', true]]],
+        ['orders', [['user', 'Order.user', false], ['administrativeArchivedBy', 'Order.administrativeArchivedBy', true], ['cancelledByUserId', 'Order.cancelledByUserId', true]]],
         ['orderidempotencies', [['user', 'OrderIdempotency.user', false]]],
         ['adminauditevents', [['actorUserId', 'AdminAuditEvent.actorUserId', false]]],
         // Product.user's legacy schema uses `require`, so absence is optional;

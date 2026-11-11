@@ -1,5 +1,12 @@
 # Acessibilidade — FET-A11Y-001 / F033
 
+FET-ORDER-005: CancelOrder compartilhado entre lista/detalhe/admin usa botão com
+nome contextual, Dialog com title/description, foco inicial em Voltar, trap,
+Escape/retorno de foco, guard contra duplo clique, Cancelando… em role=status e
+erro em Alert. Cancelado é texto, com data real no detalhe. Estado final sem ação
+pode restaurar foco ao h1. E2E cobre teclado, diálogo, erro e axe sem supressões.
+[Contrato](CANCELAMENTO_PEDIDOS.md).
+
 FET-SEO-001: títulos/head passam pela autoridade `seo/head.mjs`, inclusive recovery.
 Títulos privados são genéricos por rota, sem PII; catálogo filtrado usa título de catálogo.
 H1, foco, skip link e lazy/Suspense permanecem sob F033. Teste SEO cobre navegação,

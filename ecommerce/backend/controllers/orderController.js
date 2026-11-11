@@ -35,7 +35,7 @@ exports.myOrders = catchAsyncErrors(async (req, res) => {
 });
 function statusFilter(status) {
     if (status === undefined) return {};
-    if (!['Processing','Shipped','Delivered'].includes(status)) paging.bad();
+    if (!['Processing','Shipped','Delivered','Cancelled'].includes(status)) paging.bad();
     return { orderStatus: status };
 }
 exports.getAllOrders = catchAsyncErrors(async (req, res) => {
@@ -75,3 +75,13 @@ const archive = archived => catchAsyncErrors(async (req, res) => {
 });
 exports.archiveOrder = archive(true);
 exports.unarchiveOrder = archive(false);
+exports.cancelOrder = catchAsyncErrors(async (req, res) => {
+    if (req.body != null && (Array.isArray(req.body) || typeof req.body !== 'object' || Object.keys(req.body).length)) throw new ErrorHander('O cancelamento não aceita campos adicionais.', 400);
+    await require('../services/productMutationService').prepareStockLedger();
+    const service = require('../services/orderCancellationService').createOrderCancellationService();
+    const admin = req.route.path.startsWith('/admin/');
+    const work = session => service.cancel({ id: req.params.id, actor: req.user._id, admin, requestId: req.requestId, session });
+    const order = admin ? await runAuditedAdminMutation(req, work)
+        : await require('../services/email/enqueue').domainTransaction(Order.db, async session => (await work(session)).value);
+    res.json({ success: true, order: admin ? history.adminOrder(order) : history.customerOrder(order) });
+});
